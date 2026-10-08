@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""تولید محتوای آموزشی غنی برای هر درس — ویندوز و اندروید."""
+"""تولید محتوای آموزشی غنی + خلاصه دیدگاه‌کلی برای هر درس."""
 from __future__ import annotations
 
 import re
@@ -46,9 +46,14 @@ def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = Non
     level_name = _LEVEL_FA.get(level, level)
     first_word = (topic.split() or ["topic"])[0]
 
+    # خلاصه غنی — دیدگاه کلی برای مرور سریع
     summary = (
-        f"{topic} در سطح {level} ({level_name}): "
-        f"از درک مفهوم تا پیکربندی، Verify، عیب‌یابی و مستندسازی در محیط واقعی."
+        f"دیدگاه کلی درباره «{topic}» (سطح {level} — {level_name}): "
+        f"این مبحث مشخص می‌کند موضوع چیست، در شبکه/زیرساخت سازمان کجا استفاده می‌شود، "
+        f"چه پیش‌نیازی دارد، و مهندس در این سطح باید بتواند آن را توضیح دهد، "
+        f"پیکربندی کند، Verify کند و در صورت خرابی عیب‌یابی نماید. "
+        f"خروجی یادگیری: درک مفهوم + کاربرد عملی + مسیر استاندارد کار "
+        f"(Backup → Configure → Verify → Document)."
     )
 
     parts: list[str] = []
@@ -57,68 +62,70 @@ def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = Non
     if title_en:
         parts.append(f"**عنوان انگلیسی:** {title_en}\n")
 
+    parts.append("\n## خلاصه اجرایی (یک نگاه)\n\n")
+    parts.append(summary + "\n")
+
     parts.append("\n## ۱) این موضوع چیست؟\n\n")
     parts.append(
-        f"«{topic}» یکی از اجزای مهم در مسیر مهندس شبکه، زیرساخت و امنیت است. "
-        f"در سطح {level} انتظار می‌رود بتوانید آن را به‌زبان ساده توضیح دهید، "
-        f"جایگاهش را در معماری سازمان مشخص کنید، و ارتباطش را با لایه‌های مجاور بفهمید.\n"
+        f"«{topic}» یکی از اجزای مهم مسیر مهندس شبکه، زیرساخت و امنیت است. "
+        f"در سطح {level} باید بتوانید آن را ساده توضیح دهید، جایش را در معماری ببینید، "
+        f"و ارتباطش را با لایه‌های مجاور بفهمید.\n"
     )
 
     parts.append("\n## ۲) کاربرد عملی در سازمان\n\n")
     parts.append(
-        f"- کاهش قطعی و افزایش پایداری سرویس‌های وابسته به «{topic}»\n"
-        f"- استانداردسازی پیکربندی بین سایت‌ها و تیم‌ها\n"
-        f"- آمادگی برای ممیزی امنیتی و مستندسازی Change\n"
-        f"- پایه برای اتوماسیون، مانیتورینگ و Troubleshooting ساخت‌یافته\n"
+        f"- پایداری سرویس‌های وابسته به «{topic}»\n"
+        f"- استانداردسازی بین سایت‌ها\n"
+        f"- آمادگی ممیزی و Change Management\n"
+        f"- پایه مانیتورینگ و Troubleshooting ساخت‌یافته\n"
     )
 
     parts.append("\n## ۳) پیش‌نیاز ذهنی\n\n")
     parts.append(
-        "قبل از عمیق شدن: مدل OSI/TCP-IP، آدرس‌دهی IP، "
-        "تفاوت Control Plane و Data Plane، و چرخه Change "
-        "(Backup → Apply → Verify → Document).\n"
+        "مدل OSI/TCP-IP، آدرس‌دهی IP، Control vs Data Plane، "
+        "و چرخه Change (Backup → Apply → Verify → Document).\n"
     )
 
     parts.append("\n## ۴) مفاهیم کلیدی\n\n")
     concept_hints = [
-        f"تعریف دقیق «{topic}» و مرز مسئولیت آن",
-        "اجزای تشکیل‌دهنده و وابستگی به سرویس‌های مجاور",
-        "پارامترهای حیاتی که اشتباه تنظیم‌شدنشان باعث outage می‌شود",
-        "تفاوت Lab با Production و نکات rollback",
-        "معیارهای Verify و علائم سلامت سرویس",
-        "تأثیر روی امنیت، لاگ و Compliance",
-        "گزینه‌های طراحی High Availability و Failure Domain",
+        f"تعریف «{topic}» و مرز مسئولیت",
+        "اجزای تشکیل‌دهنده و وابستگی‌ها",
+        "پارامترهای حیاتی و ریسک outage",
+        "Lab در برابر Production و rollback",
+        "معیار Verify و سلامت سرویس",
+        "امنیت، لاگ و Compliance",
+        "HA و Failure Domain",
     ]
     for i in range(d["paras"]):
         hint = concept_hints[i % len(concept_hints)]
         parts.append(f"### {i + 1}) {hint}\n\n")
         parts.append(
-            f"در عمل برای «{topic}»، این مفهوم را با یک مثال از محیط خودتان پیوند بزنید. "
+            f"برای «{topic}» این مفهوم را به محیط خودتان وصل کنید. "
             f"اگر این بخش از کار بیفتد، blast radius چقدر است؟\n\n"
         )
 
-    parts.append("\n## ۵) مسیر استاندارد کار\n\n")
+    parts.append("\n## ۵) مسیر استاندارد\n\n")
     parts.append(
         "```\nLearn → Design → Configure → Verify → Monitor → Break/Fix → Secure → Automate → Document\n```\n"
     )
 
     parts.append("\n## ۶) سناریوی سازمانی\n\n")
     parts.append(
-        f"سازمانی با چند سایت می‌خواهد «{topic}» را استاندارد کند. "
-        f"شما طرح می‌نویسید، در Lab اثبات می‌کنید، و Runbook تحویل می‌دهید.\n"
+        f"سازمان چندسایته می‌خواهد «{topic}» را استاندارد کند. "
+        f"شما طرح می‌نویسید، در Lab اثبات می‌کنید و Runbook می‌دهید.\n"
     )
 
     parts.append("\n## ۷) Verification\n\n")
     parts.append(
-        "1. Backup قبل از تغییر\n2. اعمال در پنجره Change\n"
-        "3. show/status/log\n4. تست end-to-end\n5. ثبت مستندات\n"
+        "1. Backup\n2. اعمال در پنجره Change\n3. show/status/log\n"
+        "4. تست end-to-end\n5. ثبت مستندات\n"
     )
 
     parts.append("\n## ۸) Troubleshooting\n\n")
     steps = [
-        "علائم (Symptom) را دقیق بنویسید",
+        "علائم را دقیق بنویسید",
         "محدوده (Scope) را مشخص کنید",
-        "شواهد: log، counter، capture",
+        "شواهد: log / counter / capture",
         "فرضیه بسازید و تست کنید",
         "اصلاح و Verify",
         "علت ریشه‌ای را مستند کنید",
@@ -127,34 +134,27 @@ def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = Non
         parts.append(f"{i + 1}. {steps[i]}\n")
 
     if level in ("L2", "L3", "L4"):
-        parts.append("\n## ۹) امنیت و Hardening\n\n")
+        parts.append("\n## ۹) امنیت\n\n")
         parts.append(
-            f"- Least Privilege برای مدیریت «{topic}»\n"
-            f"- لاگ تغییرات حساس\n"
-            f"- جداسازی management در صورت امکان\n"
-            f"- بررسی وصله‌های امنیتی\n"
+            f"- Least Privilege برای «{topic}»\n"
+            f"- لاگ تغییرات\n- جداسازی management\n- وصله‌های امنیتی\n"
         )
 
     if level in ("L3", "L4"):
-        parts.append("\n## ۱۰) نگاه Architect\n\n")
+        parts.append("\n## ۱۰) Architect\n\n")
         parts.append(
-            "redundancy، RTO/RPO، ظرفیت، Identity، Firewall، Monitoring و NetBox "
-            f"را برای «{topic}» ببینید. از SPOF پرهیز کنید.\n"
+            "redundancy، RTO/RPO، Identity، Firewall، Monitoring و NetBox را ببینید؛ از SPOF پرهیز کنید.\n"
         )
 
     parts.append("\n## ۱۱) منابع\n\n")
-    parts.append("مستندات رسمی Vendor + RFC. Community فقط راهنمای ثانویه.\n")
+    parts.append("مستندات رسمی Vendor + RFC.\n")
 
     full_content = "".join(parts)
 
-    cmd_lines = [
-        f"# دستورات — {topic} ({level})",
-        "# backup قبل از تغییر",
-        "# --- وضعیت ---",
-    ]
+    cmd_lines = [f"# دستورات — {topic} ({level})", "# backup قبل از تغییر", "# --- وضعیت ---"]
     for i in range(max(1, d["cmds"] // 2)):
         cmd_lines.append(f"show running-config | include {first_word}")
-    cmd_lines.append("# --- Lab config ---")
+    cmd_lines.append("# --- Lab ---")
     for i in range(max(1, d["cmds"] - d["cmds"] // 2)):
         cmd_lines.append("configure terminal")
         cmd_lines.append(f"! step {i + 1}: {topic}")
@@ -168,10 +168,10 @@ def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = Non
         for i in range(d["examples"])
     ]
     if level in ("L3", "L4"):
-        ex.append(f"مثال HA: failover مرتبط با «{topic}» و اندازه‌گیری زمان بازیابی.")
+        ex.append(f"مثال HA: failover مرتبط با «{topic}».")
     examples = "\n".join(ex)
 
-    notes = f"سطح {level}: تمرکز عملی روی «{topic}». Production فقط با Change و Rollback."
+    notes = f"سطح {level}: روی «{topic}» تمرکز عملی داشته باشید."
 
     return {
         "summary": summary,
