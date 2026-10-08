@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.db
+*.db-journal
+.venv/
+venv/
+data/
+server/data/
+server/core/_curriculum_expanded.py
+*.log
+.DS_Store
