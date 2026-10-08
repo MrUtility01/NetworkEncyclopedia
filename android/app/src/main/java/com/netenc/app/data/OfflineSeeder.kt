@@ -8,8 +8,7 @@ import java.io.BufferedInputStream
 import java.util.zip.GZIPInputStream
 
 object OfflineSeeder {
-    // v8: force full reseed of 63 chapters / 5000+ lessons with teacher content
-    private const val META_SEEDED = "offline_seeded_v8"
+    private const val META_SEEDED = "offline_seeded_v9"
 
     suspend fun ensureSeeded(context: Context): Int = withContext(Dispatchers.IO) {
         val dao = AppDatabase.get(context).lessonDao()
@@ -48,8 +47,8 @@ object OfflineSeeder {
                             commands = les.optString("commands"),
                             examples = les.optString("examples"),
                             notes = les.optString("notes"),
-                            lastUpdated = "2026-10-08T22:00:00Z",
-                            contentHash = "offline-v8-full",
+                            lastUpdated = "2026-10-08T23:00:00Z",
+                            contentHash = "offline-v9-deep",
                             deviceId = "android-offline",
                             chapterOrder = chOrder,
                             chapterTitle = chTitle,
