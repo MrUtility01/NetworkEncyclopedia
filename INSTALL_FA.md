@@ -1,44 +1,36 @@
 # نصب و همگام‌سازی
 
-## ۱) ویندوز (میزبان)
+## ویندوز (میزبان)
 
 ```bat
 git clone https://github.com/MrUtility01/NetworkEncyclopedia.git
-cd NetworkEncyclopedia\server
+cd NetworkEncyclopedia
+```
+
+### هسته ۶۳ فصل
+فایل‌های `server/core/db.py`، `phase_a.py`، `full_curriculum.py` را از بسته محلی
+`NetworkEncyclopediaWeb` یا `NetworkEncyclopedia_full_core_for_github.zip` داخل `server/core/` کپی کنید.
+
+همچنین `server/static/app.css` و `app.js` را از همان بسته کپی کنید.
+
+```bat
+cd server
 python -m pip install -r requirements.txt
 python app.py
 ```
 
-یا از پوشه `windows\start.bat`.
+LAN IP در کنسول چاپ می‌شود. اندروید همان IP را می‌زند.
 
-خروجی کنسول چیزی شبیه:
-```text
-LAN: http://192.168.1.10:5050
-Local: http://127.0.0.1:5050
-```
+## اندروید
 
-مرورگر: همان آدرس Local  
-اندروید: همان آدرس LAN
+Android Studio → Open → `android/` → Run  
+دکمه **اتصال** سپس **همگام‌سازی** (دوطرفه + ذخیره آفلاین JSON)
 
-### فایل‌های هسته (curriculum)
-اگر `server/core/full_curriculum.py` و `phase_a.py` و `db.py` کامل نبودند، از بسته محلی `NetworkEncyclopediaWeb` کپی کنید داخل `server/core/`.
+## Sync
 
-## ۲) اندروید
+- GET `/api/sync/hello`
+- GET `/api/sync/manifest?since=`
+- POST `/api/sync/pull`
+- POST `/api/sync/push`
 
-1. Android Studio → Open → پوشه `android/`
-2. Sync Gradle
-3. روی گوشی (همان Wi‑Fi) Run
-4. IP ویندوز را وارد کنید → **اتصال** → **همگام‌سازی**
-
-## ۳) API Sync
-
-| متد | مسیر |
-|-----|------|
-| GET | `/api/sync/hello` |
-| GET | `/api/sync/manifest?since=` |
-| POST | `/api/sync/pull` `{uids:[]}` |
-| POST | `/api/sync/push` `{records:[]}` |
-
-قانون تعارض: **Last-Write-Wins** روی `last_updated` + `content_hash`
-
-توکن اختیاری: متغیر محیطی `NETENC_TOKEN` و هدر `X-NetEnc-Token`
+تعارض: Last-Write-Wins
