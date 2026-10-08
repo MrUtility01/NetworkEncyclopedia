@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""فصل 04 — سیستم‌عامل پایه: Kernel / Windows / Linux / عیب‌یابی منابع"""
+"""فصل ۰۴ — سیستم‌عامل پایه: Kernel · ویندوز · لینوکس · عیب‌یابی منابع"""
 from __future__ import annotations
 import re
 from typing import Any, Dict, Tuple
@@ -10,98 +10,299 @@ def _level(title: str) -> str:
 
 def _topic(title: str) -> str:
     t = re.sub(r"^\[L[0-4]\]\s*", "", title or "")
-    t = re.sub(r"\s*[\u2014\-]\s*(\u0622\u0634\u0646\u0627\u06cc\u06cc|\u0645\u0642\u062f\u0645\u0627\u062a\u06cc|\u0627\u062f\u0645\u06cc\u0646|\u0645\u0647\u0646\u062f\u0633|\u062e\u0628\u0631\u0647|Intro|Junior|Admin|Senior|Architect).*$", "", t, flags=re.I)
+    t = re.sub(r"\s*[—\-]\s*(آشنایی|مقدماتی|ادمین|مهندس|خبره|Intro|Junior|Admin|Senior|Architect).*$", "", t, flags=re.I)
     return t.strip()
 
 def _bucket(topic: str) -> str:
     t = (topic or "").lower()
-    if any(k in t for k in ("kernel", "\u0647\u0633\u062a\u0647", "process", "thread", "scheduler", "syscall", "user mode", "\u0645\u0641\u0647\u0648\u0645", "virtual memory")):
+    if any(k in t for k in ("kernel", "هسته", "process", "thread", "scheduler", "syscall", "user mode", "مفهوم", "virtual memory")):
         return "kernel"
-    if any(k in t for k in ("registry", "\u0648\u06cc\u0646\u062f\u0648\u0632", "windows", "powershell", "event viewer", "task manager", "services")):
+    if any(k in t for k in ("registry", "ویندوز", "windows", "powershell", "event viewer", "task manager", "services", "ntfs")):
         return "windows"
-    if any(k in t for k in ("\u0644\u06cc\u0646\u0648\u06a9\u0633", "linux", "\u0633\u0644\u0633\u0644\u0647", "filesystem", "systemd", "chmod", "journalctl", "fhs", "ext4")):
+    if any(k in t for k in ("لینوکس", "linux", "سلسله", "filesystem", "systemd", "chmod", "journalctl", "fhs", "ext4", "inode")):
         return "linux"
-    if any(k in t for k in ("cpu \u0628\u0627\u0644\u0627", "\u0645\u0646\u0627\u0628\u0639", "resource", "swap", "\u06af\u0644\u0648\u06af\u0627\u0647", "iostat", "bottleneck")):
+    if any(k in t for k in ("cpu بالا", "منابع", "resource", "swap", "گلوگاه", "iostat", "bottleneck", "load", "عیب")):
         return "resource"
     return "kernel"
 
 def _depth(level: str) -> str:
-    return {"L0": "\u062a\u0635\u0648\u06cc\u0631 \u0630\u0647\u0646\u06cc", "L1": "\u0645\u062b\u0627\u0644+Lab", "L2": "\u062f\u0633\u062a\u0648\u0631 \u0627\u062f\u0645\u06cc\u0646", "L3": "\u062a\u062d\u0644\u06cc\u0644", "L4": "\u0633\u0627\u0632\u0645\u0627\u0646\u06cc"}.get(level, "")
+    return {"L0": "تصویر ذهنی", "L1": "مثال+Lab", "L2": "دستور ادمین", "L3": "تحلیل گلوگاه", "L4": "استاندارد سازمانی"}.get(level, "")
 
 def _kernel(topic, level):
-    summary = f"\u00ab{topic}\u00bb: Kernel \u0648\u0627\u0633\u0637 \u0633\u062e\u062a\u200c\u0627\u0641\u0632\u0627\u0631 \u0648 \u0628\u0631\u0646\u0627\u0645\u0647\u200c\u0647\u0627\u0633\u062a."
+    summary = f"«{topic}»: هسته (Kernel) واسط سخت‌افزار و برنامه‌هاست؛ برنامه مستقیم به دیسک/رم دست نمی‌زند."
     full = f"""# {topic}
 
-**\u0633\u0637\u062d:** {level} \u2014 {_depth(level)}
+**سطح:** {level} — {_depth(level)}
 
-## \u062a\u0634\u0628\u06cc\u0647
-\u0628\u0631\u0646\u0627\u0645\u0647 = \u0645\u0634\u062a\u0631\u06cc | Kernel = \u0622\u0634\u067e\u0632\u062e\u0627\u0646\u0647 | \u0633\u062e\u062a\u200c\u0627\u0641\u0632\u0627\u0631 = \u0627\u062c\u0627\u0642
+## تشبیه
+برنامه = مشتری رستوران | Kernel = آشپزخانه | سخت‌افزار = اجاق و مواد
 
-## User Mode \u062f\u0631 \u0628\u0631\u0627\u0628\u0631 Kernel Mode
-User: \u0628\u0631\u0646\u0627\u0645\u0647\u200c\u0647\u0627\u06cc \u0639\u0627\u062f\u06cc | Kernel: \u0647\u0633\u062a\u0647 \u0648 \u062f\u0631\u0627\u06cc\u0648\u0631
+## User Mode در برابر Kernel Mode
+| | User | Kernel |
+|--|------|--------|
+| دسترسی | غیرمستقیم | مستقیم |
+| خرابی | معمولاً همان برنامه | ممکن است کل سیستم |
 
-## Process \u0648 Thread
-Process = \u0628\u0631\u0646\u0627\u0645\u0647 \u062f\u0631 \u062d\u0627\u0644 \u0627\u062c\u0631\u0627 | Thread = \u0645\u0633\u06cc\u0631 \u0627\u062c\u0631\u0627 \u062f\u0627\u062e\u0644 \u0647\u0645\u0627\u0646 process
+## Process و Thread
+Process = برنامه در حال اجرا با حافظه جدا | Thread = مسیر اجرا داخل همان process
 
-## \u0641\u0631\u06cc\u0645\u200c\u0628\u0647\u200c\u0641\u0631\u06cc\u0645 read \u0641\u0627\u06cc\u0644
-1) read \u062f\u0631 User 2) Syscall 3) \u0645\u062c\u0648\u0632 Kernel 4) Cache \u06cc\u0627 \u062f\u06cc\u0633\u06a9 5) \u0628\u0631\u06af\u0634\u062a \u0628\u0647 User
+## فریم‌به‌فریم read فایل
+1) برنامه read می‌زند 2) Syscall وارد Kernel 3) مجوز و مسیر 4) Cache یا دیسک 5) بازگشت به User
 
-## Scheduler \u0648 \u062d\u0627\u0641\u0638\u0647 \u0645\u062c\u0627\u0632\u06cc
-\u0646\u0648\u0628\u062a\u200c\u062f\u0647\u06cc CPU | Page \u0628\u0647 RAM \u06cc\u0627 swap
+## Scheduler و حافظه مجازی
+نوبت CPU را Kernel می‌دهد. صفحه (page) به RAM یا swap نگاشت می‌شود. کمبود RAM → فشار swap → کندی.
+
+## خلاصه
+Kernel نگهبان منابع است.
 """
-    commands = """```\ntasklist\n```\n```\nGet-Process | Sort-Object CPU -Descending | Select -First 10\n```\n```\nps aux --sort=-%cpu | head\n```\n```\nfree -h\n```\n```\nuname -r\n```\n"""
-    lab = """# Lab Kernel\nTask Manager / ps \u0631\u0627 \u0628\u0628\u06cc\u0646. \u0628\u0627\u0631 \u0628\u062f\u0647 \u0648 process \u067e\u0631\u0645\u0635\u0631\u0641 \u0631\u0627 \u067e\u06cc\u062f\u0627 \u06a9\u0646.\n"""
+    commands = f"""# — {topic}
+## ویندوز
+```
+tasklist
+```
+```
+Get-Process | Sort-Object CPU -Descending | Select-Object -First 10
+```
+## لینوکس
+```
+ps aux --sort=-%cpu | head
+```
+```
+top
+```
+```
+free -h
+```
+```
+uname -r
+```
+"""
+    lab = f"""# آزمایشگاه — {topic}
+
+## آزمایش ۱: دیدن processها
+Task Manager یا `ps aux | head`
+
+## آزمایش ۲: بار CPU
+Idle را ببین → کار سنگین → کدام process بالا است؟
+
+## آزمایش ۳: نسخه Kernel/OS
+```
+uname -a
+```
+یا winver
+
+| رخداد | معنی |
+|--------|------|
+| Syscall | ورود به Kernel |
+| Context switch | عوض شدن نوبت |
+| Page fault | صفحه در RAM نبود |
+"""
     return summary, full, commands, lab
 
 def _windows(topic, level):
-    summary = f"\u00ab{topic}\u00bb: \u0648\u06cc\u0646\u062f\u0648\u0632 \u0627\u062f\u0645\u06cc\u0646 = Services + Event Log + Registry(\u0628\u0627 \u0627\u062d\u062a\u06cc\u0627\u0637) + PowerShell."
+    summary = f"«{topic}»: ویندوز ادمین = Services + Event Log + Registry (با احتیاط) + PowerShell."
     full = f"""# {topic}
 
-**\u0633\u0637\u062d:** {level} \u2014 {_depth(level)}
+**سطح:** {level} — {_depth(level)}
 
 ## Registry
-HKLM = \u0633\u06cc\u0633\u062a\u0645 | HKCU = \u06a9\u0627\u0631\u0628\u0631. \u0642\u0628\u0644 \u0627\u0632 \u062a\u063a\u06cc\u06cc\u0631 Export/\u0628\u06a9\u0627\u067e.
+HKLM = کل سیستم | HKCU = کاربر جاری
+**قانون:** قبل از تغییر Export/بکاپ. روی Production بدون Change دست نزن.
 
-## Services \u0648 Event Viewer
-\u0633\u0631\u0648\u06cc\u0633\u200c\u0647\u0627\u06cc \u067e\u0633\u200c\u0632\u0645\u06cc\u0646\u0647 | \u0644\u0627\u06af \u0628\u0631\u0627\u06cc RCA \u0632\u0645\u0627\u0646\u06cc
+## Services
+برنامه پس‌زمینه با عمر طولانی. services.msc یا Get-Service
 
-## NTFS \u0645\u062c\u0648\u0632
-Share + NTFS \u2014 \u0633\u062e\u062a\u200c\u06af\u06cc\u0631\u0627\u0646\u0647\u200c\u062a\u0631 \u0628\u0631\u0646\u062f\u0647 \u0627\u0633\u062a.
+## Event Viewer
+لاگ System/Application/Security برای RCA زمانی.
+
+## فریم‌به‌فریم لاگین دامنه (مفهوم)
+رمز → DC (Kerberos) → Profile/GPO → Desktop
+ساعت کج → Kerberos می‌شکند.
+
+## NTFS
+Share + NTFS؛ سخت‌گیرانه‌تر برنده است. Inheritance را بفهم.
+
+## امنیت
+UAC را بی‌دلیل خاموش نکن؛ ادمین محلی فقط وقتی لازم است.
 """
-    commands = """```\nwinver\n```\n```\nsysteminfo\n```\n```\nGet-Service | Where-Object Status -ne Running | Select -First 15\n```\n```\nGet-WinEvent -LogName System -MaxEvents 15\n```\n```\nGet-Process | Sort CPU -Desc | Select -First 8\n```\n"""
-    lab = """# Lab \u0648\u06cc\u0646\u062f\u0648\u0632\nwinver + systeminfo | services.msc (\u0641\u0642\u0637 \u0645\u0634\u0627\u0647\u062f\u0647) | Event Viewer \u062e\u0637\u0627\u0647\u0627\u06cc 24\u0633\u0627\u0639\u062a\n"""
+    commands = f"""# — {topic}
+```
+winver
+```
+```
+systeminfo
+```
+```
+Get-Service | Where-Object Status -ne 'Running' | Select -First 20
+```
+```
+Get-WinEvent -LogName System -MaxEvents 15
+```
+```
+Get-Process | Sort CPU -Desc | Select -First 8
+```
+```
+reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion /v ProgramFilesDir
+```
+"""
+    lab = f"""# آزمایشگاه ویندوز — {topic}
+
+1) winver + systeminfo — نسخه را یادداشت کن
+2) services.msc — فقط مشاهده Startup Type
+3) Event Viewer → System → خطاهای ۲۴ساعت — یک Event ID یادداشت کن
+4) Task Manager → Sort by CPU/Memory
+
+| ابزار | کاربرد |
+|--------|--------|
+| Task Manager | نمای سریع |
+| Event Viewer | RCA |
+| services.msc | سرویس‌ها |
+| regedit | خطرناک |
+"""
     return summary, full, commands, lab
 
 def _linux(topic, level):
-    summary = f"\u00ab{topic}\u00bb: \u0644\u06cc\u0646\u0648\u06a9\u0633 = \u0641\u0627\u06cc\u0644\u200c\u0633\u06cc\u0633\u062a\u0645 + process + permission + systemd."
+    summary = f"«{topic}»: لینوکس = همه‌چیز فایل + process + permission + systemd."
     full = f"""# {topic}
 
-**\u0633\u0637\u062d:** {level} \u2014 {_depth(level)}
+**سطح:** {level} — {_depth(level)}
 
-## FHS
-/etc \u062a\u0646\u0638\u06cc\u0645\u0627\u062a | /var \u0644\u0627\u06af | /home \u06a9\u0627\u0631\u0628\u0631 | /proc \u0646\u0645\u0627\u06cc Kernel | /boot \u0628\u0648\u062a
+## FHS خلاصه
+| مسیر | نقش |
+|------|-----|
+| / | ریشه |
+| /etc | تنظیمات |
+| /var | لاگ و داده متغیر |
+| /home | کاربران |
+| /proc | نمای Kernel |
+| /boot | کرنل و بوت |
 
-## rwx \u0648 systemd
-chmod/chown \u0628\u0627 \u0627\u062d\u062a\u06cc\u0627\u0637 | systemctl + journalctl
+## مجوز rwx
+User Group Other — chmod/chown با احتیاط روی Production
+
+## systemd
+systemctl status/start/stop | journalctl -u نام -n 50
+
+## فریم‌به‌فریم اجرای دستور
+Shell → PATH → fork+exec → ps → کد خروج $?
+
+## خلاصه
+اول مسیرها، بعد مجوز، بعد سرویس، بعد لاگ.
 """
-    commands = """```\nuname -a\n```\n```\ncat /etc/os-release\n```\n```\nls /\n```\n```\ndf -h\n```\n```\nsystemctl list-units --failed\n```\n```\njournalctl -p err -n 20 --no-pager\n```\n```\nfree -h && uptime\n```\n"""
-    lab = """# Lab Linux\nls /etc /var/log /proc | systemctl status | journalctl -p err\n"""
+    commands = f"""# — {topic}
+```
+uname -a
+```
+```
+cat /etc/os-release
+```
+```
+ls /
+```
+```
+df -h
+```
+```
+ps aux | head
+```
+```
+systemctl list-units --failed
+```
+```
+journalctl -p err -n 20 --no-pager
+```
+```
+free -h && uptime
+```
+```
+ip -br a
+```
+"""
+    lab = f"""# آزمایشگاه لینوکس — {topic}
+
+## ۱ گردش FHS
+```
+ls /etc | head; ls /var/log | head; ls /proc | head
+```
+/proc دیسک واقعی نیست.
+
+## ۲ یک سرویس
+```
+systemctl status systemd-journald
+```
+
+## ۳ لاگ خطا
+```
+journalctl -p err -n 30 --no-pager
+```
+
+## ۴ مجوز
+```
+ls -l /etc/hostname
+```
+"""
     return summary, full, commands, lab
 
 def _resource(topic, level):
-    summary = f"\u00ab{topic}\u00bb: \u06a9\u0646\u062f\u06cc = \u06a9\u062f\u0627\u0645 \u0645\u0646\u0628\u0639\u061f CPU / RAM / Disk / Network."
+    summary = f"«{topic}»: کندی همیشه CPU نیست؛ گلوگاه CPU / RAM / Disk / Network را جدا کن."
     full = f"""# {topic}
 
-**\u0633\u0637\u062d:** {level} \u2014 {_depth(level)}
+**سطح:** {level} — {_depth(level)}
 
-## \u0686\u0647\u0627\u0631 \u06af\u0644\u0648\u06af\u0627\u0647
-CPU | Memory/swap | Disk I/O | Network
+## چهار گلوگاه
+1) CPU 2) Memory/swap 3) Disk I/O 4) Network
 
-## \u0645\u0633\u06cc\u0631 RCA
-\u0639\u0644\u0627\u0645\u062a \u2192 Scope \u2192 CPU? RAM? Disk? Net? \u2192 \u062f\u0644\u06cc\u0644 \u2192 \u0627\u0635\u0644\u0627\u062d
+## فریم‌به‌فریم «سیستم کند است»
+1) همه جا یا یک اپ؟ 2) Load/Task Manager 3) CPU کدام process؟ 4) RAM/swap؟ 5) دیسک 100%؟ 6) DNS/شبکه؟
+
+## نشانه‌ها
+CPU 100% یک process = حلقه/تک‌نخی | Disk util بالا + CPU پایین = I/O | swap زیاد = کمبود RAM
+
+## خلاصه
+سوال: کدام منبع تمام شده؟
 """
-    commands = """```\nGet-Process | Sort CPU -Desc | Select -First 10\n```\n```\nuptime\n```\n```\nmpstat 1 5\n```\n```\nfree -h\n```\n```\nvmstat 1 5\n```\n```\niostat -xz 1 5\n```\n"""
-    lab = """# Lab \u0645\u0646\u0627\u0628\u0639\nBaseline \u2192 \u0628\u0627\u0631 \u2192 \u0645\u0642\u0627\u06cc\u0633\u0647 CPU/RAM/Disk \u2192 \u06cc\u06a9 \u062c\u0645\u0644\u0647 RCA\n"""
+    commands = f"""# — {topic}
+## ویندوز
+```
+Get-Process | Sort CPU -Desc | Select -First 10
+```
+```
+Get-Process | Sort WorkingSet64 -Desc | Select -First 10
+```
+## لینوکس
+```
+uptime
+```
+```
+mpstat 1 5
+```
+```
+free -h
+```
+```
+vmstat 1 5
+```
+```
+iostat -xz 1 5
+```
+```
+ss -s
+```
+"""
+    lab = f"""# آزمایشگاه منابع — {topic}
+
+1) Baseline در حالت آرام
+2) بار بده (فشرده‌سازی / کپی بزرگ / تب زیاد)
+3) همزمان CPU و RAM و Disk را ببین
+4) یک جمله RCA: «کندی از X بود چون Y دیدم»
+
+| نشانه | گلوگاه |
+|--------|--------|
+| CPU 100% یک process | محاسبه |
+| Disk 100% | I/O |
+| RAM پر + swap | حافظه |
+| DNS/ping کند | شبکه |
+"""
     return summary, full, commands, lab
 
 _BUILDERS = {"kernel": _kernel, "windows": _windows, "linux": _linux, "resource": _resource}
@@ -112,6 +313,6 @@ def build_chapter04_lesson(title_fa: str, title_en: str = "") -> Dict[str, Any] 
     summary, full, commands, lab = _BUILDERS[b](topic, level)
     return {
         "summary": summary, "full_content": full, "commands": commands,
-        "examples": lab, "notes": f"\u0641\u0635\u0644\u06f0\u06f4 \u00b7 {b} \u00b7 {level}", "lab": lab,
+        "examples": lab, "notes": f"فصل۰۴ · {b} · {level}", "lab": lab,
         "level": level, "topic": topic, "category": b, "chapter": 4,
     }
