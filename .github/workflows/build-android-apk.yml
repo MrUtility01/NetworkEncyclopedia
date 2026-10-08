@@ -12,6 +12,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
 
     steps:
       - uses: actions/checkout@v4
@@ -27,8 +28,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Export offline curriculum index into Android assets
-        run: python scripts/export_android_index.py
+      - name: Export max-depth curriculum (may take several minutes)
+        run: |
+          python scripts/export_android_index.py
+          ls -lah android/app/src/main/assets/ || true
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -57,3 +60,4 @@ jobs:
           name: NetworkEncyclopedia-debug
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+          compression-level: 0

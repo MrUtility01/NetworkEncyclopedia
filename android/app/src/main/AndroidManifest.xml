@@ -24,8 +24,18 @@
         <activity android:name=".SearchActivity" android:exported="false" />
         <activity android:name=".ScenarioListActivity" android:exported="false" />
         <activity android:name=".ScenarioDetailActivity" android:exported="false" />
-        <activity android:name=".SettingsActivity" android:exported="false" android:label="تنظیمات" />
-        <activity android:name=".JsonIoActivity" android:exported="false" android:label="JSON" />
-        <activity android:name=".ApiExplorerActivity" android:exported="false" android:label="API" />
+        <activity android:name=".SettingsActivity" android:exported="false" />
+        <activity android:name=".JsonIoActivity" android:exported="false" />
+        <activity android:name=".ApiExplorerActivity" android:exported="false" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 </manifest>

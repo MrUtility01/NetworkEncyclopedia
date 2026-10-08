@@ -8,21 +8,18 @@ import java.io.BufferedInputStream
 import java.util.zip.GZIPInputStream
 
 object OfflineSeeder {
-    private const val META_SEEDED = "offline_seeded_v5"
+    private const val META_SEEDED = "offline_seeded_v6"
 
     suspend fun ensureSeeded(context: Context): Int = withContext(Dispatchers.IO) {
         val dao = AppDatabase.get(context).lessonDao()
         val existing = dao.countActive()
         val filled = if (existing > 0) dao.countFilled() else 0
-
         if (dao.getMeta(META_SEEDED) == "1" && existing > 1000 && filled > 1000) {
             return@withContext existing
         }
-
         val json = readCurriculumAsset(context) ?: return@withContext existing
         val root = JSONObject(json)
         val chapters = root.optJSONArray("chapters") ?: return@withContext existing
-
         val batch = mutableListOf<LessonEntity>()
         for (ci in 0 until chapters.length()) {
             val ch = chapters.getJSONObject(ci)
@@ -42,7 +39,6 @@ object OfflineSeeder {
                     batch.add(
                         LessonEntity(
                             uid = uid,
-                            entity = "lesson",
                             titleFa = les.optString("title_fa"),
                             titleEn = les.optString("title_en"),
                             tags = les.optString("level", "L0"),
@@ -52,7 +48,7 @@ object OfflineSeeder {
                             examples = les.optString("examples"),
                             notes = les.optString("notes"),
                             lastUpdated = "1970-01-01T00:00:00Z",
-                            contentHash = "offline-v5-deep",
+                            contentHash = "offline-v6-max",
                             deviceId = "android-offline",
                             chapterOrder = chOrder,
                             chapterTitle = chTitle,
@@ -60,7 +56,7 @@ object OfflineSeeder {
                             lessonOrder = lessonOrd
                         )
                     )
-                    if (batch.size >= 100) {
+                    if (batch.size >= 50) {
                         dao.upsertAll(batch.toList())
                         batch.clear()
                     }

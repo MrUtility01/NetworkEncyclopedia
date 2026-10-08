@@ -1,5 +1,7 @@
 package com.netenc.app
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.widget.Button
@@ -8,6 +10,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import com.netenc.app.data.AppDatabase
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +20,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
-/** خروجی و ورودی JSON — معادل export/import ویندوز */
 class JsonIoActivity : AppCompatActivity() {
     private lateinit var log: TextView
 
@@ -32,8 +34,16 @@ class JsonIoActivity : AppCompatActivity() {
             text = "خروجی JSON (دروس + سناریو)"
             setOnClickListener { exportJson() }
         }
+        val openBtn = Button(this).apply {
+            text = "📂 باز کردن مسیر / فایل JSON"
+            setOnClickListener { openExport() }
+        }
+        val shareBtn = Button(this).apply {
+            text = "اشتراک‌گذاری فایل JSON"
+            setOnClickListener { shareExport() }
+        }
         val importBtn = Button(this).apply {
-            text = "ورودی JSON از فایل export"
+            text = "ورودی JSON از همان مسیر"
             setOnClickListener { importJson() }
         }
         val root = LinearLayout(this).apply {
@@ -46,17 +56,58 @@ class JsonIoActivity : AppCompatActivity() {
                 setPadding(0, 0, 0, 12)
             })
             addView(exportBtn)
+            addView(openBtn)
+            addView(shareBtn)
             addView(importBtn)
             addView(ScrollView(this@JsonIoActivity).apply { addView(log) },
                 LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
         }
         setContentView(root)
-        log.text = "مسیر پیش‌فرض:\nDownload/NetEnc_export.json"
+        log.text = "مسیر:\n${exportFile().absolutePath}"
     }
 
     private fun exportFile(): File {
         val dir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) ?: filesDir
+        if (!dir.exists()) dir.mkdirs()
         return File(dir, "NetEnc_export.json")
+    }
+
+    private fun openExport() {
+        val f = exportFile()
+        log.text = "مسیر کامل:\n${f.absolutePath}\n\nوجود دارد: ${f.exists()}\nحجم: ${if (f.exists()) f.length() else 0} بایت"
+        if (!f.exists()) {
+            Toast.makeText(this, "اول خروجی بگیرید", Toast.LENGTH_SHORT).show()
+            return
+        }
+        try {
+            val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", f)
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/json")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(intent, "باز کردن JSON"))
+        } catch (e: Exception) {
+            // fallback: share sheet
+            shareExport()
+        }
+    }
+
+    private fun shareExport() {
+        val f = exportFile()
+        if (!f.exists()) {
+            Toast.makeText(this, "اول خروجی بگیرید", Toast.LENGTH_SHORT).show()
+            return
+        }
+        try {
+            val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", f)
+            startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                type = "application/json"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }, "اشتراک JSON"))
+        } catch (e: Exception) {
+            log.append("\nخطا: ${e.message}\nمسیر: ${f.absolutePath}")
+        }
     }
 
     private fun exportJson() {
@@ -67,7 +118,7 @@ class JsonIoActivity : AppCompatActivity() {
                 val scenarios = withContext(Dispatchers.IO) { db.scenarioDao().all() }
                 val root = JSONObject()
                 root.put("app", "EngineerJokar-NetEnc")
-                root.put("version", 1)
+                root.put("version", 2)
                 val arr = JSONArray()
                 for (e in lessons) {
                     arr.put(JSONObject().apply {
@@ -92,12 +143,13 @@ class JsonIoActivity : AppCompatActivity() {
                         put("business_context", s.businessContext)
                         put("tasks", s.tasks)
                         put("expected_result", s.expectedResult)
+                        put("incident", s.incident)
                     })
                 }
                 root.put("scenarios", scArr)
                 val f = exportFile()
                 withContext(Dispatchers.IO) { f.writeText(root.toString()) }
-                log.text = "خروجی ذخیره شد:\n${f.absolutePath}\n\nدروس: ${lessons.size}\nسناریو: ${scenarios.size}"
+                log.text = "ذخیره شد:\n${f.absolutePath}\n\nدروس: ${lessons.size}\nسناریو: ${scenarios.size}\nحجم: ${f.length()} بایت\n\nدکمه «باز کردن مسیر» را بزنید."
                 Toast.makeText(this@JsonIoActivity, "Export OK", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 log.text = "خطا: ${e.message}"
@@ -135,13 +187,13 @@ class JsonIoActivity : AppCompatActivity() {
                             lastUpdated = java.time.Instant.now().toString()
                         )
                     )
-                    if (batch.size >= 100) {
+                    if (batch.size >= 80) {
                         withContext(Dispatchers.IO) { dao.upsertAll(batch.toList()) }
                         batch.clear()
                     }
                 }
                 if (batch.isNotEmpty()) withContext(Dispatchers.IO) { dao.upsertAll(batch) }
-                log.text = "Import انجام شد — ${arr.length()} رکورد از\n${f.absolutePath}"
+                log.text = "Import OK — ${arr.length()} از\n${f.absolutePath}"
             } catch (e: Exception) {
                 log.text = "خطا import: ${e.message}"
             }
