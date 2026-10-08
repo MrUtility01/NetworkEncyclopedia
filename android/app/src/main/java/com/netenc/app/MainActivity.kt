@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.netenc.app.data.LessonRepository
+import com.netenc.app.data.OfflineSeeder
 import com.netenc.app.sync.SyncClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,19 +31,35 @@ class MainActivity : AppCompatActivity() {
         logView = findViewById(R.id.logView)
 
         val prefs = getSharedPreferences("netenc", MODE_PRIVATE)
-        hostInput.setText(prefs.getString("host", "http://192.168.1.10:5050"))
+        hostInput.setText(prefs.getString("host", ""))
         tokenInput.setText(prefs.getString("token", ""))
 
+        findViewById<Button>(R.id.btnCatalog).setOnClickListener {
+            startActivity(Intent(this, CatalogActivity::class.java))
+        }
         findViewById<Button>(R.id.btnHello).setOnClickListener { hello() }
         findViewById<Button>(R.id.btnSync).setOnClickListener { sync() }
         findViewById<Button>(R.id.btnOpenWeb).setOnClickListener {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(hostInput.text.toString().trim())))
+            val h = hostInput.text.toString().trim()
+            if (h.isBlank()) {
+                log("اول IP ویندوز را وارد کنید (فقط برای وب اختیاری)")
+            } else {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(h)))
+            }
         }
 
+        // seed آفلاین — بدون سرور
         lifecycleScope.launch {
-            val n = withContext(Dispatchers.IO) { repo.count() }
-            val last = withContext(Dispatchers.IO) { repo.getLastSync() }
-            log("Room: $n درس | آخرین sync: ${last.ifBlank { "—" }}")
+            log("بارگذاری فهرست آفلاین…")
+            try {
+                val n = withContext(Dispatchers.IO) { OfflineSeeder.ensureSeeded(this@MainActivity) }
+                val last = withContext(Dispatchers.IO) { repo.getLastSync() }
+                log("✓ آفلاین آماده: $n درس در Room")
+                log("آخرین sync اختیاری: ${last.ifBlank { "هرگز" }}")
+                log("بدون ویندوز هم می‌توانید «فهرست آفلاین» را باز کنید.")
+            } catch (e: Exception) {
+                log("seed: ${e.message}")
+            }
         }
     }
 
@@ -69,47 +86,49 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun hello() {
+        val h = hostInput.text.toString().trim()
+        if (h.isBlank()) {
+            log("برای اتصال اختیاری، IP ویندوز لازم است. برای مطالعه آفلاین به فهرست بروید.")
+            return
+        }
         lifecycleScope.launch {
-            log("— اتصال…")
+            log("— اتصال اختیاری…")
             try {
                 val body = withContext(Dispatchers.IO) { client().hello() }
                 log(body)
             } catch (e: Exception) {
-                log("خطا: ${e.message}")
+                log("سرور در دسترس نیست (طبیعی اگر ویندوز خاموش است): ${e.message}")
             }
         }
     }
 
     private fun sync() {
+        val h = hostInput.text.toString().trim()
+        if (h.isBlank()) {
+            log("همگام‌سازی اختیاری است — IP ویندوز را فقط وقتی می‌خواهید sync کنید وارد کنید.")
+            return
+        }
         lifecycleScope.launch {
-            log("— همگام‌سازی دوطرفه (Room)…")
+            log("— همگام‌سازی اختیاری…")
             try {
                 val c = client()
                 val since = withContext(Dispatchers.IO) { repo.getLastSync() }.ifBlank { null }
                 val manifest = withContext(Dispatchers.IO) { c.manifest(since) }
-                log("manifest: ${manifest.items.size} تغییر")
-
-                val uids = manifest.items.map { it.uid }
+                log("manifest: ${manifest.items.size}")
                 var pulled = 0
-                for (chunk in uids.chunked(100)) {
+                for (chunk in manifest.items.map { it.uid }.chunked(100)) {
                     val body = withContext(Dispatchers.IO) { c.pull(chunk) }
                     pulled += withContext(Dispatchers.IO) { repo.upsertFromPullJson(body) }
                 }
-                log("pull → Room: $pulled")
-
+                log("pull: $pulled")
                 val pushArr = withContext(Dispatchers.IO) { repo.buildPushArray() }
                 if (pushArr.length() > 0) {
-                    val pushResult = withContext(Dispatchers.IO) { c.push(pushArr) }
-                    log("push: $pushResult")
-                } else {
-                    log("push: خالی")
+                    log("push: " + withContext(Dispatchers.IO) { c.push(pushArr) })
                 }
-
                 withContext(Dispatchers.IO) { repo.setLastSync(Instant.now().toString()) }
-                val n = withContext(Dispatchers.IO) { repo.count() }
-                log("✓ تمام — Room: $n درس")
+                log("✓ sync تمام — محلی: " + withContext(Dispatchers.IO) { repo.count() })
             } catch (e: Exception) {
-                log("خطا: ${e.message}")
+                log("sync ناموفق (اپ همچنان آفلاین کار می‌کند): ${e.message}")
             }
         }
     }

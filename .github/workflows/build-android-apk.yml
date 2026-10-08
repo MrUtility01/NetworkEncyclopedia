@@ -5,6 +5,8 @@ on:
   push:
     paths:
       - 'android/**'
+      - 'server/core/**'
+      - 'scripts/**'
       - '.github/workflows/build-android-apk.yml'
 
 jobs:
@@ -19,6 +21,14 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Export offline curriculum index into Android assets
+        run: python scripts/export_android_index.py
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -40,9 +50,6 @@ jobs:
           gradle wrapper --gradle-version 8.2
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace --no-daemon
-
-      - name: List APK
-        run: find android/app/build/outputs -name '*.apk' -ls
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4

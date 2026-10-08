@@ -12,19 +12,34 @@
         android:text="دایرةالمعارف شبکه"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:paddingBottom="8dp" />
+        android:paddingBottom="4dp" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="آدرس سرور ویندوز (همان Wi‑Fi)"
-        android:textSize="13sp" />
+        android:text="روی گوشی مستقل کار می‌کند. همگام‌سازی اختیاری است."
+        android:textSize="12sp"
+        android:paddingBottom="12dp" />
+
+    <Button
+        android:id="@+id/btnCatalog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📚 فهرست آفلاین (بدون ویندوز)" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="همگام‌سازی اختیاری با ویندوز (همان Wi‑Fi)"
+        android:textSize="13sp"
+        android:paddingTop="16dp"
+        android:paddingBottom="4dp" />
 
     <EditText
         android:id="@+id/hostInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="http://192.168.1.10:5050"
+        android:hint="http://IP-ویندوز:5050"
         android:inputType="textUri"
         android:layoutDirection="ltr"
         android:textAlignment="viewStart" />
@@ -61,7 +76,7 @@
         android:id="@+id/btnOpenWeb"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="باز کردن نسخه وب در مرورگر" />
+        android:text="باز کردن وب ویندوز (اختیاری)" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -76,6 +91,6 @@
             android:textIsSelectable="true"
             android:textSize="13sp"
             android:typeface="monospace"
-            android:text="آماده. IP ویندوز را وارد کنید." />
+            android:text="در حال آماده‌سازی فهرست آفلاین…" />
     </ScrollView>
 </LinearLayout>
