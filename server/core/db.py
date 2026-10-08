@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""SQLite سبک برای نسخه وب — فقط ساختار ۶۳ فصلی کامل."""
+"""SQLite سبک برای نسخه وب — ۶۳ فصل با محتوای غنی."""
 from __future__ import annotations
 
 import json
@@ -113,12 +113,13 @@ class WebDB:
         return self.chapter_count() >= 60
 
     def seed_full(self, force=False):
-        """ساخت کامل ۶۳ فصل از Blueprint — فقط عنوان‌ها (محتوا تنبل)."""
+        """ساخت کامل ۶۳ فصل با محتوای غنی."""
         if self.is_seeded() and not force:
             return {"ok": True, "skipped": True, "chapters": self.chapter_count()}
 
         from core.full_curriculum import get_full_curriculum
         from core.phase_a import CAPSTONE_SCENARIOS, default_meta
+        from core.seed_helpers import insert_rich_lesson
 
         cur = self.conn.cursor()
         if force:
@@ -145,26 +146,7 @@ class WebDB:
                 lv_id = cur.lastrowid
                 n_lv += 1
                 for oi, (lfa, len_) in enumerate(lessons, 1):
-                    tag = lfa[1:3] if lfa.startswith("[L") else "L0"
-                    meta = default_meta(lfa, level=tag)
-                    cur.execute(
-                        """INSERT INTO lessons(
-                            level_id, order_index, title_fa, title_en, tags,
-                            summary, search_query, learning_objectives, meta_json, last_updated
-                        ) VALUES (?,?,?,?,?,?,?,?,?,?)""",
-                        (
-                            lv_id,
-                            oi,
-                            lfa,
-                            len_,
-                            tag,
-                            meta.get("description", ""),
-                            meta.get("ai_search_prompt", ""),
-                            "\n".join(meta.get("learning_objectives") or []),
-                            json.dumps(meta, ensure_ascii=False),
-                            now,
-                        ),
-                    )
+                    insert_rich_lesson(cur, lv_id, oi, lfa, len_, now)
                     n_les += 1
 
         for sc in CAPSTONE_SCENARIOS:
@@ -177,35 +159,18 @@ class WebDB:
                     verification, skills_required, estimated_hours, last_updated
                 ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (
-                    sc["code"],
-                    sc["title_fa"],
-                    sc["title_en"],
-                    sc["category"],
-                    sc["level"],
-                    sc["difficulty"],
-                    sc["users"],
-                    sc["sites"],
-                    sc["vendors"],
-                    sc["business_context"],
-                    sc["requirements"],
-                    sc["constraints"],
-                    sc["initial_state"],
-                    sc["incident"],
-                    sc["symptoms"],
-                    sc["objectives"],
-                    sc["tasks"],
-                    sc["hints"],
-                    sc["expected_result"],
-                    sc["solution"],
-                    sc["verification"],
-                    sc["skills_required"],
-                    sc["estimated_hours"],
-                    now,
+                    sc["code"], sc["title_fa"], sc["title_en"], sc["category"],
+                    sc["level"], sc["difficulty"], sc["users"], sc["sites"],
+                    sc["vendors"], sc["business_context"], sc["requirements"],
+                    sc["constraints"], sc["initial_state"], sc["incident"],
+                    sc["symptoms"], sc["objectives"], sc["tasks"], sc["hints"],
+                    sc["expected_result"], sc["solution"], sc["verification"],
+                    sc["skills_required"], sc["estimated_hours"], now,
                 ),
             )
 
         self.conn.commit()
-        self.set_meta("seeded_version", "web-v1-63ch")
+        self.set_meta("seeded_version", "web-v2-rich")
         self.set_meta("seeded_at", now)
         return {"ok": True, "chapters": n_ch, "levels": n_lv, "lessons": n_les, "scenarios": len(CAPSTONE_SCENARIOS)}
 
@@ -246,32 +211,6 @@ class WebDB:
             d["meta"] = {}
         return d
 
-    def save_lesson_content(self, lesson_id: int, **fields):
-        allowed = {
-            "summary",
-            "full_content",
-            "commands",
-            "examples",
-            "notes",
-            "search_query",
-            "learning_objectives",
-            "source_status",
-        }
-        parts = []
-        vals = []
-        for k, v in fields.items():
-            if k in allowed:
-                parts.append(f"{k}=?")
-                vals.append(v)
-        if not parts:
-            return False
-        parts.append("last_updated=?")
-        vals.append(datetime.now().isoformat())
-        vals.append(lesson_id)
-        self.conn.execute(f"UPDATE lessons SET {', '.join(parts)} WHERE id=?", vals)
-        self.conn.commit()
-        return True
-
     def list_scenarios(self):
         rows = self.conn.execute(
             "SELECT id, code, title_fa, category, level, difficulty, users, sites, estimated_hours FROM scenarios ORDER BY code"
@@ -293,8 +232,7 @@ class WebDB:
                JOIN levels lv ON lv.id=l.level_id
                JOIN chapters c ON c.id=lv.chapter_id
                WHERE l.title_fa LIKE ? OR l.summary LIKE ? OR l.full_content LIKE ?
-               ORDER BY c.order_index, lv.order_index, l.order_index
-               LIMIT ?""",
+               ORDER BY c.order_index, lv.order_index, l.order_index LIMIT ?""",
             (like, like, like, limit),
         ).fetchall()
         return [dict(r) for r in rows]
@@ -309,7 +247,6 @@ class WebDB:
                 "SELECT COUNT(*) c FROM lessons WHERE length(COALESCE(full_content,''))>50"
             ).fetchone()["c"],
         }
-
 
     def ensure_sync_columns(self):
         cols = [
@@ -328,19 +265,15 @@ class WebDB:
                 self.conn.commit()
             except Exception:
                 pass
-        # backfill lesson uids
         rows = self.conn.execute(
             """SELECT l.id, c.order_index AS co, lv.order_index AS lo, l.order_index AS o
-               FROM lessons l
-               JOIN levels lv ON lv.id=l.level_id
-               JOIN chapters c ON c.id=lv.chapter_id
+               FROM lessons l JOIN levels lv ON lv.id=l.level_id JOIN chapters c ON c.id=lv.chapter_id
                WHERE l.uid IS NULL OR l.uid=''"""
         ).fetchall()
         for r in rows:
             uid = f"lesson:ch{int(r['co']):02d}:lv{int(r['lo']):03d}:l{int(r['o']):04d}"
             self.conn.execute("UPDATE lessons SET uid=? WHERE id=?", (uid, r["id"]))
-        scs = self.conn.execute("SELECT id, code FROM scenarios WHERE uid IS NULL OR uid=''").fetchall()
-        for r in scs:
+        for r in self.conn.execute("SELECT id, code FROM scenarios WHERE uid IS NULL OR uid=''").fetchall():
             self.conn.execute("UPDATE scenarios SET uid=? WHERE id=?", (f"scenario:{r['code']}", r["id"]))
         self.conn.commit()
 
@@ -364,77 +297,44 @@ class WebDB:
             return []
         self.ensure_sync_columns()
         qmarks = ",".join("?" * len(uids))
-        rows = self.conn.execute(
+        out = []
+        for r in self.conn.execute(
             f"""SELECT uid, title_fa, title_en, tags, summary, full_content, commands, examples, notes,
                        meta_json, search_query, learning_objectives, source_status, last_updated,
                        content_hash, device_id, COALESCE(deleted,0) AS deleted
-                FROM lessons WHERE uid IN ({qmarks})""",
-            list(uids),
-        ).fetchall()
-        out = []
-        for r in rows:
-            d = dict(r)
-            d["entity"] = "lesson"
-            out.append(d)
-        rows2 = self.conn.execute(
-            f"SELECT * FROM scenarios WHERE uid IN ({qmarks})", list(uids)
-        ).fetchall()
-        for r in rows2:
-            d = dict(r)
-            d["entity"] = "scenario"
-            out.append(d)
+                FROM lessons WHERE uid IN ({qmarks})""", list(uids)).fetchall():
+            d = dict(r); d["entity"] = "lesson"; out.append(d)
+        for r in self.conn.execute(f"SELECT * FROM scenarios WHERE uid IN ({qmarks})", list(uids)).fetchall():
+            d = dict(r); d["entity"] = "scenario"; out.append(d)
         return out
 
     def sync_apply(self, records):
-        """اعمال رکوردهای پذیرفته‌شده از کلاینت (LWW)."""
         self.ensure_sync_columns()
         for rec in records:
             uid = rec.get("uid") or ""
             entity = rec.get("entity") or ("scenario" if uid.startswith("scenario:") else "lesson")
             if entity == "lesson":
-                row = self.conn.execute("SELECT id FROM lessons WHERE uid=?", (uid,)).fetchone()
-                if not row:
+                if not self.conn.execute("SELECT id FROM lessons WHERE uid=?", (uid,)).fetchone():
                     continue
                 self.conn.execute(
                     """UPDATE lessons SET summary=?, full_content=?, commands=?, examples=?, notes=?,
                        meta_json=?, search_query=?, learning_objectives=?, source_status=?,
-                       last_updated=?, content_hash=?, device_id=?, deleted=?
-                       WHERE uid=?""",
-                    (
-                        rec.get("summary", ""),
-                        rec.get("full_content", ""),
-                        rec.get("commands", ""),
-                        rec.get("examples", ""),
-                        rec.get("notes", ""),
-                        rec.get("meta_json", "{}"),
-                        rec.get("search_query", ""),
-                        rec.get("learning_objectives", ""),
-                        rec.get("source_status", "unverified"),
-                        rec.get("last_updated"),
-                        rec.get("content_hash", ""),
-                        rec.get("device_id", ""),
-                        1 if rec.get("deleted") else 0,
-                        uid,
-                    ),
+                       last_updated=?, content_hash=?, device_id=?, deleted=? WHERE uid=?""",
+                    (rec.get("summary", ""), rec.get("full_content", ""), rec.get("commands", ""),
+                     rec.get("examples", ""), rec.get("notes", ""), rec.get("meta_json", "{}"),
+                     rec.get("search_query", ""), rec.get("learning_objectives", ""),
+                     rec.get("source_status", "unverified"), rec.get("last_updated"),
+                     rec.get("content_hash", ""), rec.get("device_id", ""),
+                     1 if rec.get("deleted") else 0, uid),
                 )
             elif entity == "scenario":
-                row = self.conn.execute("SELECT id FROM scenarios WHERE uid=?", (uid,)).fetchone()
-                if not row:
+                if not self.conn.execute("SELECT id FROM scenarios WHERE uid=?", (uid,)).fetchone():
                     continue
                 self.conn.execute(
                     """UPDATE scenarios SET title_fa=?, tasks=?, solution=?, verification=?,
-                       last_updated=?, content_hash=?, device_id=?, deleted=?
-                       WHERE uid=?""",
-                    (
-                        rec.get("title_fa") or "",
-                        rec.get("tasks", ""),
-                        rec.get("solution", ""),
-                        rec.get("verification", ""),
-                        rec.get("last_updated"),
-                        rec.get("content_hash", ""),
-                        rec.get("device_id", ""),
-                        1 if rec.get("deleted") else 0,
-                        uid,
-                    ),
+                       last_updated=?, content_hash=?, device_id=?, deleted=? WHERE uid=?""",
+                    (rec.get("title_fa") or "", rec.get("tasks", ""), rec.get("solution", ""),
+                     rec.get("verification", ""), rec.get("last_updated"), rec.get("content_hash", ""),
+                     rec.get("device_id", ""), 1 if rec.get("deleted") else 0, uid),
                 )
         self.conn.commit()
