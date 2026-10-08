@@ -22,25 +22,27 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-34 build-tools;34.0.0
 
-      - name: Generate Gradle Wrapper
-        working-directory: android
+      - name: Install Gradle 8.2
         run: |
-          gradle wrapper --gradle-version 8.2 || true
-          # fallback if system gradle missing
-          if [ ! -f gradlew ]; then
-            curl -sL https://services.gradle.org/distributions/gradle-8.2-bin.zip -o /tmp/gradle.zip
-            sudo unzip -q /tmp/gradle.zip -d /opt
-            /opt/gradle-8.2/bin/gradle wrapper --gradle-version 8.2
-          fi
-          chmod +x gradlew
+          curl -sL https://services.gradle.org/distributions/gradle-8.2-bin.zip -o /tmp/gradle.zip
+          sudo unzip -q /tmp/gradle.zip -d /opt
+          echo "/opt/gradle-8.2/bin" >> $GITHUB_PATH
 
-      - name: Build debug APK
+      - name: Generate wrapper and build
         working-directory: android
-        run: ./gradlew assembleDebug --stacktrace --no-daemon
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          gradle wrapper --gradle-version 8.2
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace --no-daemon
 
-      - name: List outputs
-        run: find android/app/build/outputs -type f -name '*.apk' -ls || true
+      - name: List APK
+        run: find android/app/build/outputs -name '*.apk' -ls
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
