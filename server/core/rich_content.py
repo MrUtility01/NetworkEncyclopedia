@@ -18,6 +18,13 @@ def _fmt_cmds(pairs):
 
 def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = None) -> Dict[str, Any]:
     try:
+        from core.chapter06_teacher import build_chapter06_lesson
+        if any(k in (title_fa or "") for k in ("LAN", "WAN", "WLAN", "OSI", "لایه", "TCP/IP", "TCP", "UDP", "MAC", "ARP", "آدرس", "Packet", "مسیر بسته", "Encapsulation", "توپولوژی", "مدل چهار", "Broadcast", "Unicast", "Gateway", "مبانی شبکه", "فیزیکی", "دیتا لینک")):
+            c = build_chapter06_lesson(title_fa, title_en)
+            if c: return c
+    except Exception:
+        pass
+    try:
         from core.chapter03_teacher import build_chapter03_lesson
         if any(k in (title_fa or "") for k in ("BIOS", "UEFI", "بوت", "Boot", "Secure Boot", "TPM", "CMOS", "GRUB", "BOOTMGR", "زنجیره", "فیرمور", "ESP", "Bootloader", "PXE", "BCD", "Setup")):
             c = build_chapter03_lesson(title_fa, title_en)
@@ -26,7 +33,7 @@ def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = Non
         pass
     try:
         from core.chapter05_teacher import build_chapter05_lesson
-        if any(k in (title_fa or "") for k in ("FAT", "exFAT", "NTFS", "ext4", "ext3", "XFS", "Btrfs", "inode", "MBR", "GPT", "پارتیشن", "Partition", "RAID", "Mirror", "Stripe", "fsck", "fstab", "mount", "Volume", "BitLocker", "mdadm", "فایل‌سیستم", "parity", "Rebuild")):
+        if any(k in (title_fa or "") for k in ("FAT", "exFAT", "NTFS", "ext4", "ext3", "XFS", "Btrfs", "inode", "MBR", "GPT", "پارتیشن", "Partition", "RAID", "Mirror", "Stripe", "fsck", "fstab", "mount", "Volume", "BitLocker", "mdadm", "parity", "Rebuild")):
             c = build_chapter05_lesson(title_fa, title_en)
             if c: return c
     except Exception:
@@ -49,7 +56,7 @@ def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = Non
         from core.chapter01_teacher import build_chapter01_lesson, _bucket, _topic
         topic0 = _topic(title_fa)
         if _bucket(topic0) in ("cpu", "ram", "storage", "mb", "psu") or any(k in (title_fa or "") for k in ("CPU", "ALU", "RAM", "DDR", "SSD", "HDD", "NVMe", "مادربرد", "Chipset", "PSU", "تغذیه", "حافظه", "ذخیره", "سوکت")):
-            if not any(k in (title_fa or "") for k in ("BIOS", "UEFI", "Secure Boot", "Boot", "CPU بالا", "RAID", "NTFS", "ext4")):
+            if not any(k in (title_fa or "") for k in ("BIOS", "UEFI", "Boot", "CPU بالا", "RAID", "NTFS", "ext4", "MAC", "LAN")):
                 c = build_chapter01_lesson(title_fa, title_en)
                 if c: return c
     except Exception:
