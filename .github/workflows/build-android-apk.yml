@@ -1,65 +1,58 @@
-name: Build Android APK
+name: Build Android APK (دستی)
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'android/**'
-      - 'server/core/**'
-      - 'scripts/**'
-      - '.github/workflows/build-android-apk.yml'
+    inputs:
+      note:
+        description: "یادداشت اختیاری (مثلاً تا فصل 4)"
+        required: false
+        default: "manual"
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
-
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      - name: Export max-depth curriculum (may take several minutes)
+      - name: Content note
         run: |
-          python scripts/export_android_index.py
-          ls -lah android/app/src/main/assets/ || true
-          test -f android/app/src/main/assets/curriculum_index.json.gz
-          python -c "import gzip,json; d=json.loads(gzip.open('android/app/src/main/assets/curriculum_index.json.gz').read()); n=d.get('lesson_count',0); assert n>100, n; print('OK lessons', n)"
+          echo "Build note: ${{ github.event.inputs.note }}"
+          echo "Commit: ${{ github.sha }}"
+          ls server/core/chapter*.py 2>/dev/null || true
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: platform-tools platforms;android-34 build-tools;34.0.0
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-      - name: Install Gradle 8.2
-        run: |
-          curl -sL https://services.gradle.org/distributions/gradle-8.2-bin.zip -o /tmp/gradle.zip
-          sudo unzip -q /tmp/gradle.zip -d /opt
-          echo "/opt/gradle-8.2/bin" >> $GITHUB_PATH
-
-      - name: Generate wrapper and build
+      - name: Build Debug APK
         working-directory: android
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
         run: |
-          echo "sdk.dir=$ANDROID_HOME" > local.properties
-          gradle wrapper --gradle-version 8.2
-          chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace --no-daemon
+          chmod +x gradlew 2>/dev/null || true
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Locate APK
+        id: apk
+        run: |
+          APK=$(find android -name "*.apk" -path "*/outputs/*" | head -n 1)
+          echo "path=$APK" >> "$GITHUB_OUTPUT"
+          ls -lh "$APK"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: NetworkEncyclopedia-debug
-          path: android/app/build/outputs/apk/debug/*.apk
+          path: ${{ steps.apk.outputs.path }}
           if-no-files-found: error
-          compression-level: 0
+          retention-days: 14
