@@ -10,9 +10,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: android
 
     steps:
       - uses: actions/checkout@v4
@@ -23,36 +20,31 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Make gradlew executable
+      - name: Generate Gradle Wrapper
+        working-directory: android
         run: |
-          if [ -f gradlew ]; then chmod +x gradlew; fi
+          gradle wrapper --gradle-version 8.2 || true
+          # fallback if system gradle missing
+          if [ ! -f gradlew ]; then
+            curl -sL https://services.gradle.org/distributions/gradle-8.2-bin.zip -o /tmp/gradle.zip
+            sudo unzip -q /tmp/gradle.zip -d /opt
+            /opt/gradle-8.2/bin/gradle wrapper --gradle-version 8.2
+          fi
+          chmod +x gradlew
 
       - name: Build debug APK
-        run: |
-          if [ -f gradlew ]; then
-            ./gradlew assembleDebug --no-daemon
-          else
-            gradle wrapper --gradle-version 8.2
-            ./gradlew assembleDebug --no-daemon
-          fi
+        working-directory: android
+        run: ./gradlew assembleDebug --stacktrace --no-daemon
 
-      - name: Upload APK
+      - name: List outputs
+        run: find android/app/build/outputs -type f -name '*.apk' -ls || true
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: netenc-debug-apk
+          name: NetworkEncyclopedia-debug
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-
-      - name: Upload to release folder
-        run: |
-          mkdir -p ../dist
-          cp app/build/outputs/apk/debug/*.apk ../dist/NetworkEncyclopedia-debug.apk
-          ls -la ../dist/
-
-      - name: Commit APK to dist branch (optional skip)
-        continue-on-error: true
-        run: |
-          echo "Artifact uploaded — download from Actions"
