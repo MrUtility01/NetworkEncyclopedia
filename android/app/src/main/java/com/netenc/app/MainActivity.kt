@@ -13,6 +13,8 @@ import com.netenc.app.data.AppDatabase
 import com.netenc.app.data.LessonRepository
 import com.netenc.app.data.OfflineSeeder
 import com.netenc.app.data.ScenarioSeeder
+import com.netenc.app.data.StudyRepository
+import com.netenc.app.reminder.ReminderScheduler
 import com.netenc.app.sync.SyncClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,6 +39,12 @@ class MainActivity : AppCompatActivity() {
         hostInput.setText(prefs.getString("host", ""))
         tokenInput.setText(prefs.getString("token", ""))
 
+        // یادآوری ساعتی مرور
+        ReminderScheduler.scheduleHourly(this)
+
+        findViewById<Button>(R.id.btnFlash).setOnClickListener {
+            startActivity(Intent(this, FlashcardActivity::class.java))
+        }
         findViewById<Button>(R.id.btnTree).setOnClickListener {
             startActivity(Intent(this, TreeCatalogActivity::class.java))
         }
@@ -62,22 +70,18 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnSync).setOnClickListener { sync() }
         findViewById<Button>(R.id.btnOpenWeb).setOnClickListener {
             val h = hostInput.text.toString().trim()
-            if (h.isBlank()) log("IP را در تنظیمات یا همین‌جا وارد کنید")
+            if (h.isBlank()) log("IP را وارد کنید")
             else startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(h)))
         }
         findViewById<Button>(R.id.btnAbout).setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Engineer Jokar")
-                .setMessage("دایرةالمعارف شبکه\n09132184122\n\nویندوز و اندروید مستقل\nSync اختیاری LAN")
+                .setMessage("کارت یادگیری + یادآوری ساعتی\nبکاپ JSON → Git یا Drive\n09132184122")
                 .setPositiveButton("باشه", null)
-                .setNeutralButton("تماس") { _, _ ->
-                    startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:09132184122")))
-                }
                 .show()
         }
 
         lifecycleScope.launch { seedAll(force = false) }
-
         if (prefs.getBoolean("auto_sync", false) && !prefs.getString("host", "").isNullOrBlank()) {
             hostInput.postDelayed({ sync() }, 2500)
         }
@@ -87,22 +91,21 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 val dao = AppDatabase.get(this@MainActivity).lessonDao()
-                dao.putMeta(com.netenc.app.data.SyncMetaEntity("offline_seeded_v5", "0"))
-                dao.putMeta(com.netenc.app.data.SyncMetaEntity("offline_seeded_v4", "0"))
+                dao.putMeta(com.netenc.app.data.SyncMetaEntity("offline_seeded_v6", "0"))
             }
             seedAll(force = true)
         }
     }
 
     private suspend fun seedAll(force: Boolean) {
-        log(if (force) "بازسازی اجباری…" else "بارگذاری بانک…")
+        log(if (force) "بازسازی…" else "بارگذاری…")
         try {
             val n = withContext(Dispatchers.IO) { OfflineSeeder.ensureSeeded(this@MainActivity) }
             val sc = withContext(Dispatchers.IO) { ScenarioSeeder.ensure(this@MainActivity) }
-            val filled = withContext(Dispatchers.IO) {
-                AppDatabase.get(this@MainActivity).lessonDao().countFilled()
-            }
-            log("✓ درس: $n · متن‌دار: $filled · سناریو: $sc")
+            val st = withContext(Dispatchers.IO) { StudyRepository(this@MainActivity).stats() }
+            log("✓ درس=$n سناریو=$sc")
+            log("مطالعه: due=${st["due"]} known=${st["known"]} learning=${st["learning"]}")
+            log("یادآوری ساعتی فعال است")
         } catch (e: Exception) {
             log("seed: ${e.message}")
         }
@@ -114,16 +117,20 @@ class MainActivity : AppCompatActivity() {
             val lessons = withContext(Dispatchers.IO) { db.lessonDao().countActive() }
             val filled = withContext(Dispatchers.IO) { db.lessonDao().countFilled() }
             val sc = withContext(Dispatchers.IO) { db.scenarioDao().count() }
+            val st = withContext(Dispatchers.IO) { StudyRepository(this@MainActivity).stats() }
             AlertDialog.Builder(this@MainActivity)
-                .setTitle("آمار SQLite")
-                .setMessage("درس: $lessons\nمتن کامل: $filled\nسناریو: $sc")
+                .setTitle("آمار")
+                .setMessage(
+                    "درس: $lessons\nمتن‌دار: $filled\nسناریو: $sc\n\n" +
+                        "مرور due: ${st["due"]}\nlearning: ${st["learning"]}\nknown: ${st["known"]}"
+                )
                 .setPositiveButton("باشه", null)
                 .show()
         }
     }
 
     private fun askSearch() {
-        val input = EditText(this).apply { hint = "VLAN / OSPF / AD" }
+        val input = EditText(this).apply { hint = "VLAN / OSPF" }
         AlertDialog.Builder(this)
             .setTitle("جستجو")
             .setView(input)
@@ -156,24 +163,15 @@ class MainActivity : AppCompatActivity() {
     private fun log(msg: String) { logView.append("\n$msg") }
 
     private fun hello() {
-        if (hostInput.text.toString().trim().isBlank()) {
-            log("آدرس API را وارد کنید")
-            return
-        }
+        if (hostInput.text.toString().trim().isBlank()) { log("API خالی"); return }
         lifecycleScope.launch {
-            try {
-                log(withContext(Dispatchers.IO) { client().hello() })
-            } catch (e: Exception) {
-                log("خطا: ${e.message}")
-            }
+            try { log(withContext(Dispatchers.IO) { client().hello() }) }
+            catch (e: Exception) { log("${e.message}") }
         }
     }
 
     private fun sync() {
-        if (hostInput.text.toString().trim().isBlank()) {
-            log("Sync نیاز به IP ویندوز دارد")
-            return
-        }
+        if (hostInput.text.toString().trim().isBlank()) { log("IP لازم است"); return }
         lifecycleScope.launch {
             try {
                 val c = client()
@@ -188,9 +186,7 @@ class MainActivity : AppCompatActivity() {
                 if (pushArr.length() > 0) withContext(Dispatchers.IO) { c.push(pushArr) }
                 withContext(Dispatchers.IO) { repo.setLastSync(Instant.now().toString()) }
                 log("✓ sync pull=$pulled")
-            } catch (e: Exception) {
-                log("sync: ${e.message}")
-            }
+            } catch (e: Exception) { log("sync: ${e.message}") }
         }
     }
 }
