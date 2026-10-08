@@ -22,5 +22,10 @@ data class LessonEntity(
     val lastUpdated: String = "",
     val contentHash: String = "",
     val deviceId: String = "",
-    val deleted: Boolean = false
+    val deleted: Boolean = false,
+    // سلسله‌مراتب برای درخت
+    val chapterOrder: Int = 0,
+    val chapterTitle: String = "",
+    val subTitle: String = "",
+    val lessonOrder: Int = 0
 )
