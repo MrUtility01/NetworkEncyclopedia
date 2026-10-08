@@ -18,6 +18,13 @@ def _fmt_cmds(pairs):
 
 def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = None) -> Dict[str, Any]:
     try:
+        from core.chapter15_teacher import build_chapter15_lesson
+        if any(k in (title_fa or "") for k in ("VRF", "MPLS", "Label", "L3VPN", "PE P CE", "LDP", "LSP", "Route Target", "Route Distinguisher", "VPNv4", "Label Switching", "PHP")):
+            c = build_chapter15_lesson(title_fa, title_en)
+            if c: return c
+    except Exception:
+        pass
+    try:
         from core.chapter14_teacher import build_chapter14_lesson
         if any(k in (title_fa or "") for k in ("Static Route", "OSPF", "Link-State", "EIGRP", "Metric مرکب", "BGP", "AS Number", "Prefix-list", "route-map", "Redistribut", "Floating", "LSA", "eBGP", "iBGP", "Administrative Distance", "next-hop")):
             c = build_chapter14_lesson(title_fa, title_en)
@@ -76,7 +83,7 @@ def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = Non
     try:
         from core.chapter06_teacher import build_chapter06_lesson
         if any(k in (title_fa or "") for k in ("LAN", "WAN", "WLAN", "OSI", "لایه فیزیکی", "TCP/IP", "مدل چهار", "Packet", "مسیر بسته", "Encapsulation", "توپولوژی", "Broadcast", "Unicast", "Gateway", "مبانی شبکه", "دیتا لینک", "MAC Address")):
-            if not any(k in (title_fa or "") for k in ("IPv4", "IPv6", "Subnet", "ARP", "ICMP", "DNS", "DHCP", "VLAN", "STP", "OSPF", "BGP")):
+            if not any(k in (title_fa or "") for k in ("IPv4", "IPv6", "Subnet", "ARP", "ICMP", "DNS", "DHCP", "VLAN", "STP", "OSPF", "BGP", "VRF", "MPLS")):
                 c = build_chapter06_lesson(title_fa, title_en)
                 if c: return c
     except Exception:
@@ -113,7 +120,7 @@ def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = Non
         from core.chapter01_teacher import build_chapter01_lesson, _bucket, _topic
         topic0 = _topic(title_fa)
         if _bucket(topic0) in ("cpu", "ram", "storage", "mb", "psu") or any(k in (title_fa or "") for k in ("CPU", "ALU", "RAM", "DDR", "SSD", "HDD", "NVMe", "مادربرد", "Chipset", "PSU", "تغذیه", "حافظه", "ذخیره", "سوکت")):
-            if not any(k in (title_fa or "") for k in ("BIOS", "UEFI", "Boot", "CPU بالا", "RAID", "LAN", "فریم", "IPv4", "TCP", "DNS", "DHCP", "VLAN", "OSPF")):
+            if not any(k in (title_fa or "") for k in ("BIOS", "UEFI", "Boot", "CPU بالا", "RAID", "LAN", "فریم", "IPv4", "TCP", "DNS", "DHCP", "VLAN", "OSPF", "MPLS")):
                 c = build_chapter01_lesson(title_fa, title_en)
                 if c: return c
     except Exception:
