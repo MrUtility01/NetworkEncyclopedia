@@ -7,18 +7,15 @@ import org.json.JSONObject
 import java.io.BufferedInputStream
 import java.util.zip.GZIPInputStream
 
-/** بارگذاری فهرست ۶۳ فصل از assets — بدون نیاز به سرور */
+/** بارگذاری فهرست غنی ۶۳ فصل از assets — نسخه ۲ */
 object OfflineSeeder {
     private const val ASSET = "curriculum_index.json.gz"
-    private const val META_SEEDED = "offline_seeded_v1"
+    private const val META_SEEDED = "offline_seeded_v2"
 
     suspend fun ensureSeeded(context: Context): Int = withContext(Dispatchers.IO) {
-        val repo = LessonRepository(context)
-        val existing = repo.count()
-        if (existing > 100) return@withContext existing
-
         val dao = AppDatabase.get(context).lessonDao()
-        if (dao.getMeta(META_SEEDED) == "1" && existing > 0) return@withContext existing
+        val existing = dao.countActive()
+        if (dao.getMeta(META_SEEDED) == "1" && existing > 1000) return@withContext existing
 
         val json = readAssetGzip(context, ASSET) ?: return@withContext existing
         val root = JSONObject(json)
@@ -34,21 +31,24 @@ object OfflineSeeder {
                     val les = lessons.getJSONObject(li)
                     val uid = les.optString("uid")
                     if (uid.isBlank()) continue
-                    val titleFa = les.optString("title_fa")
                     batch.add(
                         LessonEntity(
                             uid = uid,
                             entity = "lesson",
-                            titleFa = titleFa,
+                            titleFa = les.optString("title_fa"),
                             titleEn = les.optString("title_en"),
-                            summary = "نسخه آفلاین — $titleFa",
-                            fullContent = "این درس به‌صورت آفلاین روی گوشی موجود است.\n\nعنوان: $titleFa\n\nبرای دریافت متن کامل‌تر می‌توانید (اختیاری) با ویندوز روی همان Wi‑Fi همگام‌سازی کنید.",
+                            tags = les.optString("level", "L0"),
+                            summary = les.optString("summary"),
+                            fullContent = les.optString("full_content"),
+                            commands = les.optString("commands"),
+                            examples = les.optString("examples"),
+                            notes = les.optString("notes"),
                             lastUpdated = "1970-01-01T00:00:00Z",
-                            contentHash = "offline-seed",
+                            contentHash = "offline-v2",
                             deviceId = "android-offline"
                         )
                     )
-                    if (batch.size >= 400) {
+                    if (batch.size >= 200) {
                         dao.upsertAll(batch.toList())
                         batch.clear()
                     }
