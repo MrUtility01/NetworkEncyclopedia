@@ -11,29 +11,39 @@
         android:layout_height="wrap_content"
         android:text="دایرةالمعارف شبکه"
         android:textSize="20sp"
-        android:textStyle="bold"
-        android:paddingBottom="4dp" />
+        android:textStyle="bold" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="روی گوشی مستقل کار می‌کند. همگام‌سازی اختیاری است."
+        android:text="مستقل از ویندوز · SQLite محلی · Sync اختیاری"
         android:textSize="12sp"
-        android:paddingBottom="12dp" />
+        android:paddingBottom="10dp" />
+
+    <Button
+        android:id="@+id/btnTree"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📚 فهرست درختی (فصل ← زیرفصل ← درس)" />
 
     <Button
         android:id="@+id/btnCatalog"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="📚 فهرست آفلاین (بدون ویندوز)" />
+        android:text="فهرست تخت همه درس‌ها" />
+
+    <Button
+        android:id="@+id/btnSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🔍 جستجو" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="همگام‌سازی اختیاری با ویندوز (همان Wi‑Fi)"
+        android:text="همگام‌سازی اختیاری با ویندوز"
         android:textSize="13sp"
-        android:paddingTop="16dp"
-        android:paddingBottom="4dp" />
+        android:paddingTop="14dp" />
 
     <EditText
         android:id="@+id/hostInput"
@@ -54,36 +64,22 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingTop="8dp">
-
-        <Button
-            android:id="@+id/btnHello"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="اتصال" />
-
-        <Button
-            android:id="@+id/btnSync"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="همگام‌سازی" />
+        android:orientation="horizontal">
+        <Button android:id="@+id/btnHello" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="اتصال" />
+        <Button android:id="@+id/btnSync" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="همگام‌سازی" />
     </LinearLayout>
 
     <Button
         android:id="@+id/btnOpenWeb"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="باز کردن وب ویندوز (اختیاری)" />
+        android:text="باز کردن وب ویندوز" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:paddingTop="12dp">
-
+        android:paddingTop="10dp">
         <TextView
             android:id="@+id/logView"
             android:layout_width="match_parent"
@@ -91,6 +87,6 @@
             android:textIsSelectable="true"
             android:textSize="13sp"
             android:typeface="monospace"
-            android:text="در حال آماده‌سازی فهرست آفلاین…" />
+            android:text="آماده‌سازی…" />
     </ScrollView>
 </LinearLayout>
