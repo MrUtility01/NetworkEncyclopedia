@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>دایرةالمعارف جامع شبکه — نسخه وب</title>
+  <link rel="stylesheet" href="/static/app.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="brand">
+        <strong>دایرةالمعارف شبکه</strong>
+        <span id="stats" class="muted">در حال آماده‌سازی…</span>
+      </div>
+      <div class="search-box">
+        <input id="q" type="search" placeholder="جستجو…" autocomplete="off" />
+        <button id="btnSearch" type="button">جستجو</button>
+      </div>
+      <div class="top-actions">
+        <button id="btnScenarios" type="button" class="ghost">Capstoneها</button>
+        <button id="btnReseed" type="button" class="ghost danger">بازسازی ساختار</button>
+      </div>
+    </header>
+    <div class="main">
+      <aside class="sidebar">
+        <div class="side-head">فهرست ۶۳ فصل</div>
+        <div id="chapters" class="tree"></div>
+      </aside>
+      <section class="content">
+        <div id="breadcrumb" class="breadcrumb">یک فصل را انتخاب کنید — بارگذاری تنبل</div>
+        <div id="viewer" class="viewer">
+          <div class="welcome">
+            <h1>نسخه وب + Sync LAN</h1>
+            <p>۶۳ فصل کامل. زیر‌فصل و درس فقط با کلیک بارگذاری می‌شوند.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
