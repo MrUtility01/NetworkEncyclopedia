@@ -8,35 +8,42 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.netenc.app.sync.LocalStore
+import com.netenc.app.data.LessonRepository
 import com.netenc.app.sync.SyncClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
+import java.time.Instant
 
 class MainActivity : AppCompatActivity() {
     private lateinit var hostInput: EditText
     private lateinit var tokenInput: EditText
     private lateinit var logView: TextView
-    private lateinit var store: LocalStore
+    private lateinit var repo: LessonRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        store = LocalStore(this)
+        repo = LessonRepository(this)
         hostInput = findViewById(R.id.hostInput)
         tokenInput = findViewById(R.id.tokenInput)
         logView = findViewById(R.id.logView)
+
         val prefs = getSharedPreferences("netenc", MODE_PRIVATE)
         hostInput.setText(prefs.getString("host", "http://192.168.1.10:5050"))
         tokenInput.setText(prefs.getString("token", ""))
+
         findViewById<Button>(R.id.btnHello).setOnClickListener { hello() }
         findViewById<Button>(R.id.btnSync).setOnClickListener { sync() }
         findViewById<Button>(R.id.btnOpenWeb).setOnClickListener {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(hostInput.text.toString().trim())))
         }
-        log("ذخیره محلی: ${'$'}{store.count()} رکورد | آخرین sync: ${'$'}{store.getLastSync().ifBlank { "—" }}")
+
+        lifecycleScope.launch {
+            val n = withContext(Dispatchers.IO) { repo.count() }
+            val last = withContext(Dispatchers.IO) { repo.getLastSync() }
+            log("Room: $n درس | آخرین sync: ${last.ifBlank { "—" }}")
+        }
     }
 
     private fun savePrefs() {
@@ -57,7 +64,9 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun log(msg: String) { logView.append("\n$msg") }
+    private fun log(msg: String) {
+        logView.append("\n$msg")
+    }
 
     private fun hello() {
         lifecycleScope.launch {
@@ -66,39 +75,41 @@ class MainActivity : AppCompatActivity() {
                 val body = withContext(Dispatchers.IO) { client().hello() }
                 log(body)
             } catch (e: Exception) {
-                log("خطا: ${'$'}{e.message}")
+                log("خطا: ${e.message}")
             }
         }
     }
 
     private fun sync() {
         lifecycleScope.launch {
-            log("— همگام‌سازی دوطرفه…")
+            log("— همگام‌سازی دوطرفه (Room)…")
             try {
                 val c = client()
-                val since = store.getLastSync().ifBlank { null }
+                val since = withContext(Dispatchers.IO) { repo.getLastSync() }.ifBlank { null }
                 val manifest = withContext(Dispatchers.IO) { c.manifest(since) }
-                log("manifest: ${'$'}{manifest.items.size} تغییر")
+                log("manifest: ${manifest.items.size} تغییر")
+
                 val uids = manifest.items.map { it.uid }
-                if (uids.isNotEmpty()) {
-                    var pulled = 0
-                    for (chunk in uids.chunked(100)) {
-                        val body = withContext(Dispatchers.IO) { c.pull(chunk) }
-                        pulled += store.upsertLessonsFromPull(body)
-                    }
-                    log("pull اعمال شد: ${'$'}pulled")
+                var pulled = 0
+                for (chunk in uids.chunked(100)) {
+                    val body = withContext(Dispatchers.IO) { c.pull(chunk) }
+                    pulled += withContext(Dispatchers.IO) { repo.upsertFromPullJson(body) }
                 }
-                val pushArr = store.buildPushRecords()
+                log("pull → Room: $pulled")
+
+                val pushArr = withContext(Dispatchers.IO) { repo.buildPushArray() }
                 if (pushArr.length() > 0) {
                     val pushResult = withContext(Dispatchers.IO) { c.push(pushArr) }
-                    log("push: ${'$'}pushResult")
+                    log("push: $pushResult")
                 } else {
-                    log("push: چیزی برای ارسال نبود")
+                    log("push: خالی")
                 }
-                store.setLastSync(java.time.Instant.now().toString())
-                log("✓ تمام — محلی: ${'$'}{store.count()} رکورد")
+
+                withContext(Dispatchers.IO) { repo.setLastSync(Instant.now().toString()) }
+                val n = withContext(Dispatchers.IO) { repo.count() }
+                log("✓ تمام — Room: $n درس")
             } catch (e: Exception) {
-                log("خطا: ${'$'}{e.message}")
+                log("خطا: ${e.message}")
             }
         }
     }

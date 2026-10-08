@@ -23,6 +23,22 @@
       </div>
     </header>
 
+    <div id="syncBar" class="sync-bar">
+      <div class="sync-item">
+        <span class="sync-label">LAN IP</span>
+        <code id="lanIp">—</code>
+        <button type="button" id="btnCopyIp" class="ghost tiny">کپی</button>
+      </div>
+      <div class="sync-item">
+        <span class="sync-label">اندروید</span>
+        <code id="androidHint">http://IP:5050</code>
+      </div>
+      <div class="sync-item">
+        <button type="button" id="btnSyncStatus">وضعیت Sync</button>
+        <span id="syncStatus" class="muted">—</span>
+      </div>
+    </div>
+
     <div class="main">
       <aside class="sidebar">
         <div class="side-head">فهرست ۶۳ فصل</div>
@@ -33,14 +49,8 @@
         <div id="breadcrumb" class="breadcrumb">یک فصل را از راست انتخاب کنید — محتوا فقط هنگام انتخاب بارگذاری می‌شود</div>
         <div id="viewer" class="viewer">
           <div class="welcome">
-            <h1>نسخه وب — بارگذاری تنبل</h1>
-            <p>هر ۶۳ فصل از ابتدا در فهرست هستند. زیر‌فصل و درس فقط وقتی همان گره را باز کنید بارگذاری می‌شوند.</p>
-            <ul>
-              <li>ساختار کامل از Blueprint (نه ۱۴ فصل قدیمی)</li>
-              <li>سطوح L0 تا L4 برای هر موضوع</li>
-              <li>۱۰ سناریوی Capstone سازمانی</li>
-              <li>رابط راست‌چین فارسی</li>
-            </ul>
+            <h1>نسخه وب — بارگذاری تنبل + Sync LAN</h1>
+            <p>IP بالای صفحه را در اپ اندروید وارد کنید و همگام‌سازی بزنید.</p>
           </div>
         </div>
       </section>
