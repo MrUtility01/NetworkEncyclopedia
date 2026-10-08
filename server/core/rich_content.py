@@ -18,8 +18,15 @@ def _fmt_cmds(pairs):
 
 def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = None) -> Dict[str, Any]:
     try:
+        from core.chapter09_teacher import build_chapter09_lesson
+        if any(k in (title_fa or "") for k in ("ARP", "Request Reply", "ICMP", "Echo", "Three-way", "Handshake", "TCP", "UDP", "Sequence", "Window", "SYN", "FIN", "RST", "Gratuitous", "traceroute", "Time Exceeded", "Destination Unreachable", "datagram", "بدون اتصال", "اتصال‌گرا", "سه دست", "ویژگی‌ها")):
+            c = build_chapter09_lesson(title_fa, title_en)
+            if c: return c
+    except Exception:
+        pass
+    try:
         from core.chapter08_teacher import build_chapter08_lesson
-        if any(k in (title_fa or "") for k in ("IPv4", "IPv6", "Subnet", "ساب‌نت", "ساب نت", "ماسک", "Mask", "CIDR", "VLSM", "ساختار آدرس", "128 بیتی", "SLAAC", "Link-Local", "fe80", "NDP", "سگمنت", "RFC1918", "پیشوند", "طرح سازمانی", "Users", "DMZ", "اکتت", "128")):
+        if any(k in (title_fa or "") for k in ("IPv4", "IPv6", "Subnet", "ساب‌نت", "ماسک", "Mask", "CIDR", "VLSM", "ساختار آدرس", "128 بیتی", "SLAAC", "fe80", "NDP", "سگمنت", "RFC1918", "طرح سازمانی", "Users", "DMZ", "اکتت", "128")):
             c = build_chapter08_lesson(title_fa, title_en)
             if c: return c
     except Exception:
@@ -33,15 +40,15 @@ def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = Non
         pass
     try:
         from core.chapter06_teacher import build_chapter06_lesson
-        if any(k in (title_fa or "") for k in ("LAN", "WAN", "WLAN", "OSI", "لایه فیزیکی", "TCP/IP", "مدل چهار", "Packet", "مسیر بسته", "Encapsulation", "توپولوژی", "Broadcast", "Unicast", "Gateway", "مبانی شبکه", "دیتا لینک", "MAC Address", "ARP")):
-            if not any(k in (title_fa or "") for k in ("IPv4", "IPv6", "Subnet", "ساب‌نت", "ماسک", "ساختار آدرس", "128")):
+        if any(k in (title_fa or "") for k in ("LAN", "WAN", "WLAN", "OSI", "لایه فیزیکی", "TCP/IP", "مدل چهار", "Packet", "مسیر بسته", "Encapsulation", "توپولوژی", "Broadcast", "Unicast", "Gateway", "مبانی شبکه", "دیتا لینک", "MAC Address")):
+            if not any(k in (title_fa or "") for k in ("IPv4", "IPv6", "Subnet", "ARP", "ICMP", "Three-way", "ویژگی‌ها")):
                 c = build_chapter06_lesson(title_fa, title_en)
                 if c: return c
     except Exception:
         pass
     try:
         from core.chapter03_teacher import build_chapter03_lesson
-        if any(k in (title_fa or "") for k in ("BIOS", "UEFI", "بوت", "Boot", "Secure Boot", "TPM", "CMOS", "GRUB", "BOOTMGR", "زنجیره", "فیرمور", "ESP", "Bootloader", "PXE", "BCD", "Setup")):
+        if any(k in (title_fa or "") for k in ("BIOS", "UEFI", "بوت", "Boot", "Secure Boot", "TPM", "CMOS", "GRUB", "BOOTMGR", "زنجیره", "فیرمور", "ESP", "PXE", "BCD", "Setup")):
             c = build_chapter03_lesson(title_fa, title_en)
             if c: return c
     except Exception:
@@ -71,7 +78,7 @@ def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = Non
         from core.chapter01_teacher import build_chapter01_lesson, _bucket, _topic
         topic0 = _topic(title_fa)
         if _bucket(topic0) in ("cpu", "ram", "storage", "mb", "psu") or any(k in (title_fa or "") for k in ("CPU", "ALU", "RAM", "DDR", "SSD", "HDD", "NVMe", "مادربرد", "Chipset", "PSU", "تغذیه", "حافظه", "ذخیره", "سوکت")):
-            if not any(k in (title_fa or "") for k in ("BIOS", "UEFI", "Boot", "CPU بالا", "RAID", "LAN", "فریم", "IPv4")):
+            if not any(k in (title_fa or "") for k in ("BIOS", "UEFI", "Boot", "CPU بالا", "RAID", "LAN", "فریم", "IPv4", "TCP")):
                 c = build_chapter01_lesson(title_fa, title_en)
                 if c: return c
     except Exception:
