@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity() {
 
         val prefs = getSharedPreferences("netenc", MODE_PRIVATE)
         hostInput.setText(prefs.getString("host", ""))
-        tokenInput.setText(prefs.getString("token", ""))
+        tokenInput.setText(prefs.getString("token", SettingsActivity.DEFAULT_TOKEN) ?: SettingsActivity.DEFAULT_TOKEN)
 
         // یادآوری ساعتی مرور
         ReminderScheduler.scheduleHourly(this)
@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnAbout).setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Engineer Jokar")
-                .setMessage("کارت یادگیری + یادآوری ساعتی\nبکاپ JSON → Git یا Drive\n09132184122")
+                .setMessage("کارت یادگیری + یادآوری ساعتی\nبکاپ JSON → Git یا Drive\nمنابع معتبر در تنظیمات\nتوکن پیش‌فرض: 09136555866")
                 .setPositiveButton("باشه", null)
                 .show()
         }
@@ -91,7 +91,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 val dao = AppDatabase.get(this@MainActivity).lessonDao()
-                dao.putMeta(com.netenc.app.data.SyncMetaEntity("offline_seeded_v6", "0"))
+                dao.putMeta(com.netenc.app.data.SyncMetaEntity("offline_seeded_v7", "0"))
             }
             seedAll(force = true)
         }
