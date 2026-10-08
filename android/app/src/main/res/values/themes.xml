@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.NetEnc" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">#3B82F6</item>
-        <item name="colorPrimaryVariant">#1E3A5F</item>
+    <style name="Theme.NetEnc" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">#1D4ED8</item>
+        <item name="colorPrimaryVariant">#1E3A8A</item>
         <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="android:statusBarColor">#0F1419</item>
-        <item name="android:windowBackground">#0F1419</item>
-        <item name="android:textColorPrimary">#E8EEF7</item>
-        <item name="android:textColorSecondary">#9AA8BC</item>
+        <item name="colorSecondary">#0F766E</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="android:statusBarColor">#E8EEF5</item>
+        <item name="android:navigationBarColor">#F4F6F9</item>
+        <item name="android:windowBackground">#F4F6F9</item>
+        <item name="android:textColorPrimary">#1B2430</item>
+        <item name="android:textColorSecondary">#5A6A7A</item>
         <item name="android:fontFamily">sans-serif</item>
         <item name="fontFamily">sans-serif</item>
         <item name="android:textDirection">rtl</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>

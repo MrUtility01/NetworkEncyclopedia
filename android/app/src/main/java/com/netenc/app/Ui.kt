@@ -7,12 +7,18 @@ import android.util.TypedValue
 import android.view.View
 import android.widget.TextView
 
+/** تم روشن حرفه‌ای — خوانا برای فارسی */
 object Ui {
-    val BG = Color.parseColor("#0F1419")
-    val CARD = Color.parseColor("#1A2332")
-    val TEXT = Color.parseColor("#E8EEF7")
-    val MUTED = Color.parseColor("#9AA8BC")
-    val ACCENT = Color.parseColor("#60A5FA")
+    val BG = Color.parseColor("#F4F6F9")
+    val CARD = Color.parseColor("#FFFFFF")
+    val TEXT = Color.parseColor("#1B2430")
+    val MUTED = Color.parseColor("#5A6A7A")
+    val ACCENT = Color.parseColor("#1D4ED8")
+    val ACCENT_SOFT = Color.parseColor("#DBEAFE")
+    val BORDER = Color.parseColor("#D8DEE8")
+    val SUCCESS = Color.parseColor("#166534")
+    val DANGER = Color.parseColor("#B91C1C")
+    val WARN = Color.parseColor("#C2410C")
 
     fun persianTypeface(): Typeface =
         Typeface.create("sans-serif", Typeface.NORMAL)
