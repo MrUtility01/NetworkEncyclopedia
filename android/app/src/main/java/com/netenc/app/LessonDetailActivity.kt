@@ -40,7 +40,7 @@ class LessonDetailActivity : AppCompatActivity() {
             setTextColor(0xFF9AA8BC.toInt())
         }
         val tabs = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        val tabNames = listOf("خلاصه", "متن", "دستورات", "مثال", "نکات")
+        val tabNames = listOf("خلاصه", "متن", "دستورات", "Lab", "نکات")
         val tabButtons = mutableListOf<Button>()
         tabNames.forEachIndexed { idx, name ->
             val b = Button(this).apply {
@@ -76,7 +76,7 @@ class LessonDetailActivity : AppCompatActivity() {
                 }
             }
         }
-        studyRow.addView(studyBtn("✓ مطالعه کردم", "studied"), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        studyRow.addView(studyBtn("✓ بلدم", "studied"), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         studyRow.addView(studyBtn("⏰ دوباره", "again"), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         studyRow.addView(studyBtn("✗ بلد نیستم", "forgot"), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
 
@@ -98,8 +98,10 @@ class LessonDetailActivity : AppCompatActivity() {
             addView(studyRow)
             addView(tabs)
             addView(btnCopy)
-            addView(ScrollView(this@LessonDetailActivity).apply { addView(body) },
-                LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+            addView(
+                ScrollView(this@LessonDetailActivity).apply { addView(body) },
+                LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
+            )
         }
         setContentView(root)
 
@@ -117,13 +119,17 @@ class LessonDetailActivity : AppCompatActivity() {
     private fun tabText(): String {
         val e = lesson ?: return ""
         return when (currentTab) {
-            0 -> e.summary.ifBlank { "(خالی)" }
-            1 -> e.fullContent.ifBlank { "(خالی)" }
-            2 -> e.commands.ifBlank { "(خالی)" }
-            3 -> e.examples.ifBlank { "(خالی)" }
-            else -> e.notes.ifBlank { "(خالی)" }
+            0 -> e.summary.ifBlank { "(خلاصه خالی)" }
+            1 -> e.fullContent.ifBlank { "(متن خالی)" }
+            2 -> e.commands.ifBlank { "(دستورات خالی)" }
+            3 -> e.examples.ifBlank {
+                e.notes.ifBlank { "(Lab خالی — بازسازی محتوا)" }
+            }
+            else -> e.notes.ifBlank { "(نکته‌ای ثبت نشده)" }
         }
     }
 
-    private fun renderTab() { body.text = tabText() }
+    private fun renderTab() {
+        body.text = tabText()
+    }
 }
