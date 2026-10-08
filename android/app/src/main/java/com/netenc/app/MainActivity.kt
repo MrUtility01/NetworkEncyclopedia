@@ -39,11 +39,16 @@ class MainActivity : AppCompatActivity() {
         hostInput.setText(prefs.getString("host", ""))
         tokenInput.setText(prefs.getString("token", SettingsActivity.DEFAULT_TOKEN) ?: SettingsActivity.DEFAULT_TOKEN)
 
-        // یادآوری ساعتی مرور
         ReminderScheduler.scheduleHourly(this)
 
+        findViewById<Button>(R.id.btnStudyHub).setOnClickListener {
+            startActivity(Intent(this, StudyHubActivity::class.java))
+        }
+        findViewById<Button>(R.id.btnQuiz).setOnClickListener {
+            startActivity(Intent(this, QuizActivity::class.java))
+        }
         findViewById<Button>(R.id.btnFlash).setOnClickListener {
-            startActivity(Intent(this, FlashcardActivity::class.java))
+            startActivity(Intent(this, FlashcardActivity::class.java).putExtra("mode", "review"))
         }
         findViewById<Button>(R.id.btnTree).setOnClickListener {
             startActivity(Intent(this, TreeCatalogActivity::class.java))
@@ -76,7 +81,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnAbout).setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Engineer Jokar")
-                .setMessage("کارت یادگیری + یادآوری ساعتی\nبکاپ JSON → Git یا Drive\nمنابع معتبر در تنظیمات\nتوکن پیش‌فرض: 09136555866")
+                .setMessage("یادگیری عمیق: SRS + آزمون + هدف روزانه\nمرکز یادگیری · کارت · سناریو\nتوکن: 09136555866")
                 .setPositiveButton("باشه", null)
                 .show()
         }
@@ -104,7 +109,7 @@ class MainActivity : AppCompatActivity() {
             val sc = withContext(Dispatchers.IO) { ScenarioSeeder.ensure(this@MainActivity) }
             val st = withContext(Dispatchers.IO) { StudyRepository(this@MainActivity).stats() }
             log("✓ درس=$n سناریو=$sc")
-            log("مطالعه: due=${st["due"]} known=${st["known"]} learning=${st["learning"]}")
+            log("مطالعه: due=${st["due"]} today=${st["today"]}/${st["goal"]} streak=${st["streak"]}")
             log("یادآوری ساعتی فعال است")
         } catch (e: Exception) {
             log("seed: ${e.message}")
@@ -119,12 +124,17 @@ class MainActivity : AppCompatActivity() {
             val sc = withContext(Dispatchers.IO) { db.scenarioDao().count() }
             val st = withContext(Dispatchers.IO) { StudyRepository(this@MainActivity).stats() }
             AlertDialog.Builder(this@MainActivity)
-                .setTitle("آمار")
+                .setTitle("آمار یادگیری")
                 .setMessage(
                     "درس: $lessons\nمتن‌دار: $filled\nسناریو: $sc\n\n" +
-                        "مرور due: ${st["due"]}\nlearning: ${st["learning"]}\nknown: ${st["known"]}"
+                        "امروز: ${st["today"]}/${st["goal"]}\n" +
+                        "زنجیره: ${st["streak"]} روز\n" +
+                        "due: ${st["due"]}\nlearning: ${st["learning"]}\nknown: ${st["known"]}"
                 )
                 .setPositiveButton("باشه", null)
+                .setNeutralButton("مرکز یادگیری") { _, _ ->
+                    startActivity(Intent(this@MainActivity, StudyHubActivity::class.java))
+                }
                 .show()
         }
     }
