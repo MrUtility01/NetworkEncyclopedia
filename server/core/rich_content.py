@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""محتوای عمیق: teacher اختصاصی + deep_fallback برای بقیه."""
+"""محتوای عمیق: teacher اختصاصی + deep_fallback."""
 from __future__ import annotations
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict
 from core.rich_data import BANKS, COMMON
 
 def level_tag(title: str) -> str:
@@ -11,13 +11,20 @@ def level_tag(title: str) -> str:
 
 def clean_topic(title: str) -> str:
     t = re.sub(r"^\[L[0-4]\]\s*", "", title or "").strip()
-    t = re.sub(r"\s*[—\-]\s*(آشنایی|مقدماتی|ادمین|مهندس|خبره|Intro|Junior|Admin|Senior|Architect)\s*$", "", t, flags=re.I)
+    t = re.sub(r"\s*[—\-]\s*(آشنایی|مقدماتی|ادمین|مهندس|خبره).*$", "", t, flags=re.I)
     return t.strip() or (title or "موضوع")
 
 def _fmt_cmds(pairs):
     return "\n".join(f"```\n{cmd}\n```\n→ {desc}\n" for cmd, desc in pairs)
 
 def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = None) -> Dict[str, Any]:
+    try:
+        from core.chapter17_teacher import build_chapter17_lesson
+        if any(k in (title_fa or "") for k in ("VXLAN", "VNI", "VTEP", "Overlay", "EVPN", "Control Plane", "Route Type", "Leaf", "Spine", "Underlay", "Anycast", "RT-2", "RT-3", "RT-5")):
+            c = build_chapter17_lesson(title_fa, title_en)
+            if c: return c
+    except Exception:
+        pass
     try:
         from core.chapter16_teacher import build_chapter16_lesson
         if any(k in (title_fa or "") for k in ("Multicast", "PIM", "IGMP", "Dense", "Sparse", "IPTV", "چرا Multicast", "Rendezvous", "MLD", "SSM")):
@@ -91,7 +98,7 @@ def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = Non
     try:
         from core.chapter06_teacher import build_chapter06_lesson
         if any(k in (title_fa or "") for k in ("LAN", "WAN", "WLAN", "OSI", "TCP/IP", "Packet", "Encapsulation", "توپولوژی", "Broadcast", "Unicast", "Gateway", "مبانی شبکه")):
-            if not any(k in (title_fa or "") for k in ("IPv4", "IPv6", "Subnet", "ARP", "ICMP", "DNS", "DHCP", "VLAN", "STP", "OSPF", "BGP", "MPLS", "Multicast")):
+            if not any(k in (title_fa or "") for k in ("IPv4", "IPv6", "Subnet", "ARP", "ICMP", "DNS", "DHCP", "VLAN", "STP", "OSPF", "BGP", "MPLS", "Multicast", "VXLAN", "EVPN")):
                 c = build_chapter06_lesson(title_fa, title_en)
                 if c: return c
     except Exception:
@@ -128,7 +135,7 @@ def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = Non
         from core.chapter01_teacher import build_chapter01_lesson, _bucket, _topic
         topic0 = _topic(title_fa)
         if _bucket(topic0) in ("cpu", "ram", "storage", "mb", "psu") or any(k in (title_fa or "") for k in ("CPU", "ALU", "RAM", "DDR", "SSD", "HDD", "NVMe", "مادربرد", "Chipset", "PSU", "تغذیه")):
-            if not any(k in (title_fa or "") for k in ("BIOS", "UEFI", "Boot", "CPU بالا", "RAID", "LAN", "IPv4", "TCP", "DNS", "DHCP", "VLAN", "OSPF", "MPLS", "Multicast")):
+            if not any(k in (title_fa or "") for k in ("BIOS", "UEFI", "Boot", "CPU بالا", "RAID", "LAN", "IPv4", "TCP", "DNS", "DHCP", "VLAN", "OSPF", "MPLS", "Multicast", "VXLAN")):
                 c = build_chapter01_lesson(title_fa, title_en)
                 if c: return c
     except Exception:
