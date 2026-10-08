@@ -1,18 +1,18 @@
-# ساخت APK فقط با Run workflow دستی — محتوا تا همان commit
+# ساخت APK فقط با Run workflow دستی — محتوا تا همان commit (آفلاین کامل)
 name: Build Android APK (دستی)
 
 on:
   workflow_dispatch:
     inputs:
       note:
-        description: "یادداشت اختیاری (مثلاً تا فصل ۱۵)"
+        description: "یادداشت اختیاری (مثلاً تا فصل ۱۶)"
         required: false
         default: "manual"
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       ANDROID_HOME: /usr/local/lib/android/sdk
     steps:
@@ -25,6 +25,11 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - name: Accept Android licenses & install platform
         run: |
           set -e
@@ -33,11 +38,25 @@ jobs:
           yes | sdkmanager --licenses >/tmp/sdk-licenses.txt 2>&1 || true
           sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools" 2>&1 | tail -20
 
+      - name: Export full offline curriculum into assets
+        run: |
+          set -e
+          python3 scripts/export_android_index.py
+          python3 - <<'PY'
+          import gzip, json
+          from pathlib import Path
+          p = Path("android/app/src/main/assets/curriculum_index.json.gz")
+          d = json.loads(gzip.open(p, "rt", encoding="utf-8").read())
+          print("chapters", len(d["chapters"]), "lessons", d["lesson_count"])
+          assert len(d["chapters"]) >= 60, "curriculum incomplete"
+          assert d["lesson_count"] >= 5000, "too few lessons"
+          PY
+
       - name: Content note
         run: |
           echo "Build note: ${{ github.event.inputs.note }}"
           echo "Commit: ${{ github.sha }}"
-          ls server/core/chapter*.py 2>/dev/null || true
+          ls server/core/chapter*_teacher.py 2>/dev/null | wc -l
 
       - name: Ensure Gradle Wrapper
         working-directory: android
