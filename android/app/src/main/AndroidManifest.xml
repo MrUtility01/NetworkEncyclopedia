@@ -3,6 +3,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="true"
@@ -27,6 +29,7 @@
         <activity android:name=".SettingsActivity" android:exported="false" />
         <activity android:name=".JsonIoActivity" android:exported="false" />
         <activity android:name=".ApiExplorerActivity" android:exported="false" />
+        <activity android:name=".FlashcardActivity" android:exported="false" android:label="کارت یادگیری" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
