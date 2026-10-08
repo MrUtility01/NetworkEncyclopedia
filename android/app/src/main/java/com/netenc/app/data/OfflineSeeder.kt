@@ -8,13 +8,13 @@ import java.io.BufferedInputStream
 import java.util.zip.GZIPInputStream
 
 object OfflineSeeder {
-    private const val META_SEEDED = "offline_seeded_v6"
+    private const val META_SEEDED = "offline_seeded_v7"
 
     suspend fun ensureSeeded(context: Context): Int = withContext(Dispatchers.IO) {
         val dao = AppDatabase.get(context).lessonDao()
         val existing = dao.countActive()
         val filled = if (existing > 0) dao.countFilled() else 0
-        if (dao.getMeta(META_SEEDED) == "1" && existing > 1000 && filled > 1000) {
+        if (dao.getMeta(META_SEEDED) == "1" && existing > 500 && filled > 200) {
             return@withContext existing
         }
         val json = readCurriculumAsset(context) ?: return@withContext existing
@@ -47,8 +47,8 @@ object OfflineSeeder {
                             commands = les.optString("commands"),
                             examples = les.optString("examples"),
                             notes = les.optString("notes"),
-                            lastUpdated = "1970-01-01T00:00:00Z",
-                            contentHash = "offline-v6-max",
+                            lastUpdated = "2026-10-08T00:00:00Z",
+                            contentHash = "offline-v7-deep",
                             deviceId = "android-offline",
                             chapterOrder = chOrder,
                             chapterTitle = chTitle,
