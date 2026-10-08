@@ -1,10 +1,11 @@
+# ساخت APK فقط با Run workflow دستی — محتوا تا همان commit
 name: Build Android APK (دستی)
 
 on:
   workflow_dispatch:
     inputs:
       note:
-        description: "یادداشت اختیاری (مثلاً تا فصل 4)"
+        description: "یادداشت اختیاری (مثلاً تا فصل ۱۵)"
         required: false
         default: "manual"
 
@@ -22,10 +23,8 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Content note
         run: |
@@ -33,14 +32,38 @@ jobs:
           echo "Commit: ${{ github.sha }}"
           ls server/core/chapter*.py 2>/dev/null || true
 
+      - name: Ensure Gradle Wrapper
+        working-directory: android
+        run: |
+          set -e
+          mkdir -p gradle/wrapper
+          if [ ! -f gradle/wrapper/gradle-wrapper.properties ]; then
+            printf '%s\n' \
+              'distributionBase=GRADLE_USER_HOME' \
+              'distributionPath=wrapper/dists' \
+              'distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-bin.zip' \
+              'networkTimeout=10000' \
+              'validateDistributionUrl=true' \
+              'zipStoreBase=GRADLE_USER_HOME' \
+              'zipStorePath=wrapper/dists' \
+              > gradle/wrapper/gradle-wrapper.properties
+          fi
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            curl -fsSL -o gradle/wrapper/gradle-wrapper.jar \
+              "https://github.com/gradle/gradle/raw/v8.2.0/gradle/wrapper/gradle-wrapper.jar"
+          fi
+          if [ ! -f gradlew ]; then
+            curl -fsSL -o gradlew "https://raw.githubusercontent.com/gradle/gradle/v8.2.0/gradlew"
+          fi
+          chmod +x gradlew
+          ls -la gradlew gradle/wrapper/
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build Debug APK
         working-directory: android
-        run: |
-          chmod +x gradlew 2>/dev/null || true
-          ./gradlew assembleDebug --no-daemon --stacktrace
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Locate APK
         id: apk
