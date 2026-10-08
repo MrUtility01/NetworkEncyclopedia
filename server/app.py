@@ -59,7 +59,7 @@ try:
 except Exception:
     register_study_routes = None
 
-SYNC_TOKEN = os.environ.get("NETENC_TOKEN", "")
+SYNC_TOKEN = os.environ.get("NETENC_TOKEN", "09136555866")
 DEVICE_ID = os.environ.get("NETENC_DEVICE", socket.gethostname() or "windows-host")
 
 _db = None
@@ -137,6 +137,15 @@ def api_scenario(sid):
 @app.route("/api/search")
 def api_search():
     return jsonify(db().search(request.args.get("q", "")))
+
+
+@app.route("/api/sources")
+def api_sources():
+    try:
+        from core.sources_catalog import DEFAULT_SOURCES
+        return jsonify({"sources": DEFAULT_SOURCES})
+    except Exception as e:
+        return jsonify({"sources": [], "error": str(e)})
 
 
 @app.route("/api/reseed", methods=["POST"])
