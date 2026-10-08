@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict
 from core.rich_data import BANKS, ERRORS, COMMON
 
 def level_tag(title: str) -> str:
@@ -13,7 +13,6 @@ def clean_topic(title: str) -> str:
     t = re.sub(r"\s*[—\-]\s*(آشنایی|مقدماتی|ادمین|مهندس|خبره).*$", "", t, flags=re.I)
     return t.strip() or (title or "موضوع")
 
-_LEVEL_FA = {"L0": "آشنایی", "L1": "مقدماتی", "L2": "ادمین", "L3": "مهندس", "L4": "خبره"}
 _CATS = [
     ("vlan", ["vlan", "trunk"]), ("ospf", ["ospf"]), ("bgp", ["bgp"]),
     ("linux", ["linux", "bash"]), ("windows", ["windows", "powershell"]),
@@ -31,28 +30,43 @@ def _fmt_cmds(pairs):
     return "\n".join(f"```\n{cmd}\n```\n→ {desc}\n" for cmd, desc in pairs)
 
 def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = None) -> Dict[str, Any]:
-    # فصل ۱
+    # اولویت فصل ۳ قبل از ۱ و ۲
     try:
-        from core.chapter01_teacher import build_chapter01_lesson, _bucket, _topic
-        topic0 = _topic(title_fa)
-        if _bucket(topic0) in ("cpu", "ram", "storage", "mb", "psu") or any(
-            k in (title_fa or "") for k in ("CPU", "ALU", "RAM", "DDR", "SSD", "HDD", "NVMe", "مادربرد", "Chipset", "PSU", "تغذیه", "BIOS", "UEFI", "حافظه", "ذخیره")
-        ):
-            c1 = build_chapter01_lesson(title_fa, title_en)
-            if c1:
-                return c1
+        from core.chapter03_teacher import build_chapter03_lesson
+        if any(k in (title_fa or "") for k in (
+            "BIOS", "UEFI", "بوت", "Boot", "Secure Boot", "TPM", "CMOS",
+            "GRUB", "BOOTMGR", "زنجیره", "فیرمور", "Firmware", "efiboot",
+            "Legacy", "ESP", "initrd", "Bootloader", "PXE", "Boot Order", "Setup", "BCD"
+        )):
+            c3 = build_chapter03_lesson(title_fa, title_en)
+            if c3:
+                return c3
     except Exception:
         pass
-    # فصل ۲
     try:
         from core.chapter02_teacher import build_chapter02_lesson
         if any(k in (title_fa or "") for k in (
-            "ESD", "ایمنی", "اسمبل", "POST", "Beep", "تمیز", "ProLiant", "iLO",
-            "سرور", "عیب", "نگهداری", "خمیر", "HP", "بایوس"
+            "ESD", "ایمنی", "اسمبل", "Beep", "تمیز", "ProLiant", "iLO",
+            "سرور HP", "نگهداری", "خمیر", "خانواده ProLiant"
         )):
             c2 = build_chapter02_lesson(title_fa, title_en)
             if c2:
                 return c2
+    except Exception:
+        pass
+    try:
+        from core.chapter01_teacher import build_chapter01_lesson, _bucket, _topic
+        topic0 = _topic(title_fa)
+        if _bucket(topic0) in ("cpu", "ram", "storage", "mb", "psu") or any(
+            k in (title_fa or "") for k in (
+                "CPU", "ALU", "RAM", "DDR", "SSD", "HDD", "NVMe", "مادربرد",
+                "Chipset", "PSU", "تغذیه", "حافظه", "ذخیره", "سوکت"
+            )
+        ):
+            if not any(k in (title_fa or "") for k in ("BIOS", "UEFI", "Secure Boot", "Boot")):
+                c1 = build_chapter01_lesson(title_fa, title_en)
+                if c1:
+                    return c1
     except Exception:
         pass
 
