@@ -27,6 +27,7 @@
         <activity android:name=".ScenarioListActivity" android:exported="false" />
         <activity android:name=".ScenarioDetailActivity" android:exported="false" />
         <activity android:name=".SettingsActivity" android:exported="false" />
+        <activity android:name=".SourcesActivity" android:exported="false" android:label="منابع معتبر" />
         <activity android:name=".JsonIoActivity" android:exported="false" />
         <activity android:name=".ApiExplorerActivity" android:exported="false" />
         <activity android:name=".FlashcardActivity" android:exported="false" android:label="کارت یادگیری" />
