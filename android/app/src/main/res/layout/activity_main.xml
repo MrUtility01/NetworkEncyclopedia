@@ -1,92 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:layoutDirection="rtl">
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="دایرةالمعارف شبکه"
-        android:textSize="20sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="مستقل از ویندوز · SQLite محلی · Sync اختیاری"
-        android:textSize="12sp"
-        android:paddingBottom="10dp" />
-
-    <Button
-        android:id="@+id/btnTree"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="📚 فهرست درختی (فصل ← زیرفصل ← درس)" />
-
-    <Button
-        android:id="@+id/btnCatalog"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="فهرست تخت همه درس‌ها" />
-
-    <Button
-        android:id="@+id/btnSearch"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="🔍 جستجو" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="همگام‌سازی اختیاری با ویندوز"
-        android:textSize="13sp"
-        android:paddingTop="14dp" />
-
-    <EditText
-        android:id="@+id/hostInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="http://IP-ویندوز:5050"
-        android:inputType="textUri"
-        android:layoutDirection="ltr"
-        android:textAlignment="viewStart" />
-
-    <EditText
-        android:id="@+id/tokenInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="توکن (اختیاری)"
-        android:inputType="textPassword" />
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <Button android:id="@+id/btnHello" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="اتصال" />
-        <Button android:id="@+id/btnSync" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="همگام‌سازی" />
-    </LinearLayout>
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layoutDirection="rtl">
 
-    <Button
-        android:id="@+id/btnOpenWeb"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="باز کردن وب ویندوز" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Engineer Jokar"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#3B82F6" />
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingTop="10dp">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="دایرةالمعارف شبکه · 09132184122"
+            android:textSize="13sp"
+            android:paddingBottom="12dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="آموزش و محتوا"
+            android:textStyle="bold"
+            android:paddingTop="4dp" />
+
+        <Button android:id="@+id/btnTree" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📚 فهرست درختی دروس" />
+        <Button android:id="@+id/btnCatalog" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="فهرست تخت همه دروس" />
+        <Button android:id="@+id/btnSearch" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🔍 جستجو" />
+        <Button android:id="@+id/btnScenarios" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🎯 سناریوهای Capstone" />
+        <Button android:id="@+id/btnStats" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📊 آمار بانک محلی" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="همگام‌سازی اختیاری با ویندوز"
+            android:textStyle="bold"
+            android:paddingTop="14dp" />
+
+        <EditText
+            android:id="@+id/hostInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="http://IP-ویندوز:5050"
+            android:inputType="textUri"
+            android:layoutDirection="ltr"
+            android:textAlignment="viewStart" />
+
+        <EditText
+            android:id="@+id/tokenInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="توکن (اختیاری)"
+            android:inputType="textPassword" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button android:id="@+id/btnHello" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="اتصال" />
+            <Button android:id="@+id/btnSync" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="همگام‌سازی" />
+        </LinearLayout>
+
+        <Button android:id="@+id/btnOpenWeb" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🌐 وب ویندوز" />
+        <Button android:id="@+id/btnAbout" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ℹ️ درباره Engineer Jokar" />
+
         <TextView
             android:id="@+id/logView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingTop="12dp"
             android:textIsSelectable="true"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:typeface="monospace"
-            android:text="آماده‌سازی…" />
-    </ScrollView>
-</LinearLayout>
+            android:text="…" />
+    </LinearLayout>
+</ScrollView>

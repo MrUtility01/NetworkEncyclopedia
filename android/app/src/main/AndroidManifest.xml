@@ -6,23 +6,26 @@
 
     <application
         android:allowBackup="true"
-        android:label="NetEnc"
+        android:label="Engineer Jokar"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/Theme.NetEnc">
         <activity
-            android:name=".MainActivity"
+            android:name=".SplashActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustResize">
+            android:theme="@style/Theme.NetEnc">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".MainActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".TreeCatalogActivity" android:exported="false" android:label="فهرست درختی" />
-        <activity android:name=".CatalogActivity" android:exported="false" android:label="فهرست تخت" />
+        <activity android:name=".CatalogActivity" android:exported="false" android:label="فهرست" />
         <activity android:name=".LessonDetailActivity" android:exported="false" android:label="درس" />
         <activity android:name=".SearchActivity" android:exported="false" android:label="جستجو" />
+        <activity android:name=".ScenarioListActivity" android:exported="false" android:label="سناریوها" />
+        <activity android:name=".ScenarioDetailActivity" android:exported="false" android:label="سناریو" />
     </application>
 </manifest>
