@@ -32,6 +32,8 @@ jobs:
         run: |
           python scripts/export_android_index.py
           ls -lah android/app/src/main/assets/ || true
+          test -f android/app/src/main/assets/curriculum_index.json.gz
+          python -c "import gzip,json; d=json.loads(gzip.open('android/app/src/main/assets/curriculum_index.json.gz').read()); n=d.get('lesson_count',0); assert n>100, n; print('OK lessons', n)"
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3

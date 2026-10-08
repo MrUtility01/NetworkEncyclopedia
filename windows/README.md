@@ -1,6 +1,21 @@
 # Windows Host
 
-Run `start.bat` — server listens on port 5050.
-Android syncs via Windows LAN IP.
+## اجرا
+```bat
+start.bat
+```
 
-Optional: `set NETENC_TOKEN=secret` before start.
+- سرور روی پورت **5050**
+- توکن پیش‌فرض: **09136555866** (متغیر `NETENC_TOKEN`)
+- اندروید روی همان Wi‑Fi با همین توکن همگام می‌شود
+
+## تغییر توکن
+```bat
+set NETENC_TOKEN=رمز_دلخواه
+start.bat
+```
+
+## نیازمندی
+Python 3.10+ و دسترسی به `pip`
+
+مرورگر: http://127.0.0.1:5050

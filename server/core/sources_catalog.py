@@ -1,0 +1,130 @@
+# -*- coding: utf-8 -*-
+"""کاتالوگ منابع معتبر — قابل همگام‌سازی با اندروید و صفحه تنظیمات."""
+from __future__ import annotations
+
+DEFAULT_SOURCES = [
+    {
+        "id": "cisco-docs",
+        "title": "Cisco Documentation",
+        "url": "https://www.cisco.com/c/en/us/support/index.html",
+        "category": "Vendor",
+        "note": "Configuration Guides و Release Notes رسمی Cisco",
+        "enabled": True,
+    },
+    {
+        "id": "rfc-editor",
+        "title": "RFC Editor (IETF)",
+        "url": "https://www.rfc-editor.org/",
+        "category": "Standards",
+        "note": "استانداردهای OSPF, BGP, DHCP, DNS, TCP/IP",
+        "enabled": True,
+    },
+    {
+        "id": "mikrotik-wiki",
+        "title": "MikroTik Wiki",
+        "url": "https://wiki.mikrotik.com/",
+        "category": "Vendor",
+        "note": "مستندات RouterOS و مثال‌های عملی",
+        "enabled": True,
+    },
+    {
+        "id": "fortinet-docs",
+        "title": "Fortinet Document Library",
+        "url": "https://docs.fortinet.com/",
+        "category": "Vendor",
+        "note": "FortiGate / FortiOS handbook",
+        "enabled": True,
+    },
+    {
+        "id": "ms-learn",
+        "title": "Microsoft Learn",
+        "url": "https://learn.microsoft.com/",
+        "category": "Vendor",
+        "note": "Windows Server, AD, PowerShell, Networking",
+        "enabled": True,
+    },
+    {
+        "id": "linux-man",
+        "title": "Linux man-pages",
+        "url": "https://man7.org/linux/man-pages/",
+        "category": "OS",
+        "note": "مرجع دستورات و syscallهای Linux",
+        "enabled": True,
+    },
+    {
+        "id": "wireshark-wiki",
+        "title": "Wireshark Wiki",
+        "url": "https://wiki.wireshark.org/",
+        "category": "Tools",
+        "note": "پروتکل‌ها و نمونه capture",
+        "enabled": True,
+    },
+    {
+        "id": "iana",
+        "title": "IANA Assignments",
+        "url": "https://www.iana.org/assignments/",
+        "category": "Standards",
+        "note": "Protocol numbers, ports, enterprise numbers",
+        "enabled": True,
+    },
+    {
+        "id": "nist-800",
+        "title": "NIST SP 800 Series",
+        "url": "https://csrc.nist.gov/publications/sp800",
+        "category": "Security",
+        "note": "راهنماهای امنیتی و hardening",
+        "enabled": True,
+    },
+    {
+        "id": "cloudflare-learning",
+        "title": "Cloudflare Learning Center",
+        "url": "https://www.cloudflare.com/learning/",
+        "category": "Learning",
+        "note": "DNS, TLS, HTTP, CDN به زبان ساده",
+        "enabled": True,
+    },
+    {
+        "id": "juniper-tech",
+        "title": "Juniper TechLibrary",
+        "url": "https://www.juniper.net/documentation/",
+        "category": "Vendor",
+        "note": "مستندات Junos",
+        "enabled": True,
+    },
+    {
+        "id": "ietf-datatracker",
+        "title": "IETF Datatracker",
+        "url": "https://datatracker.ietf.org/",
+        "category": "Standards",
+        "note": "پیش‌نویس و وضعیت استانداردها",
+        "enabled": True,
+    },
+    {
+        "id": "packetlife",
+        "title": "Packet Life Cheat Sheets",
+        "url": "https://packetlife.net/library/cheat-sheets/",
+        "category": "Learning",
+        "note": "برگه‌های خلاصه پروتکل و دستور",
+        "enabled": True,
+    },
+    {
+        "id": "networklessons",
+        "title": "NetworkLessons",
+        "url": "https://networklessons.com/",
+        "category": "Learning",
+        "note": "آموزش عملی CCNA/CCNP و Lab",
+        "enabled": True,
+    },
+    {
+        "id": "arista-eos",
+        "title": "Arista EOS Manuals",
+        "url": "https://www.arista.com/en/support/software-download",
+        "category": "Vendor",
+        "note": "مستندات EOS (نیاز به حساب)",
+        "enabled": False,
+    },
+]
+
+
+def list_enabled():
+    return [s for s in DEFAULT_SOURCES if s.get("enabled", True)]
