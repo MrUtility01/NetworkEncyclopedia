@@ -3,7 +3,9 @@ package com.netenc.app
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -23,29 +25,27 @@ class LessonDetailActivity : AppCompatActivity() {
     private lateinit var body: TextView
     private lateinit var study: StudyRepository
     private var currentTab = 0
+    private val tabButtons = mutableListOf<Button>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val uid = intent.getStringExtra("uid") ?: return finish()
         study = StudyRepository(this)
 
-        val title = TextView(this).apply {
-            textSize = 16f
-            setPadding(20, 16, 20, 8)
-            setTextColor(0xFFFFFFFF.toInt())
+        val title = Ui.text(this, "…", 17f, Color.WHITE).apply { setTextIsSelectable(false) }
+        val meta = Ui.text(this, "", 12f, Ui.MUTED).apply { setTextIsSelectable(false) }
+
+        val tabs = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
         }
-        val meta = TextView(this).apply {
-            textSize = 12f
-            setPadding(20, 0, 20, 8)
-            setTextColor(0xFF9AA8BC.toInt())
-        }
-        val tabs = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        val tabNames = listOf("خلاصه", "متن", "دستورات", "Lab", "نکات")
-        val tabButtons = mutableListOf<Button>()
+        val tabNames = listOf("خلاصه", "متن", "دستورات", "آزمایشگاه", "نکات")
         tabNames.forEachIndexed { idx, name ->
             val b = Button(this).apply {
                 text = name
                 textSize = 11f
+                typeface = Ui.persianTypeface()
+                alpha = if (idx == 0) 1f else 0.55f
                 setOnClickListener {
                     currentTab = idx
                     renderTab()
@@ -55,19 +55,17 @@ class LessonDetailActivity : AppCompatActivity() {
             tabButtons.add(b)
             tabs.addView(b, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         }
-        tabButtons[0].alpha = 1f
 
-        body = TextView(this).apply {
-            textSize = 14f
-            setTextIsSelectable(true)
-            setPadding(20, 16, 20, 24)
-            setTextColor(0xFFD5DEEA.toInt())
+        body = Ui.text(this, "", 14.5f, Ui.TEXT).apply {
+            setPadding(24, 20, 24, 32)
+            setLineSpacing(0f, 1.25f)
         }
 
         val studyRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         fun studyBtn(label: String, action: String) = Button(this).apply {
             text = label
             textSize = 11f
+            typeface = Ui.persianTypeface()
             setOnClickListener {
                 val e = lesson ?: return@setOnClickListener
                 lifecycleScope.launch {
@@ -82,6 +80,7 @@ class LessonDetailActivity : AppCompatActivity() {
 
         val btnCopy = Button(this).apply {
             text = "کپی تب فعلی"
+            typeface = Ui.persianTypeface()
             setOnClickListener {
                 val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 cm.setPrimaryClip(ClipData.newPlainText("netenc", tabText()))
@@ -91,8 +90,8 @@ class LessonDetailActivity : AppCompatActivity() {
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            layoutDirection = android.view.View.LAYOUT_DIRECTION_RTL
-            setBackgroundColor(0xFF0F1419.toInt())
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            setBackgroundColor(Ui.BG)
             addView(title)
             addView(meta)
             addView(studyRow)
@@ -119,17 +118,22 @@ class LessonDetailActivity : AppCompatActivity() {
     private fun tabText(): String {
         val e = lesson ?: return ""
         return when (currentTab) {
-            0 -> e.summary.ifBlank { "(خلاصه خالی)" }
-            1 -> e.fullContent.ifBlank { "(متن خالی)" }
-            2 -> e.commands.ifBlank { "(دستورات خالی)" }
-            3 -> e.examples.ifBlank {
-                e.notes.ifBlank { "(Lab خالی — بازسازی محتوا)" }
+            0 -> e.summary.ifBlank { "خلاصه برای این درس خالی است." }
+            1 -> e.fullContent.ifBlank { "متن کامل خالی است. از منوی اصلی بازسازی محتوا را بزنید." }
+            2 -> e.commands.ifBlank { "دستوراتی ثبت نشده." }
+            3 -> {
+                val lab = e.examples.ifBlank { e.notes }
+                if (lab.isBlank()) {
+                    "آزمایشگاه هنوز برای این درس پر نشده.\n1) متن را بخوانید\n2) دستورات را اجرا کنید\n3) نتیجه را یادداشت کنید"
+                } else lab
             }
-            else -> e.notes.ifBlank { "(نکته‌ای ثبت نشده)" }
+            else -> e.notes.ifBlank { "نکته‌ای ثبت نشده." }
         }
     }
 
     private fun renderTab() {
         body.text = tabText()
+        body.typeface = Ui.persianTypeface()
+        body.textDirection = View.TEXT_DIRECTION_RTL
     }
 }
