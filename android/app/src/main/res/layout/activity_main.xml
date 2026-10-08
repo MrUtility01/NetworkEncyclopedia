@@ -12,9 +12,11 @@
         android:layoutDirection="rtl">
 
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Engineer Jokar" android:textSize="22sp" android:textStyle="bold" android:textColor="#3B82F6" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="09132184122 · یادگیری + یادآوری" android:textSize="12sp" android:paddingBottom="8dp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="09136555866 · یادگیری عمیق + SRS" android:textSize="12sp" android:paddingBottom="8dp" />
 
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="یادگیری" android:textStyle="bold" />
+        <Button android:id="@+id/btnStudyHub" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🧠 مرکز یادگیری عمیق" />
+        <Button android:id="@+id/btnQuiz" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📝 آزمون چهارگزینه‌ای" />
         <Button android:id="@+id/btnFlash" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🃏 کارت یادگیری / مرور" />
         <Button android:id="@+id/btnTree" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📚 فهرست درختی" />
         <Button android:id="@+id/btnCatalog" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="فهرست تخت" />
