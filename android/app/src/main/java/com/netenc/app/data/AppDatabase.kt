@@ -6,12 +6,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [LessonEntity::class, SyncMetaEntity::class],
-    version = 2,
+    entities = [LessonEntity::class, SyncMetaEntity::class, ScenarioEntity::class],
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun lessonDao(): LessonDao
+    abstract fun scenarioDao(): ScenarioDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
