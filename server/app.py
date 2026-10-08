@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""سرور وب + API همگام‌سازی LAN — میزبان ویندوز."""
+"""سرور وب + API همگام‌سازی LAN + مطالعه — میزبان ویندوز."""
 from __future__ import annotations
 
 import hashlib
@@ -13,7 +13,6 @@ from flask import Flask, jsonify, render_template, request
 
 from core.db import WebDB
 
-# shared sync helpers (inline if shared not on path)
 try:
     from shared.sync_engine import SCHEMA_VERSION, build_manifest, compare_lww, content_hash, utc_now
 except Exception:
@@ -54,6 +53,11 @@ except Exception:
 BASE = Path(__file__).resolve().parent
 app = Flask(__name__, template_folder=str(BASE / "templates"), static_folder=str(BASE / "static"))
 app.config["JSON_AS_ASCII"] = False
+
+try:
+    from study_routes import register_study_routes
+except Exception:
+    register_study_routes = None
 
 SYNC_TOKEN = os.environ.get("NETENC_TOKEN", "")
 DEVICE_ID = os.environ.get("NETENC_DEVICE", socket.gethostname() or "windows-host")
@@ -142,7 +146,6 @@ def api_reseed():
     return jsonify(info)
 
 
-# ---------- Sync API ----------
 @app.route("/api/sync/hello")
 def sync_hello():
     return jsonify({
@@ -194,7 +197,6 @@ def sync_push():
             applied.append(uid)
             full_applied.append(c)
             continue
-        # need full server for LWW on content records
         decision = compare_lww(
             {"last_updated": s.get("last_updated"), "content_hash": s.get("content_hash")},
             c,
@@ -227,6 +229,10 @@ def _lan_ip():
         return ip
     except Exception:
         return "127.0.0.1"
+
+
+if register_study_routes:
+    register_study_routes(app, db)
 
 
 def main():
