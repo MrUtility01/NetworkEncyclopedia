@@ -12,79 +12,68 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 class SettingsActivity : AppCompatActivity() {
-    companion object {
-        const val DEFAULT_TOKEN = "09136555866"
-    }
+    companion object { const val DEFAULT_TOKEN = "09136555866" }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val prefs = getSharedPreferences("netenc", MODE_PRIVATE)
-
-        val host = EditText(this).apply {
-            hint = "آدرس API ویندوز (http://IP:5050)"
-            setText(prefs.getString("host", ""))
-            layoutDirection = android.view.View.LAYOUT_DIRECTION_LTR
-            textAlignment = android.view.View.TEXT_ALIGNMENT_VIEW_START
-        }
-        val token = EditText(this).apply {
-            hint = "توکن API"
-            setText(prefs.getString("token", DEFAULT_TOKEN) ?: DEFAULT_TOKEN)
-            inputType = android.text.InputType.TYPE_CLASS_TEXT or
-                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-        }
-        val autoSync = Switch(this).apply {
-            text = "همگام‌سازی خودکار هنگام ورود"
-            isChecked = prefs.getBoolean("auto_sync", false)
-        }
+        fun field(hint: String, key: String, password: Boolean = false, def: String = "") =
+            EditText(this).apply {
+                this.hint = hint
+                setText(prefs.getString(key, def) ?: def)
+                if (password) inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+                layoutDirection = android.view.View.LAYOUT_DIRECTION_LTR
+                textAlignment = android.view.View.TEXT_ALIGNMENT_VIEW_START
+            }
+        val host = field("API ویندوز http://IP:5050", "host")
+        val token = field("توکن API", "token", true, DEFAULT_TOKEN)
+        val autoSync = Switch(this).apply { text = "همگام خودکار"; isChecked = prefs.getBoolean("auto_sync", false) }
+        val aiProvider = field("AI: openai | grok | openai-compat", "ai_provider", def = "openai")
+        val aiBase = field("Base URL", "ai_base", def = "https://api.openai.com/v1")
+        val aiKey = field("کلید API هوش مصنوعی", "ai_api_key", true)
+        val aiModel = field("مدل", "ai_model", def = "gpt-4o-mini")
+        val gitRepo = field("Git remote بکاپ", "git_repo")
+        val gitUser = field("Git user", "git_user")
+        val gitPass = field("Git token", "git_pass", true)
+        val driveEmail = field("Drive email", "drive_email")
+        val driveFolder = field("پوشه Drive", "drive_folder", def = "NetworkEncyclopedia-Backup")
         val save = Button(this).apply {
-            text = "ذخیره تنظیمات"
+            text = "ذخیره همه"
             setOnClickListener {
                 prefs.edit()
                     .putString("host", host.text.toString().trim())
                     .putString("token", token.text.toString())
                     .putBoolean("auto_sync", autoSync.isChecked)
+                    .putString("ai_provider", aiProvider.text.toString().trim())
+                    .putString("ai_base", aiBase.text.toString().trim())
+                    .putString("ai_api_key", aiKey.text.toString().trim())
+                    .putString("ai_model", aiModel.text.toString().trim())
+                    .putString("git_repo", gitRepo.text.toString().trim())
+                    .putString("git_user", gitUser.text.toString().trim())
+                    .putString("git_pass", gitPass.text.toString().trim())
+                    .putString("drive_email", driveEmail.text.toString().trim())
+                    .putString("drive_folder", driveFolder.text.toString().trim())
                     .apply()
                 Toast.makeText(this@SettingsActivity, "ذخیره شد", Toast.LENGTH_SHORT).show()
                 finish()
             }
         }
-        val sourcesBtn = Button(this).apply {
-            text = "منابع معتبر (افزودن / حذف لینک)"
-            setOnClickListener {
-                startActivity(Intent(this@SettingsActivity, SourcesActivity::class.java))
-            }
+        fun section(t: String) = TextView(this).apply {
+            text = t; textSize = 16f; setPadding(0, 18, 0, 6); setTextColor(0xFF60A5FA.toInt())
         }
-        val note = TextView(this).apply {
-            text = """
-                Engineer Jokar · 09136555866
-
-                توکن پیش‌فرض با ویندوز یکسان است.
-                روی ویندوز: start.bat (NETENC_TOKEN=09136555866)
-
-                API:
-                /api/stats  /api/chapters  /api/search
-                /api/scenarios  /api/reseed  /api/sync/*
-                /api/sources
-            """.trimIndent()
-            setPadding(8, 24, 8, 8)
-            textSize = 13f
-        }
-
         val inner = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(28, 28, 28, 28)
+            orientation = LinearLayout.VERTICAL; setPadding(28, 28, 28, 28)
             layoutDirection = android.view.View.LAYOUT_DIRECTION_RTL
-            addView(TextView(this@SettingsActivity).apply {
-                text = "تنظیمات و API"
-                textSize = 20f
-                setPadding(0, 0, 0, 16)
-            })
-            addView(host)
-            addView(token)
-            addView(autoSync)
+            addView(TextView(this@SettingsActivity).apply { text = "تنظیمات · AI · بکاپ"; textSize = 20f })
+            addView(section("ویندوز")); addView(host); addView(token); addView(autoSync)
+            addView(section("هوش مصنوعی")); addView(aiProvider); addView(aiBase); addView(aiKey); addView(aiModel)
+            addView(section("بکاپ Git")); addView(gitRepo); addView(gitUser); addView(gitPass)
+            addView(section("Drive")); addView(driveEmail); addView(driveFolder)
             addView(save)
-            addView(sourcesBtn)
-            addView(note)
+            addView(Button(this@SettingsActivity).apply {
+                text = "منابع معتبر"
+                setOnClickListener { startActivity(Intent(this@SettingsActivity, SourcesActivity::class.java)) }
+            })
         }
         setContentView(ScrollView(this).apply { addView(inner) })
     }
