@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp"
+        android:padding="14dp"
         android:layoutDirection="rtl">
 
         <TextView
@@ -22,65 +22,33 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="دایرةالمعارف شبکه · 09132184122"
-            android:textSize="13sp"
-            android:paddingBottom="12dp" />
+            android:text="09132184122 · دایرةالمعارف شبکه"
+            android:textSize="12sp"
+            android:paddingBottom="8dp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="آموزش و محتوا"
-            android:textStyle="bold"
-            android:paddingTop="4dp" />
-
-        <Button android:id="@+id/btnTree" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📚 فهرست درختی دروس" />
-        <Button android:id="@+id/btnCatalog" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="فهرست تخت همه دروس" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="محتوا" android:textStyle="bold" />
+        <Button android:id="@+id/btnTree" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📚 فهرست درختی" />
+        <Button android:id="@+id/btnCatalog" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="فهرست تخت" />
         <Button android:id="@+id/btnSearch" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🔍 جستجو" />
-        <Button android:id="@+id/btnScenarios" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🎯 سناریوهای Capstone" />
-        <Button android:id="@+id/btnStats" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📊 آمار بانک محلی" />
+        <Button android:id="@+id/btnScenarios" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🎯 Capstone / سناریو" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="همگام‌سازی اختیاری با ویندوز"
-            android:textStyle="bold"
-            android:paddingTop="14dp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ابزار ویندوزی" android:textStyle="bold" android:paddingTop="8dp" />
+        <Button android:id="@+id/btnStats" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📊 آمار" />
+        <Button android:id="@+id/btnApi" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🔌 API ویندوز (خودکار)" />
+        <Button android:id="@+id/btnJson" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📦 ورود / خروج JSON" />
+        <Button android:id="@+id/btnSettings" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="⚙️ تنظیمات" />
+        <Button android:id="@+id/btnReseed" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🔄 بازسازی محتوا از assets" />
 
-        <EditText
-            android:id="@+id/hostInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="http://IP-ویندوز:5050"
-            android:inputType="textUri"
-            android:layoutDirection="ltr"
-            android:textAlignment="viewStart" />
-
-        <EditText
-            android:id="@+id/tokenInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="توکن (اختیاری)"
-            android:inputType="textPassword" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Sync اختیاری" android:textStyle="bold" android:paddingTop="8dp" />
+        <EditText android:id="@+id/hostInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="http://IP:5050" android:inputType="textUri" android:layoutDirection="ltr" android:textAlignment="viewStart" />
+        <EditText android:id="@+id/tokenInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="توکن" android:inputType="textPassword" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
             <Button android:id="@+id/btnHello" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="اتصال" />
             <Button android:id="@+id/btnSync" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="همگام‌سازی" />
         </LinearLayout>
-
         <Button android:id="@+id/btnOpenWeb" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🌐 وب ویندوز" />
-        <Button android:id="@+id/btnAbout" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ℹ️ درباره Engineer Jokar" />
+        <Button android:id="@+id/btnAbout" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ℹ️ درباره" />
 
-        <TextView
-            android:id="@+id/logView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="12dp"
-            android:textIsSelectable="true"
-            android:textSize="12sp"
-            android:typeface="monospace"
-            android:text="…" />
+        <TextView android:id="@+id/logView" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="10dp" android:textIsSelectable="true" android:textSize="12sp" android:typeface="monospace" android:text="…" />
     </LinearLayout>
 </ScrollView>

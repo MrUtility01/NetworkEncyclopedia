@@ -11,21 +11,21 @@
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/Theme.NetEnc">
-        <activity
-            android:name=".SplashActivity"
-            android:exported="true"
-            android:theme="@style/Theme.NetEnc">
+        <activity android:name=".SplashActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity android:name=".MainActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".TreeCatalogActivity" android:exported="false" android:label="فهرست درختی" />
-        <activity android:name=".CatalogActivity" android:exported="false" android:label="فهرست" />
-        <activity android:name=".LessonDetailActivity" android:exported="false" android:label="درس" />
-        <activity android:name=".SearchActivity" android:exported="false" android:label="جستجو" />
-        <activity android:name=".ScenarioListActivity" android:exported="false" android:label="سناریوها" />
-        <activity android:name=".ScenarioDetailActivity" android:exported="false" android:label="سناریو" />
+        <activity android:name=".TreeCatalogActivity" android:exported="false" />
+        <activity android:name=".CatalogActivity" android:exported="false" />
+        <activity android:name=".LessonDetailActivity" android:exported="false" />
+        <activity android:name=".SearchActivity" android:exported="false" />
+        <activity android:name=".ScenarioListActivity" android:exported="false" />
+        <activity android:name=".ScenarioDetailActivity" android:exported="false" />
+        <activity android:name=".SettingsActivity" android:exported="false" android:label="تنظیمات" />
+        <activity android:name=".JsonIoActivity" android:exported="false" android:label="JSON" />
+        <activity android:name=".ApiExplorerActivity" android:exported="false" android:label="API" />
     </application>
 </manifest>

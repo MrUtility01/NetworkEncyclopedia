@@ -48,23 +48,27 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, ScenarioListActivity::class.java))
         }
         findViewById<Button>(R.id.btnStats).setOnClickListener { showStats() }
+        findViewById<Button>(R.id.btnApi).setOnClickListener {
+            startActivity(Intent(this, ApiExplorerActivity::class.java))
+        }
+        findViewById<Button>(R.id.btnJson).setOnClickListener {
+            startActivity(Intent(this, JsonIoActivity::class.java))
+        }
+        findViewById<Button>(R.id.btnSettings).setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+        findViewById<Button>(R.id.btnReseed).setOnClickListener { forceReseed() }
         findViewById<Button>(R.id.btnHello).setOnClickListener { hello() }
         findViewById<Button>(R.id.btnSync).setOnClickListener { sync() }
         findViewById<Button>(R.id.btnOpenWeb).setOnClickListener {
             val h = hostInput.text.toString().trim()
-            if (h.isBlank()) log("IP ویندوز را وارد کنید")
+            if (h.isBlank()) log("IP را در تنظیمات یا همین‌جا وارد کنید")
             else startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(h)))
         }
         findViewById<Button>(R.id.btnAbout).setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Engineer Jokar")
-                .setMessage(
-                    "دایرةالمعارف شبکه و زیرساخت\n\n" +
-                        "توسعه‌دهنده: Engineer Jokar\n" +
-                        "تماس: 09132184122\n\n" +
-                        "ویندوز و اندروید مستقل هستند.\n" +
-                        "همگام‌سازی اختیاری روی LAN."
-                )
+                .setMessage("دایرةالمعارف شبکه\n09132184122\n\nویندوز و اندروید مستقل\nSync اختیاری LAN")
                 .setPositiveButton("باشه", null)
                 .setNeutralButton("تماس") { _, _ ->
                     startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:09132184122")))
@@ -72,20 +76,35 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
+        lifecycleScope.launch { seedAll(force = false) }
+
+        if (prefs.getBoolean("auto_sync", false) && !prefs.getString("host", "").isNullOrBlank()) {
+            hostInput.postDelayed({ sync() }, 2500)
+        }
+    }
+
+    private fun forceReseed() {
         lifecycleScope.launch {
-            log("Engineer Jokar — آماده‌سازی بانک…")
-            try {
-                val n = withContext(Dispatchers.IO) { OfflineSeeder.ensureSeeded(this@MainActivity) }
-                val sc = withContext(Dispatchers.IO) { ScenarioSeeder.ensure(this@MainActivity) }
-                val filled = withContext(Dispatchers.IO) {
-                    AppDatabase.get(this@MainActivity).lessonDao().countFilled()
-                }
-                log("✓ دروس: $n (متن‌دار: $filled)")
-                log("✓ سناریو Capstone: $sc")
-                log("منوی اصلی مثل ویندوز آماده است.")
-            } catch (e: Exception) {
-                log("seed: ${e.message}")
+            withContext(Dispatchers.IO) {
+                val dao = AppDatabase.get(this@MainActivity).lessonDao()
+                dao.putMeta(com.netenc.app.data.SyncMetaEntity("offline_seeded_v5", "0"))
+                dao.putMeta(com.netenc.app.data.SyncMetaEntity("offline_seeded_v4", "0"))
             }
+            seedAll(force = true)
+        }
+    }
+
+    private suspend fun seedAll(force: Boolean) {
+        log(if (force) "بازسازی اجباری…" else "بارگذاری بانک…")
+        try {
+            val n = withContext(Dispatchers.IO) { OfflineSeeder.ensureSeeded(this@MainActivity) }
+            val sc = withContext(Dispatchers.IO) { ScenarioSeeder.ensure(this@MainActivity) }
+            val filled = withContext(Dispatchers.IO) {
+                AppDatabase.get(this@MainActivity).lessonDao().countFilled()
+            }
+            log("✓ درس: $n · متن‌دار: $filled · سناریو: $sc")
+        } catch (e: Exception) {
+            log("seed: ${e.message}")
         }
     }
 
@@ -96,23 +115,21 @@ class MainActivity : AppCompatActivity() {
             val filled = withContext(Dispatchers.IO) { db.lessonDao().countFilled() }
             val sc = withContext(Dispatchers.IO) { db.scenarioDao().count() }
             AlertDialog.Builder(this@MainActivity)
-                .setTitle("آمار بانک محلی (SQLite)")
-                .setMessage("دروس: $lessons\nبا متن کامل: $filled\nسناریو: $sc")
+                .setTitle("آمار SQLite")
+                .setMessage("درس: $lessons\nمتن کامل: $filled\nسناریو: $sc")
                 .setPositiveButton("باشه", null)
                 .show()
         }
     }
 
     private fun askSearch() {
-        val input = EditText(this).apply { hint = "VLAN / OSPF / AD …" }
+        val input = EditText(this).apply { hint = "VLAN / OSPF / AD" }
         AlertDialog.Builder(this)
             .setTitle("جستجو")
             .setView(input)
             .setPositiveButton("برو") { _, _ ->
                 val q = input.text.toString().trim()
-                if (q.isNotBlank()) {
-                    startActivity(Intent(this, SearchActivity::class.java).putExtra("q", q))
-                }
+                if (q.isNotBlank()) startActivity(Intent(this, SearchActivity::class.java).putExtra("q", q))
             }
             .setNegativeButton("لغو", null)
             .show()
@@ -140,21 +157,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun hello() {
         if (hostInput.text.toString().trim().isBlank()) {
-            log("آفلاین نیازی به سرور ندارد")
+            log("آدرس API را وارد کنید")
             return
         }
         lifecycleScope.launch {
             try {
                 log(withContext(Dispatchers.IO) { client().hello() })
             } catch (e: Exception) {
-                log("سرور در دسترس نیست: ${e.message}")
+                log("خطا: ${e.message}")
             }
         }
     }
 
     private fun sync() {
         if (hostInput.text.toString().trim().isBlank()) {
-            log("Sync اختیاری — IP ویندوز لازم است")
+            log("Sync نیاز به IP ویندوز دارد")
             return
         }
         lifecycleScope.launch {
@@ -163,7 +180,7 @@ class MainActivity : AppCompatActivity() {
                 val since = withContext(Dispatchers.IO) { repo.getLastSync() }.ifBlank { null }
                 val m = withContext(Dispatchers.IO) { c.manifest(since) }
                 var pulled = 0
-                for (chunk in m.items.map { it.uid }.chunked(100)) {
+                for (chunk in m.items.map { it.uid }.chunked(80)) {
                     val body = withContext(Dispatchers.IO) { c.pull(chunk) }
                     pulled += withContext(Dispatchers.IO) { repo.upsertFromPullJson(body) }
                 }
@@ -172,7 +189,7 @@ class MainActivity : AppCompatActivity() {
                 withContext(Dispatchers.IO) { repo.setLastSync(Instant.now().toString()) }
                 log("✓ sync pull=$pulled")
             } catch (e: Exception) {
-                log("sync ناموفق: ${e.message}")
+                log("sync: ${e.message}")
             }
         }
     }
