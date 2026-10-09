@@ -12,9 +12,27 @@ from core.phase_a import default_meta
 def insert_rich_lesson(cur, lv_id: int, oi: int, lfa: str, len_: str, now: str) -> None:
     tag = lfa[1:3] if lfa.startswith("[L") else "L0"
     meta = default_meta(lfa, level=tag)
-    rich = build_rich_lesson(lfa, len_, level=tag)
-    meta["description"] = rich["summary"]
-    meta["learning_objectives"] = rich["learning_objectives"]
+    rich = build_rich_lesson(lfa, len_, level=tag) or {}
+    summary = rich.get("summary") or f"{lfa}"
+    full_content = rich.get("full_content") or summary
+    commands = rich.get("commands") or ""
+    examples = rich.get("examples") or ""
+    notes = rich.get("notes") or ""
+    objectives = rich.get("learning_objectives")
+    if not objectives:
+        objectives = [
+            f"درک مفهوم «{lfa}»",
+            "اجرای تمرین کنترل‌شده در Lab",
+            "تفکیک شواهد از فرضیه در عیب‌یابی",
+        ]
+    if isinstance(objectives, str):
+        obj_text = objectives
+        obj_list = [x.strip() for x in objectives.splitlines() if x.strip()]
+    else:
+        obj_list = list(objectives)
+        obj_text = "\n".join(str(x) for x in obj_list)
+    meta["description"] = summary
+    meta["learning_objectives"] = obj_list
     cur.execute(
         """INSERT INTO lessons(
             level_id, order_index, title_fa, title_en, tags,
@@ -27,13 +45,13 @@ def insert_rich_lesson(cur, lv_id: int, oi: int, lfa: str, len_: str, now: str) 
             lfa,
             len_,
             tag,
-            rich["summary"],
-            rich["full_content"],
-            rich["commands"],
-            rich["examples"],
-            rich["notes"],
+            summary,
+            full_content,
+            commands,
+            examples,
+            notes,
             meta.get("ai_search_prompt", ""),
-            "\n".join(rich["learning_objectives"]),
+            obj_text,
             json.dumps(meta, ensure_ascii=False),
             now,
         ),
