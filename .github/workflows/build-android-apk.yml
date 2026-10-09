@@ -42,14 +42,15 @@ jobs:
         run: |
           set -e
           python3 scripts/export_android_index.py
+          python3 scripts/merge_content_packs_into_android.py
           python3 - <<'PY'
           import gzip, json
           from pathlib import Path
           p = Path("android/app/src/main/assets/curriculum_index.json.gz")
           d = json.loads(gzip.open(p, "rt", encoding="utf-8").read())
           print("chapters", len(d["chapters"]), "lessons", d["lesson_count"])
-          assert len(d["chapters"]) >= 60, "curriculum incomplete"
-          assert d["lesson_count"] >= 5000, "too few lessons"
+          assert len(d["chapters"]) >= 64, "curriculum incomplete (need ch64)"
+          assert d["lesson_count"] >= 5200, "too few lessons"
           PY
 
       - name: Content note
