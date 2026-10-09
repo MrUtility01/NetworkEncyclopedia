@@ -44,6 +44,16 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnStudyHub).setOnClickListener {
             startActivity(Intent(this, StudyHubActivity::class.java))
         }
+        // Workspace
+        safeBtn(R.id.btnTasks) {
+            startActivity(Intent(this, WorkspaceActivity::class.java).putExtra("mode", "tasks"))
+        }
+        safeBtn(R.id.btnNotes) {
+            startActivity(Intent(this, WorkspaceActivity::class.java).putExtra("mode", "notes"))
+        }
+        safeBtn(R.id.btnVault) {
+            startActivity(Intent(this, WorkspaceActivity::class.java).putExtra("mode", "vault"))
+        }
         findViewById<Button>(R.id.btnQuiz).setOnClickListener {
             startActivity(Intent(this, QuizActivity::class.java))
         }
@@ -81,7 +91,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnAbout).setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Engineer Jokar")
-                .setMessage("یادگیری عمیق: SRS + آزمون + هدف روزانه\nمرکز یادگیری · کارت · سناریو\nتوکن: 09136555866")
+                .setMessage("یادگیری عمیق + کارها + یادداشت + رمز\nتوکن: 09136555866")
                 .setPositiveButton("باشه", null)
                 .show()
         }
@@ -92,11 +102,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun safeBtn(id: Int, block: () -> Unit) {
+        try {
+            findViewById<Button>(id)?.setOnClickListener { block() }
+        } catch (_: Exception) {}
+    }
+
     private fun forceReseed() {
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 val dao = AppDatabase.get(this@MainActivity).lessonDao()
-                dao.putMeta(com.netenc.app.data.SyncMetaEntity("offline_seeded_v7", "0"))
+                dao.putMeta(com.netenc.app.data.SyncMetaEntity("offline_seeded_v11", "0"))
             }
             seedAll(force = true)
         }
@@ -110,7 +126,6 @@ class MainActivity : AppCompatActivity() {
             val st = withContext(Dispatchers.IO) { StudyRepository(this@MainActivity).stats() }
             log("✓ درس=$n سناریو=$sc")
             log("مطالعه: due=${st["due"]} today=${st["today"]}/${st["goal"]} streak=${st["streak"]}")
-            log("یادآوری ساعتی فعال است")
         } catch (e: Exception) {
             log("seed: ${e.message}")
         }
@@ -124,17 +139,9 @@ class MainActivity : AppCompatActivity() {
             val sc = withContext(Dispatchers.IO) { db.scenarioDao().count() }
             val st = withContext(Dispatchers.IO) { StudyRepository(this@MainActivity).stats() }
             AlertDialog.Builder(this@MainActivity)
-                .setTitle("آمار یادگیری")
-                .setMessage(
-                    "درس: $lessons\nمتن‌دار: $filled\nسناریو: $sc\n\n" +
-                        "امروز: ${st["today"]}/${st["goal"]}\n" +
-                        "زنجیره: ${st["streak"]} روز\n" +
-                        "due: ${st["due"]}\nlearning: ${st["learning"]}\nknown: ${st["known"]}"
-                )
+                .setTitle("آمار")
+                .setMessage("درس: $lessons\nمتن‌دار: $filled\nسناریو: $sc\nامروز: ${st[\"today\"]}/${st[\"goal\"]}")
                 .setPositiveButton("باشه", null)
-                .setNeutralButton("مرکز یادگیری") { _, _ ->
-                    startActivity(Intent(this@MainActivity, StudyHubActivity::class.java))
-                }
                 .show()
         }
     }
