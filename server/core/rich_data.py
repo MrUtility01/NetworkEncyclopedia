@@ -9,68 +9,78 @@ COMMON = {
 }
 
 BANKS = {
-    "vlan": {
-        "summary": "جداسازی منطقی لایه ۲ برای امنیت و مقیاس.",
-        "lab": "ساخت VLAN و assign پورت؛ بررسی show vlan.",
-        "cmds": "show vlan brief\nconfigure terminal\nvlan 10\nname USERS",
-    },
-    "ospf": {
-        "summary": "مسیریابی لینک‌استیت با Area و adjacency.",
-        "lab": "دو روتر OSPF area 0؛ بررسی neighbor.",
-        "cmds": "show ip ospf neighbor\nrouter ospf 1\nnetwork 10.0.0.0 0.0.0.255 area 0",
-    },
-    "bgp": {
-        "summary": "مسیریابی بین‌دامنه‌ای با ASN و peer.",
-        "lab": "eBGP peer در Lab؛ بررسی summary.",
-        "cmds": "show ip bgp summary\nrouter bgp 65001\nneighbor 192.0.2.1 remote-as 65002",
-    },
-    "nat": {
-        "summary": "ترجمه آدرس برای دسترسی خروجی و حفظ فضای عمومی.",
-        "lab": "PAT روی لبه؛ بررسی translations.",
-        "cmds": "show ip nat translations\nip nat inside source list 1 interface GigabitEthernet0/0 overload",
-    },
-    "vpn": {
-        "summary": "تونل امن برای اتصال سایت یا کلاینت.",
-        "lab": "IPsec یا WireGuard آزمایشی بین دو نقطه.",
-        "cmds": "show crypto session\n# WireGuard: wg show",
-    },
-    "dhcp": {
-        "summary": "تخصیص خودکار IP و گزینه‌های شبکه.",
-        "lab": "pool و exclude؛ بررسی binding.",
-        "cmds": "show ip dhcp binding\nip dhcp pool LAN\nnetwork 10.0.0.0 255.255.255.0",
-    },
-    "firewall": {
-        "summary": "فیلتر ترافیک بر اساس سیاست امنیتی.",
-        "lab": "قانون allow/deny آزمایشی؛ لاگ.",
-        "cmds": "show access-lists\naccess-list 100 permit tcp any any eq 443",
-    },
-    "stp": {
-        "summary": "جلوگیری از حلقه لایه ۲ با انتخاب Root.",
-        "lab": "دو سوییچ؛ بررسی root و port role.",
-        "cmds": "show spanning-tree\nspanning-tree vlan 1 root primary",
-    },
-    "dns": {
-        "summary": "نام به آدرس و برعکس؛ رکوردها و resolver.",
-        "lab": "query A/AAAA؛ بررسی cache.",
-        "cmds": "nslookup example.com\ndig +short example.com",
-    },
-    "wireless": {
-        "summary": "WLAN، SSID، باند و امنیت Wi-Fi.",
-        "lab": "مشاهده interface و شبکه‌های مجاز.",
-        "cmds": "netsh wlan show interfaces\niw dev",
-    },
-    "python": {
-        "summary": "اتوماسیون شبکه با اسکریپت و API.",
-        "lab": "اتصال read-only با Netmiko/Paramiko در Lab.",
-        "cmds": "python -c \"import netmiko; print(netmiko.__version__)\"",
-    },
-    "ansible": {
-        "summary": "پیکربندی اعلانی و idempotent.",
-        "lab": "playbook gather facts روی inventory آزمایشی.",
-        "cmds": "ansible all -m ping\nansible-playbook site.yml --check",
-    },
+    "vlan": {"summary": "جداسازی منطقی لایه ۲.", "lab": "ساخت VLAN و assign پورت.", "cmds": "show vlan brief"},
+    "ospf": {"summary": "مسیریابی لینک‌استیت.", "lab": "دو روتر OSPF area 0.", "cmds": "show ip ospf neighbor"},
+    "bgp": {"summary": "مسیریابی بین‌دامنه‌ای.", "lab": "eBGP peer در Lab.", "cmds": "show ip bgp summary"},
+    "nat": {"summary": "ترجمه آدرس.", "lab": "PAT روی لبه.", "cmds": "show ip nat translations"},
+    "vpn": {"summary": "تونل امن.", "lab": "IPsec/WireGuard آزمایشی.", "cmds": "show crypto session"},
+    "dhcp": {"summary": "تخصیص خودکار IP.", "lab": "pool و binding.", "cmds": "show ip dhcp binding"},
+    "firewall": {"summary": "فیلتر ترافیک.", "lab": "قانون allow/deny.", "cmds": "show access-lists"},
+    "stp": {"summary": "جلوگیری از حلقه لایه ۲.", "lab": "بررسی root و port role.", "cmds": "show spanning-tree"},
+    "dns": {"summary": "نام به آدرس.", "lab": "query A/AAAA.", "cmds": "nslookup example.com"},
+    "wireless": {"summary": "WLAN و امنیت Wi-Fi.", "lab": "مشاهده interface.", "cmds": "netsh wlan show interfaces"},
+    "python": {"summary": "اتوماسیون شبکه.", "lab": "اتصال read-only.", "cmds": "python -c \"print('ok')\""},
+    "ansible": {"summary": "پیکربندی اعلانی.", "lab": "ansible all -m ping.", "cmds": "ansible all -m ping"},
+    "general": {"summary": "موضوع عمومی شبکه/IT.", "lab": "مشاهده و ثبت شواهد.", "cmds": "# read-only checks"},
 }
 
-# aliases for topic matching
-for k in list(BANKS.keys()):
-    BANKS[k.upper()] = BANKS[k]
+ERRORS = {
+    "vlan": ["VLAN mismatch روی trunk", "Native VLAN متفاوت دو طرف", "پورت هنوز access است"],
+    "stp": ["Root اشتباه انتخاب شده", "BPDU filter ناخواسته", "Loop به‌خاطر کابل اضافی"],
+    "ospf": ["Neighbor در Init/2-Way گیر کرده", "Area mismatch", "Timer hello/dead متفاوت"],
+    "bgp": ["Peer Idle", "ASN اشتباه", "Update-source نادرست"],
+    "dhcp": ["Pool پر شده", "Relay نادرست", "Conflict آدرس"],
+    "dns": ["Forwarder در دسترس نیست", "Zone transfer شکست", "Cache مسموم/کهنه"],
+    "vpn": ["Phase1 fail", "Phase2 proxy-id mismatch", "NAT-T مشکل"],
+    "firewall": ["قانون اشتباه order", "Object گروه ناقص", "Log بدون hit"],
+    "ha": ["اولویت HSRP اشتباه", "پیش‌فرض preempt", "لینک heartbeat قطع"],
+    "linux": ["سرویس fail", "Permission", "Route پیش‌فرض گم"],
+    "windows": ["GPO اعمال نشده", "DNS کلاینت اشتباه", "Firewall profile"],
+    "wireless": ["SSID مخفی و discovery", "VLAN نگاشت SSID", "تداخل کانال"],
+    "general": ["پیکربندی با شواهد هم‌خوان نیست", "نسخه/firmware متفاوت", "محدوده آزمون مبهم"],
+    "mikrotik": ["FastTrack و Firewall conflict", "Route mark نادرست"],
+    "fortigate": ["Policy hit count صفر", "SSL inspection مشکل"],
+    "ad": ["Replication lag", "DNS SRV مشکل"],
+    "security": ["AAA timeout", "Certificate expired"],
+    "tcpip": ["MTU/fragmentation", "Asymmetric routing"],
+    "storage": ["Latency بالا", "Path fail"],
+    "virtualization": ["vSwitch uplink", "Resource contention"],
+    "python": ["Auth fail", "Timeout device"],
+    "ansible": ["Inventory host unreachable", "Module missing"],
+    "kubernetes": ["CNI network", "Service endpoints خالی"],
+}
+
+SCENARIO_HOOKS = {
+    "vlan": ["در یک شرکت، کاربران VLAN مهمان به سرور مالی دسترسی پیدا کردند — trunk و native را بررسی کنید."],
+    "stp": ["پس از افزودن سوییچ جدید، شبکه فلج شد — احتمال loop و Root اشتباه."],
+    "ospf": ["دو سایت adjacency نمی‌گیرند — area و timer و network statement را چک کنید."],
+    "bgp": ["مسیر اینترنت از ISP دوم برنمی‌گردد — prefix-list و AS-path را ببینید."],
+    "dhcp": ["کلاینت‌ها APIPA می‌گیرند — pool، relay و snooping."],
+    "dns": ["نام داخلی resolve نمی‌شود — conditional forwarder و zone."],
+    "vpn": ["تونل گاهی up می‌شود — Phase1 proposal و NAT-T."],
+    "firewall": ["اپلیکیشن جدید کار نمی‌کند — policy order و object."],
+    "ha": ["Failover طول کشید — hello و preempt و tracking."],
+    "linux": ["سرویس بعد از reboot بالا نمی‌آید — systemd و network."],
+    "windows": ["کاربر GPO جدید را نمی‌بیند — replication و gpresult."],
+    "wireless": ["کاربر به SSID وصل می‌شود ولی IP ندارد — VLAN و DHCP."],
+    "security": ["لاگین 802.1X fail — RADIUS و certificate."],
+    "tcpip": ["انتقال فایل کند است — window و loss و MTU."],
+    "storage": ["VM کند شده — datastore latency."],
+    "virtualization": ["VM شبکه ندارد — portgroup و uplink."],
+    "python": ["اسکریپت backup هر شب fail — auth و privilege."],
+    "ansible": ["playbook روی نیمی از hostها fail — inventory و become."],
+    "general": ["سرویس قطع شده؛ تیم باید با Symptom→Evidence→Fix پیش برود."],
+    "mikrotik": ["کاربر می‌گوید اینترنت کند است — queue و fasttrack."],
+    "fortigate": ["VPN SSL وصل نمی‌شود — portal و group."],
+    "ad": ["لاگین دامنه کند است — DC و DNS."],
+    "kubernetes": ["Pod CrashLoop — network policy و DNS."],
+    "cloud": ["Security group ترافیک را می‌بندد."],
+    "backup": ["آخرین backup موفق نیست — job log."],
+    "monitoring": ["Alert طوفانی — threshold و silence."],
+    "voip": ["تماس یک‌طرفه — NAT و RTP."],
+    "soc": ["هشدار SIEM بدون context — correlation."],
+}
+
+for _k in list(BANKS.keys()):
+    if isinstance(_k, str) and _k != _k.upper():
+        BANKS[_k.upper()] = BANKS[_k]
