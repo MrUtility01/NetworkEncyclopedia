@@ -12,7 +12,7 @@
         android:layoutDirection="rtl">
 
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Engineer Jokar" android:textSize="22sp" android:textStyle="bold" android:textColor="#3B82F6" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="09136555866 · یادگیری عمیق + SRS" android:textSize="12sp" android:paddingBottom="8dp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="09136555866 · یادگیری + فضای کاری" android:textSize="12sp" android:paddingBottom="8dp" />
 
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="یادگیری" android:textStyle="bold" />
         <Button android:id="@+id/btnStudyHub" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🧠 مرکز یادگیری عمیق" />
@@ -23,10 +23,15 @@
         <Button android:id="@+id/btnSearch" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🔍 جستجو" />
         <Button android:id="@+id/btnScenarios" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🎯 Capstone / سناریو" />
 
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="فضای کاری" android:textStyle="bold" android:paddingTop="8dp" />
+        <Button android:id="@+id/btnTasks" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="✅ مدیریت کارها" />
+        <Button android:id="@+id/btnNotes" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📝 یادداشت‌ها" />
+        <Button android:id="@+id/btnVault" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🔐 مدیریت رمز ورود" />
+
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ابزار" android:textStyle="bold" android:paddingTop="8dp" />
         <Button android:id="@+id/btnStats" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📊 آمار مطالعه + بانک" />
         <Button android:id="@+id/btnApi" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🔌 API ویندوز" />
-        <Button android:id="@+id/btnJson" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📦 JSON / بکاپ Git-Drive" />
+        <Button android:id="@+id/btnJson" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📦 JSON / بکاپ" />
         <Button android:id="@+id/btnSettings" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="⚙️ تنظیمات" />
         <Button android:id="@+id/btnReseed" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🔄 بازسازی محتوا" />
 
