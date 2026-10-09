@@ -1,1 +1,10 @@
-OK: 25 wireless security lessons for chapter 64 subchapter 8
+VALIDATION: PASS
+Lessons: 25
+Unique UIDs: 25
+Questions per lesson: 4
+Answer keys per lesson: 4
+Topics: 5
+Levels: L0-L4
+Chapter: 64, subchapter: 8, lesson_order: 3-7
+Question and answer key separated: yes
+Content status: review_required
