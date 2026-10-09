@@ -1,20 +1,69 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""واردسازی هر content pack JSON به SQLite برنامه (ویندوز/سرور)."""
+"""واردسازی content pack استاندارد یا blueprint ENGINEER_JOKAR به SQLite."""
 from __future__ import annotations
-
-import argparse
-import json
-import shutil
-import sqlite3
-import sys
+import argparse, json, shutil, sqlite3, sys, re
 from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+def blueprint_to_lessons(d, focus=None, default_ch=14):
+    out, li = [], 0
+    focus = focus or []
+    for ch in (d.get("curriculum") or {}).get("chapters") or []:
+        ch_title = ch.get("title_fa") or ""
+        for ci, col in enumerate(ch.get("collections") or [], 1):
+            for les in col.get("lessons") or []:
+                for sub in les.get("sub_lessons") or []:
+                    title = sub.get("title_fa") or les.get("title_fa") or "درس"
+                    content = sub.get("content") or ""
+                    status = sub.get("status") or ""
+                    blob = (title + " " + content + " " + ch_title).upper()
+                    if focus and not any(k.upper() in blob for k in focus):
+                        continue
+                    if status == "seeded" and len(content) < 350:
+                        continue
+                    if len(content) < 350 and status not in ("reviewed_content", "developed"):
+                        continue
+                    li += 1
+                    target = default_ch
+                    if any(k in blob for k in ("OSPF", "BGP", "REDIS")):
+                        target = 14
+                    if any(k in blob for k in ("IPSEC", "IKE", "VPN", "PHASE", "TUNNEL")):
+                        target = 57
+                    full = content
+                    if sub.get("commands"):
+                        full += "\n\n## دستورات\n\n" + str(sub.get("commands"))
+                    out.append({
+                        "title_fa": title if str(title).startswith("[L") else f"[L2] {title}",
+                        "chapter_order": target,
+                        "summary": (sub.get("summary") or content[:180]).strip(),
+                        "full_content": full,
+                        "commands": sub.get("commands") or "",
+                        "examples": sub.get("examples") or "",
+                        "notes": f"status={status}",
+                        "learning_objectives": [f"درک {title}"],
+                        "meta": {},
+                        "source_status": "review_required",
+                        "uid": f"lesson:ch{target:02d}:bp:{li:04d}",
+                    })
+    return out
 
-def find_packs(all_flag: bool, pack: str | None) -> list[Path]:
+def load_lessons(path: Path):
+    d = json.loads(path.read_text(encoding="utf-8"))
+    if d.get("lessons"):
+        return d["lessons"]
+    name = path.name.upper()
+    if "curriculum" in d:
+        if any(k in name for k in ("OSPF", "BGP", "REDIS")):
+            return blueprint_to_lessons(d, ["OSPF","BGP","Redistribution","Adjacency","eBGP","iBGP","SPF"], 14)
+        if "VPN" in name or "IPSEC" in name:
+            return blueprint_to_lessons(d, ["IPsec","IKE","VPN","Phase","Tunnel","Site-to-Site","SSL"], 57)
+        return blueprint_to_lessons(d, [], 1)
+    return []
+
+def find_packs(all_flag, pack):
     if pack:
         p = Path(pack)
         if not p.is_file():
@@ -23,159 +72,100 @@ def find_packs(all_flag: bool, pack: str | None) -> list[Path]:
             raise SystemExit(f"pack not found: {pack}")
         return [p]
     if all_flag:
-        found = []
-        for pattern in (
-            "tools/**/*_pack.json",
-            "tools/**/*curriculum*.json",
-            "tools/**/automation_python_curriculum_pack.json",
-            "tools/**/security_ethical_hacking_pack.json",
-            "tools/**/wireless_security_pack.json",
-        ):
-            found.extend(ROOT.glob(pattern))
-        # unique
-        uniq = []
-        seen = set()
+        found = list(ROOT.glob("tools/**/*_pack.json"))
+        found += list(ROOT.glob("tools/**/*curriculum*.json"))
+        found += list(ROOT.glob("tools/ENGINEER_JOKAR_*.json"))
+        uniq, seen = [], set()
         for f in found:
             k = str(f.resolve())
-            if k not in seen and f.stat().st_size > 1000:
+            if k not in seen and f.stat().st_size > 500:
                 seen.add(k)
                 uniq.append(f)
         return sorted(uniq)
     raise SystemExit("use --pack PATH or --all")
 
-
-def connect(db: Path) -> sqlite3.Connection:
-    conn = sqlite3.connect(str(db))
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-def match_lesson(conn: sqlite3.Connection, les: dict) -> int | None:
-    title = (les.get("title_fa") or les.get("match", {}).get("title_fa") or "").strip()
-    ch_order = les.get("chapter_order") or (les.get("match") or {}).get("chapter_order")
-    if not title:
-        return None
-    if ch_order is not None:
+def match_lesson(conn, les):
+    title = (les.get("title_fa") or "").strip()
+    bare = re.sub(r"^\[L[0-4]\]\s*", "", title)
+    bare2 = re.sub(r"\s*[—\-]\s*(آشنایی|مقدماتی|ادمین|مهندس|خبره).*$", "", bare)
+    ch_order = les.get("chapter_order")
+    if bare2:
         row = conn.execute(
-            """
-            SELECT l.id FROM lessons l
-            JOIN levels lv ON lv.id = l.level_id
-            JOIN chapters c ON c.id = lv.chapter_id
-            WHERE l.title_fa = ? AND (c.order_index = ? OR c.id = ?)
-            ORDER BY l.id LIMIT 1
-            """,
-            (title, int(ch_order), int(ch_order)),
+            "SELECT id FROM lessons WHERE title_fa LIKE ? ORDER BY id LIMIT 1",
+            (f"%{bare2}%",),
         ).fetchone()
         if row:
-            return int(row["id"])
-    row = conn.execute(
-        "SELECT id FROM lessons WHERE title_fa = ? ORDER BY id LIMIT 1", (title,)
-    ).fetchone()
-    return int(row["id"]) if row else None
+            return int(row[0])
+    if title:
+        row = conn.execute("SELECT id FROM lessons WHERE title_fa = ? LIMIT 1", (title,)).fetchone()
+        if row:
+            return int(row[0])
+    return None
 
-
-def apply_pack(conn: sqlite3.Connection, path: Path, do_write: bool, overwrite: bool) -> tuple[int, int]:
-    data = json.loads(path.read_text(encoding="utf-8"))
-    lessons = data.get("lessons") or []
-    matched = 0
-    missing = 0
-    now = datetime.now(timezone.utc).isoformat()
-    for les in lessons:
-        lid = match_lesson(conn, les)
-        if lid is None:
-            missing += 1
-            continue
-        matched += 1
-        if not do_write:
-            continue
-        if not overwrite:
-            continue
-        summary = les.get("summary") or ""
-        full_content = les.get("full_content") or ""
-        commands = les.get("commands") or ""
-        if isinstance(commands, list):
-            commands = "\n".join(str(x) for x in commands)
-        examples = les.get("examples") or ""
-        if isinstance(examples, list):
-            examples = "\n".join(str(x) for x in examples)
-        notes = les.get("notes") or ""
-        lo = les.get("learning_objectives") or []
-        if isinstance(lo, list):
-            lo_text = "\n".join(str(x) for x in lo)
-        else:
-            lo_text = str(lo)
-        meta = les.get("meta") or {}
-        meta_json = json.dumps(meta, ensure_ascii=False)
-        conn.execute(
-            """
-            UPDATE lessons SET
-              summary=?, full_content=?, commands=?, examples=?, notes=?,
-              learning_objectives=?, meta_json=?, source_status=?, last_updated=?
-            WHERE id=?
-            """,
-            (
-                summary,
-                full_content,
-                commands,
-                examples,
-                notes,
-                lo_text,
-                meta_json,
-                les.get("source_status") or "review_required",
-                now,
-                lid,
-            ),
-        )
-        try:
-            uid = les.get("uid") or ""
-            if uid:
-                conn.execute("UPDATE lessons SET uid=? WHERE id=?", (uid, lid))
-        except sqlite3.OperationalError:
-            pass
-    if do_write:
-        conn.commit()
-    return matched, missing
-
-
-def main() -> int:
-    ap = argparse.ArgumentParser(description="Apply any ENGINEER JOKAR content pack JSON")
-    ap.add_argument("--db", required=True, help="Path to encyclopedia.db")
-    ap.add_argument("--pack", help="Single JSON pack path")
-    ap.add_argument("--all", action="store_true", help="All packs under tools/")
-    ap.add_argument("--apply", action="store_true", help="Write changes (default dry-run)")
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--db", required=True)
+    ap.add_argument("--pack")
+    ap.add_argument("--all", action="store_true")
+    ap.add_argument("--apply", action="store_true")
     ap.add_argument("--overwrite", action="store_true", default=True)
     args = ap.parse_args()
-
     db = Path(args.db)
     if not db.is_file():
-        # try relative to repo
         alt = ROOT / args.db
         if alt.is_file():
             db = alt
         else:
-            print(f"ERROR: db not found: {args.db}")
-            print("Hint: run server once: cd server && python app.py")
+            print("ERROR db not found", args.db)
             return 1
-
     packs = find_packs(args.all, args.pack)
-    print(f"packs: {len(packs)}")
-    conn = connect(db)
-
+    print("packs", len(packs))
+    conn = sqlite3.connect(str(db))
     if args.apply:
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        bak = db.with_suffix(db.suffix + f".bak_{ts}")
+        bak = db.with_suffix(db.suffix + f".bak_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
         shutil.copy2(db, bak)
-        print(f"backup: {bak}")
-
+        print("backup", bak)
+    now = datetime.now(timezone.utc).isoformat()
     total_m = total_x = 0
     for p in packs:
-        m, x = apply_pack(conn, p, args.apply, args.overwrite)
-        print(f"  {p.relative_to(ROOT) if p.is_relative_to(ROOT) else p}: matched={m} missing={x}")
+        lessons = load_lessons(p)
+        m = x = 0
+        for les in lessons:
+            lid = match_lesson(conn, les)
+            if lid is None:
+                x += 1
+                continue
+            m += 1
+            if not args.apply:
+                continue
+            conn.execute(
+                """UPDATE lessons SET summary=?, full_content=?, commands=?, examples=?, notes=?,
+                   learning_objectives=?, last_updated=? WHERE id=?""",
+                (
+                    les.get("summary") or "",
+                    les.get("full_content") or "",
+                    as_text(les.get("commands")),
+                    as_text(les.get("examples")),
+                    as_text(les.get("notes")),
+                    "\n".join(les.get("learning_objectives") or []),
+                    now,
+                    lid,
+                ),
+            )
+        print(f"  {p.name}: matched={m} missing={x}")
         total_m += m
         total_x += x
+    if args.apply:
+        conn.commit()
     print(f"TOTAL matched={total_m} missing={total_x} mode={'APPLY' if args.apply else 'DRY-RUN'}")
     return 0
 
+def as_text(v):
+    if v is None:
+        return ""
+    if isinstance(v, list):
+        return "\n".join(str(x) for x in v)
+    return str(v)
 
 if __name__ == "__main__":
     sys.exit(main())
