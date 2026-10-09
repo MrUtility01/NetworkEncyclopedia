@@ -19,6 +19,14 @@ def _fmt_cmds(pairs):
 
 def build_rich_lesson(title_fa: str, title_en: str = "", level: str | None = None) -> Dict[str, Any]:
     try:
+        from core.chapter64_git_hook import is_git_title, build_git_lesson
+        if is_git_title(title_fa or ""):
+            c = build_git_lesson(title_fa, title_en)
+            if c:
+                return c
+    except Exception:
+        pass
+    try:
         from core.chapter17_teacher import build_chapter17_lesson
         if any(k in (title_fa or "") for k in ("VXLAN", "VNI", "VTEP", "Overlay", "EVPN", "Control Plane", "Route Type", "Leaf", "Spine", "Underlay", "Anycast", "RT-2", "RT-3", "RT-5")):
             c = build_chapter17_lesson(title_fa, title_en)
@@ -149,7 +157,6 @@ def _content_len(d: Dict[str, Any]) -> int:
 
 
 def _ensure_dense(title_fa: str, title_en: str, level: str | None, candidate: Dict[str, Any] | None) -> Dict[str, Any]:
-    """اگر teacher خیلی کوتاه بود، deep_fallback را پایه کن و فیلدهای مفید teacher را روی آن سوار کن."""
     from core.deep_fallback import build_deep_fallback
     dense = build_deep_fallback(title_fa, title_en, level or level_tag(title_fa))
     if not candidate:
