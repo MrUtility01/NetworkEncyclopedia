@@ -8,22 +8,16 @@ import java.io.BufferedInputStream
 import java.util.zip.GZIPInputStream
 
 object OfflineSeeder {
-    // Bump this when curriculum asset changes so users re-seed without manual DB wipe
-    private const val META_SEEDED = "offline_seeded_v10"
+    private const val META_SEEDED = "offline_seeded_v11"
 
     suspend fun ensureSeeded(context: Context): Int = withContext(Dispatchers.IO) {
         val dao = AppDatabase.get(context).lessonDao()
         val existing = dao.countActive()
         val filled = if (existing > 0) dao.countFilled() else 0
-        // Skip only if already fully seeded with this version
-        if (dao.getMeta(META_SEEDED) == "1" && existing > 4000 && filled > 2000) {
+        if (dao.getMeta(META_SEEDED) == "1" && existing > 5000 && filled > 2000) {
             return@withContext existing
         }
-        val json = readCurriculumAsset(context)
-        if (json == null) {
-            // Asset missing — do not leave user with empty UI silently
-            return@withContext existing
-        }
+        val json = readCurriculumAsset(context) ?: return@withContext existing
         val root = JSONObject(json)
         val chapters = root.optJSONArray("chapters") ?: return@withContext existing
         if (chapters.length() == 0) return@withContext existing
@@ -55,8 +49,8 @@ object OfflineSeeder {
                             commands = les.optString("commands"),
                             examples = les.optString("examples"),
                             notes = les.optString("notes"),
-                            lastUpdated = "2026-10-09T15:00:00Z",
-                            contentHash = "offline-v10-deep",
+                            lastUpdated = "2026-10-09T21:00:00Z",
+                            contentHash = "offline-v11-deep",
                             deviceId = "android-offline",
                             chapterOrder = chOrder,
                             chapterTitle = chTitle,
