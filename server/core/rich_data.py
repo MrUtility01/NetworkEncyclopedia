@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-"""Banks of reusable lesson fragments for densify engine."""
+"""Banks of reusable lesson fragments for densify engine.
+BANKS[cat] = list of (command, description) tuples
+COMMON = list of (command, description) tuples
+"""
 from __future__ import annotations
 
-# list of (command, description) — deep_fallback does COMMON[:8] and _fmt()
 COMMON = [
     ("show version", "نسخه نرم‌افزار و uptime"),
     ("show ip interface brief", "وضعیت رابط‌ها و IP"),
@@ -17,32 +19,103 @@ COMMON = [
 ]
 
 BANKS = {
-    "vlan": {"summary": "جداسازی منطقی لایه ۲.", "lab": "ساخت VLAN و assign پورت.", "cmds": [("show vlan brief", "فهرست VLAN"), ("show interfaces trunk", "وضعیت trunk")]},
-    "ospf": {"summary": "مسیریابی لینک‌استیت.", "lab": "دو روتر OSPF area 0.", "cmds": [("show ip ospf neighbor", "همسایه‌ها"), ("show ip route ospf", "مسیرهای OSPF")]},
-    "bgp": {"summary": "مسیریابی بین‌دامنه‌ای.", "lab": "eBGP peer در Lab.", "cmds": [("show ip bgp summary", "وضعیت peer"), ("show ip bgp", "جدول BGP")]},
-    "nat": {"summary": "ترجمه آدرس.", "lab": "PAT روی لبه.", "cmds": [("show ip nat translations", "ترجمه‌ها"), ("show ip nat statistics", "آمار NAT")]},
-    "vpn": {"summary": "تونل امن.", "lab": "IPsec آزمایشی.", "cmds": [("show crypto session", "نشست VPN"), ("show crypto isakmp sa", "Phase1")]},
-    "dhcp": {"summary": "تخصیص خودکار IP.", "lab": "pool و binding.", "cmds": [("show ip dhcp binding", "اجاره‌ها"), ("show ip dhcp pool", "استخر")]},
-    "firewall": {"summary": "فیلتر ترافیک.", "lab": "قانون allow/deny.", "cmds": [("show access-lists", "ACLها"), ("show logging | include %SEC", "لاگ امنیت")]},
-    "stp": {"summary": "جلوگیری از حلقه لایه ۲.", "lab": "بررسی root.", "cmds": [("show spanning-tree", "وضعیت STP"), ("show spanning-tree root", "Root bridge")]},
-    "dns": {"summary": "نام به آدرس.", "lab": "query A/AAAA.", "cmds": [("nslookup example.com", "resolve نام"), ("dig +short example.com", "پاسخ کوتاه")]},
-    "wireless": {"summary": "WLAN و امنیت Wi-Fi.", "lab": "مشاهده interface.", "cmds": [("netsh wlan show interfaces", "وضعیت وای‌فای"), ("iw dev", "رابط‌های بی‌سیم")]},
-    "python": {"summary": "اتوماسیون شبکه.", "lab": "اتصال read-only.", "cmds": [("python -c \"print('ok')\"", "تست پایتون")]},
-    "ansible": {"summary": "پیکربندی اعلانی.", "lab": "ansible ping.", "cmds": [("ansible all -m ping", "تست inventory")]},
-    "general": {"summary": "موضوع عمومی شبکه/IT.", "lab": "مشاهده و ثبت شواهد.", "cmds": COMMON[:4]},
-    "linux": {"summary": "سیستم‌عامل لینوکس.", "lab": "journalctl و ss.", "cmds": [("ip a", "آدرس‌ها"), ("ss -tulpn", "سوکت‌ها"), ("journalctl -xe", "لاگ")]},
-    "windows": {"summary": "ویندوز سرور/کلاینت.", "lab": "ipconfig و eventlog.", "cmds": [("ipconfig /all", "پیکربندی IP"), ("Get-EventLog -LogName System -Newest 20", "رویدادها")]},
-    "ha": {"summary": "دسترس‌پذیری بالا.", "lab": "HSRP/VRRP آزمایشی.", "cmds": [("show standby", "وضعیت HSRP")]},
-    "security": {"summary": "کنترل دسترسی و AAA.", "lab": "بررسی 802.1X/RADIUS.", "cmds": [("show aaa servers", "سرورهای AAA")]},
-    "tcpip": {"summary": "TCP/IP پایه.", "lab": "ping و traceroute.", "cmds": [("ping 8.8.8.8", "ICMP"), ("traceroute 8.8.8.8", "مسیر")]},
-    "storage": {"summary": "ذخیره‌سازی.", "lab": "latency و path.", "cmds": [("# check disk latency", "مانیتورینگ دیسک")]},
-    "virtualization": {"summary": "مجازی‌سازی.", "lab": "وضعیت VM/vSwitch.", "cmds": [("# esxcli network", "شبکه ESXi")]},
-    "mikrotik": {"summary": "RouterOS.", "lab": "/ip address print.", "cmds": [("/ip address print", "آدرس‌ها"), ("/interface print", "رابط‌ها")]},
-    "fortigate": {"summary": "FortiGate.", "lab": "policy و session.", "cmds": [("get system status", "وضعیت"), ("diagnose firewall", "فایروال")]},
-    "ad": {"summary": "Active Directory.", "lab": "replication و DNS.", "cmds": [("repadmin /showrepl", "replication")]},
-    "python": {"summary": "اتوماسیون پایتون.", "lab": "اسکریپت read-only.", "cmds": [("python -c \"print(1)\"", "تست")]},
-    "ansible": {"summary": "Ansible.", "lab": "ping module.", "cmds": [("ansible all -m ping", "تست")]},
-    "kubernetes": {"summary": "K8s شبکه.", "lab": "pod network.", "cmds": [("kubectl get pods -A", "پادها")]},
+    "vlan": [
+        ("show vlan brief", "فهرست VLAN و پورت‌ها"),
+        ("show interfaces trunk", "وضعیت trunk"),
+        ("show interfaces switchport", "mode پورت"),
+        ("interface Gi0/1\n switchport mode access\n switchport access vlan 10", "پورت access"),
+        ("interface Gi0/24\n switchport mode trunk\n switchport trunk allowed vlan 10,20", "trunk محدود"),
+        ("interface Vlan10\n ip address 10.10.10.1 255.255.255.0", "SVI"),
+        ("show mac address-table vlan 10", "جدول MAC"),
+    ],
+    "ospf": [
+        ("show ip ospf neighbor", "همسایه‌ها"),
+        ("show ip route ospf", "مسیرهای OSPF"),
+        ("show ip ospf interface brief", "رابط‌های OSPF"),
+        ("router ospf 1\n network 10.0.0.0 0.0.0.255 area 0", "فعال‌سازی area 0"),
+    ],
+    "bgp": [
+        ("show ip bgp summary", "وضعیت peer"),
+        ("show ip bgp", "جدول BGP"),
+        ("router bgp 65001\n neighbor 192.0.2.1 remote-as 65002", "تعریف peer"),
+    ],
+    "nat": [
+        ("show ip nat translations", "ترجمه‌ها"),
+        ("show ip nat statistics", "آمار"),
+        ("ip nat inside source list 1 interface Gi0/0 overload", "PAT"),
+    ],
+    "vpn": [
+        ("show crypto session", "نشست"),
+        ("show crypto isakmp sa", "Phase1"),
+        ("show crypto ipsec sa", "Phase2"),
+    ],
+    "dhcp": [
+        ("show ip dhcp binding", "اجاره‌ها"),
+        ("show ip dhcp pool", "استخر"),
+        ("ip dhcp pool LAN\n network 10.0.0.0 255.255.255.0", "تعریف pool"),
+    ],
+    "firewall": [
+        ("show access-lists", "ACLها"),
+        ("access-list 100 permit tcp any any eq 443", "نمونه قانون"),
+    ],
+    "stp": [
+        ("show spanning-tree", "وضعیت STP"),
+        ("show spanning-tree root", "Root bridge"),
+        ("spanning-tree vlan 1 root primary", "اولویت Root"),
+    ],
+    "dns": [
+        ("nslookup example.com", "resolve"),
+        ("dig +short example.com", "پاسخ کوتاه"),
+    ],
+    "wireless": [
+        ("netsh wlan show interfaces", "وضعیت وای‌فای ویندوز"),
+        ("netsh wlan show networks", "شبکه‌های دیده‌شده"),
+        ("iw dev", "رابط بی‌سیم لینوکس"),
+        ("iw dev wlan0 link", "لینک فعلی"),
+    ],
+    "python": [
+        ("python -c \"print('ok')\"", "تست پایتون"),
+        ("from netmiko import ConnectHandler", "ورود Netmiko"),
+    ],
+    "ansible": [
+        ("ansible all -m ping", "تست inventory"),
+        ("ansible-playbook site.yml --check", "dry-run"),
+    ],
+    "linux": [
+        ("ip a", "آدرس‌ها"),
+        ("ss -tulpn", "سوکت‌ها"),
+        ("journalctl -xe", "لاگ"),
+    ],
+    "windows": [
+        ("ipconfig /all", "پیکربندی IP"),
+        ("Get-NetTCPConnection", "اتصالات TCP"),
+    ],
+    "ha": [
+        ("show standby", "HSRP"),
+        ("show vrrp", "VRRP"),
+    ],
+    "security": [
+        ("show aaa servers", "AAA"),
+        ("show authentication sessions", "نشست 802.1X"),
+    ],
+    "tcpip": [
+        ("ping 8.8.8.8", "ICMP"),
+        ("traceroute 8.8.8.8", "مسیر"),
+    ],
+    "storage": [("# check disk latency", "مانیتورینگ دیسک")],
+    "virtualization": [("# esxcli network", "شبکه ESXi")],
+    "mikrotik": [
+        ("/ip address print", "آدرس‌ها"),
+        ("/interface print", "رابط‌ها"),
+        ("/ip route print", "مسیرها"),
+    ],
+    "fortigate": [
+        ("get system status", "وضعیت"),
+        ("diagnose firewall", "فایروال"),
+    ],
+    "ad": [("repadmin /showrepl", "replication")],
+    "kubernetes": [("kubectl get pods -A", "پادها")],
+    "general": COMMON[:6],
 }
 
 ERRORS = {
