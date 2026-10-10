@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Generate tools/chapter_prompts/chapters/chXX.md for all curriculum chapters."""
+"""Generate chapter prompt files: chapters/chXX.md and chXX/PROMPT.md"""
 from __future__ import annotations
 from pathlib import Path
 
@@ -75,6 +75,7 @@ CHAPTERS = [
     (65, "امنیت سایبری و هک اخلاقی دفاعی + وایرلس", "Defensive security wireless"),
     (66, "مسیریابی عمیق OSPF/BGP/Redistribution", "Deep routing"),
     (67, "VPN سازمانی IPsec/SSL", "Enterprise VPN"),
+    (68, "دانشنامه جامع دستورات", "Cisco MikroTik FortiGate Issabel PowerShell"),
 ]
 
 
@@ -85,35 +86,31 @@ def body(n: int, title: str, kw: str) -> str:
 
 ---
 
-نقش: تولیدکننده محتوا برای پروژه NetworkEncyclopedia / ENGINEER JOKAR  
+نقش: تولیدکننده محتوا برای NetworkEncyclopedia / ENGINEER JOKAR  
 ریپو: https://github.com/MrUtility01/NetworkEncyclopedia  
 
-## موضوع این بسته
+## موضوع
 - **شماره فصل:** {n}
 - **عنوان:** {title}
 - **کلیدواژه‌ها:** {kw}
 
 ## هدف
-محتوای آموزشی از L0 تا L4؛ هر موضوع اصلی حداقل با ۵ سطح و سناریوی سازمانی واقعی.
+آموزش L0 تا L4 با سناریوی سازمانی؛ دستورات + Lab + RCA + ارزیابی.
 
-## محدودیت‌ها
-- فقط Lab کنترل‌شده و مجاز
-- بدون محتوای تهاجمی غیرمجاز
-- سؤالات جدا از پاسخ‌نامه (`questions` / `answer_key`)
+## محدودیت
+فقط Lab مجاز؛ سؤالات جدا از answer_key.
 
-## ساختار پیشنهادی
-زیرفصل‌ها: مفاهیم | پیاده‌سازی | عیب‌یابی | امنیت/بهترین‌روش | Lab  
-برای هر زیرفصل: L0, L1, L2, L3, L4
-
-## فیلدهای هر درس JSON
-uid (`lesson:ch{n:02d}:lvMMM:lKKKK`), chapter_order={n}, subchapter_order, lesson_order, level, title_fa, title_en, topic, summary, full_content, commands, examples, notes, learning_objectives, meta.assessment.questions, meta.assessment.answer_key, source_status=review_required
+## فیلدهای JSON هر درس
+uid (`lesson:ch{n:02d}:lvMMM:lKKKK`), chapter_order={n}, subchapter_order, lesson_order,
+level, title_fa, title_en, topic, summary, full_content, commands, examples, notes,
+learning_objectives, meta.assessment.questions, meta.assessment.answer_key,
+source_status=review_required
 
 ## full_content
-معرفی، آموزش از صفر، تشبیه سازمانی، معماری، مثال، دستورات، Lab ایمن، RCA، امنیت، خلاصه، واژه‌نامه
+معرفی، از صفر، تشبیه، معماری، مثال، دستورات، Lab، RCA، امنیت، خلاصه، واژه‌نامه
 
 ## شروع
-۱) فهرست کامل درس‌ها با uid  
-۲) سپس JSON در بسته‌های ۲۰تایی
+۱) فهرست درس‌ها با uid  ۲) JSON بسته‌های ۲۰تایی
 
 ## ذخیره
 `tools/packs/ch{n:02d}/ch{n:02d}_pack.json`
@@ -122,13 +119,20 @@ uid (`lesson:ch{n:02d}:lvMMM:lKKKK`), chapter_order={n}, subchapter_order, lesso
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    lines = ["# فهرست سریع فصل‌ها\n", "| فصل | عنوان | فایل |", "|-----|--------|------|"]
+    lines = ["# فهرست فصل‌ها\n", "| فصل | عنوان | پوشه |", "|-----|--------|-------|"]
     for n, title, kw in CHAPTERS:
-        p = OUT / f"ch{n:02d}.md"
-        p.write_text(body(n, title, kw), encoding="utf-8")
-        lines.append(f"| {n} | {title} | [chapters/ch{n:02d}.md](chapters/ch{n:02d}.md) |")
+        text = body(n, title, kw)
+        (OUT / f"ch{n:02d}.md").write_text(text, encoding="utf-8")
+        folder = ROOT / f"ch{n:02d}"
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "PROMPT.md").write_text(text, encoding="utf-8")
+        (folder / "README.md").write_text(
+            f"# فصل {n}: {title}\n\nپرامپت: [PROMPT.md](PROMPT.md)\nخروجی: `tools/packs/ch{n:02d}/`\n",
+            encoding="utf-8",
+        )
+        lines.append(f"| {n} | {title} | [ch{n:02d}/PROMPT.md](ch{n:02d}/PROMPT.md) |")
     (ROOT / "INDEX.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"wrote {len(CHAPTERS)} chapter prompts -> {OUT}")
+    print(f"wrote {len(CHAPTERS)} chapter folders under {ROOT}")
 
 
 if __name__ == "__main__":
