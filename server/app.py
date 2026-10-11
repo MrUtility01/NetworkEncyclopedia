@@ -152,7 +152,7 @@ def health():
     })
 
 
-# —— فهرست دروس: عمومی (بدون توکن) تا UI وب کار کند ——
+# —— فهرست دروس: عمومی ——
 
 @app.get("/api/stats")
 def api_stats():
@@ -166,12 +166,14 @@ def chapters():
 
 @app.get("/api/chapters/<int:chapter_id>/levels")
 def chapter_levels(chapter_id: int):
-    return jsonify(db().list_levels(chapter_id))
+    levels = db().list_levels(chapter_id)
+    return jsonify({"levels": levels, "count": len(levels)})
 
 
 @app.get("/api/levels/<int:level_id>/lessons")
 def level_lessons(level_id: int):
-    return jsonify(db().list_lessons(level_id))
+    lessons = db().list_lessons(level_id)
+    return jsonify({"lessons": lessons, "count": len(lessons)})
 
 
 @app.get("/api/lessons/<int:lesson_id>")
@@ -190,8 +192,9 @@ def lessons_query():
     except ValueError:
         lid = None
     if lid is None:
-        return jsonify([])
-    return jsonify(db().list_lessons(lid))
+        return jsonify({"lessons": []})
+    lessons = db().list_lessons(lid)
+    return jsonify({"lessons": lessons, "count": len(lessons)})
 
 
 @app.get("/api/scenarios")
@@ -215,7 +218,6 @@ def search():
 
 @app.post("/api/reseed")
 def reseed():
-    """بازسازی ساختار — فقط با توکن."""
     denied = require_token()
     if denied:
         return denied
@@ -225,7 +227,7 @@ def reseed():
     return jsonify(result)
 
 
-# —— Sync: فقط با توکن ——
+# —— Sync با توکن ——
 
 @app.get("/api/sync/hello")
 def sync_hello():
@@ -335,9 +337,8 @@ def main():
             _MODULE_STATUS["study_error"] = str(e)
             print("study routes", e)
     print(f"NetEnc listening on http://{host}:{port}")
-    print("  catalog APIs: public (no token)")
+    print("  catalog APIs: public")
     print("  sync APIs: require Bearer token")
-    print(f"  token_default={SYNC_TOKEN == DEFAULT_DEV_TOKEN}")
     app.run(host=host, port=port, debug=False, threaded=True)
 
 

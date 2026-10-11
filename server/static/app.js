@@ -9,14 +9,22 @@ const state = {
   chapters: [],
   openCh: null,
   openLv: null,
-  levelsCache: {}, // chapterId -> levels[]
-  lessonsCache: {}, // levelId -> lessons[]
+  levelsCache: {},
+  lessonsCache: {},
 };
 
 async function api(path, opts) {
   const r = await fetch(path, opts);
   if (!r.ok) throw new Error(await r.text());
   return r.json();
+}
+
+/** آرایه یا {levels|lessons: []} را یکسان می‌کند */
+function asList(data, key) {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data[key])) return data[key];
+  if (data && Array.isArray(data.items)) return data.items;
+  return [];
 }
 
 async function loadStats() {
@@ -30,26 +38,30 @@ async function loadStats() {
 
 async function loadChapters() {
   chaptersEl.innerHTML = `<div class="loading">بارگذاری فهرست فصل‌ها…</div>`;
-  const list = await api("/api/chapters");
-  state.chapters = list;
-  chaptersEl.innerHTML = "";
-  if (!list.length) {
-    chaptersEl.innerHTML = `<div class="loading">فصلی نیست — بازسازی ساختار را بزنید</div>`;
-    return;
-  }
-  list.forEach((ch) => {
-    const wrap = document.createElement("div");
-    wrap.className = "ch-item";
-    wrap.dataset.cid = ch.id;
-    wrap.innerHTML = `
+  try {
+    const list = asList(await api("/api/chapters"), "chapters");
+    state.chapters = list;
+    chaptersEl.innerHTML = "";
+    if (!list.length) {
+      chaptersEl.innerHTML = `<div class="loading">فصلی نیست — بازسازی ساختار را بزنید</div>`;
+      return;
+    }
+    list.forEach((ch) => {
+      const wrap = document.createElement("div");
+      wrap.className = "ch-item";
+      wrap.dataset.cid = ch.id;
+      wrap.innerHTML = `
       <button type="button" class="ch-btn" data-id="${ch.id}">
         <span class="caret">▶</span>
         <span class="ch-title">${escapeHtml(ch.title_fa)}</span>
         <span class="badge">${ch.order_index}</span>
       </button>
       <div class="nested" id="ch-nest-${ch.id}"></div>`;
-    chaptersEl.appendChild(wrap);
-  });
+      chaptersEl.appendChild(wrap);
+    });
+  } catch (err) {
+    chaptersEl.innerHTML = `<div class="loading">خطا: ${escapeHtml(err.message)}</div>`;
+  }
 }
 
 function escapeHtml(s) {
@@ -75,7 +87,6 @@ async function onChapterClick(btn) {
   const caret = btn.querySelector(".caret");
   const isOpen = nest.classList.contains("open");
 
-  // بستن بقیه اختیاری — فقط همین را toggle
   if (isOpen) {
     nest.classList.remove("open");
     caret.textContent = "▶";
@@ -94,7 +105,7 @@ async function onChapterClick(btn) {
     let levels = state.levelsCache[id];
     if (!levels) {
       const data = await api(`/api/chapters/${id}/levels`);
-      levels = data.levels;
+      levels = asList(data, "levels");
       state.levelsCache[id] = levels;
     }
     if (!levels.length) {
@@ -107,7 +118,7 @@ async function onChapterClick(btn) {
       <div class="lv-item" data-lid="${lv.id}">
         <button type="button" class="lv-btn" data-id="${lv.id}" data-cid="${id}">
           <span class="caret">▶</span>
-          <span class="ch-title">${escapeHtml(lv.title_fa)}</span>
+          <span class="ch-title">${escapeHtml(lv.title_fa || "")}</span>
         </button>
         <div class="nested" id="lv-nest-${lv.id}"></div>
       </div>`
@@ -121,13 +132,17 @@ async function onChapterClick(btn) {
 async function onLevelClick(btn) {
   const id = +btn.dataset.id;
   const nest = document.getElementById(`lv-nest-${id}`);
+  if (!nest) return;
   const caret = btn.querySelector(".caret");
-  if (nest.classList.contains("open")) {
+  const isOpen = nest.classList.contains("open");
+
+  if (isOpen) {
     nest.classList.remove("open");
     caret.textContent = "▶";
     btn.classList.remove("active");
     return;
   }
+
   document.querySelectorAll(".lv-btn.active").forEach((b) => b.classList.remove("active"));
   btn.classList.add("active");
   caret.textContent = "▼";
@@ -138,7 +153,7 @@ async function onLevelClick(btn) {
     let lessons = state.lessonsCache[id];
     if (!lessons) {
       const data = await api(`/api/levels/${id}/lessons`);
-      lessons = data.lessons;
+      lessons = asList(data, "lessons");
       state.lessonsCache[id] = lessons;
     }
     if (!lessons.length) {
@@ -151,7 +166,7 @@ async function onLevelClick(btn) {
       <div class="les-item">
         <button type="button" class="les-btn" data-id="${les.id}">
           <span class="dot ${les.has_content ? "ok" : ""}"></span>
-          <span class="ch-title">${escapeHtml(les.title_fa)}</span>
+          <span class="ch-title">${escapeHtml(les.title_fa || "")}</span>
           <span class="badge">${escapeHtml(les.tags || "")}</span>
         </button>
       </div>`
@@ -169,7 +184,7 @@ async function onLessonClick(btn) {
   viewer.innerHTML = `<div class="loading">بارگذاری درس…</div>`;
   try {
     const les = await api(`/api/lessons/${id}`);
-    breadcrumb.textContent = les.title_fa;
+    breadcrumb.textContent = les.title_fa || "";
     renderLesson(les);
   } catch (err) {
     viewer.innerHTML = `<div class="loading">خطا: ${escapeHtml(err.message)}</div>`;
@@ -190,7 +205,7 @@ function renderLesson(les) {
 
   viewer.innerHTML = `
     <div class="lesson-card">
-      <h1>${escapeHtml(les.title_fa)}</h1>
+      <h1>${escapeHtml(les.title_fa || "")}</h1>
       <div class="meta-row">
         <span class="chip ${tag}">${escapeHtml(les.tags || "")}</span>
         <span class="chip">${escapeHtml(les.title_en || "")}</span>
@@ -199,150 +214,37 @@ function renderLesson(les) {
       <div class="tabs">
         ${tabs.map((t, i) => `<button type="button" class="tab ${i === 0 ? "active" : ""}" data-tab="${t.id}">${t.label}</button>`).join("")}
       </div>
-      ${tabs
-        .map(
-          (t, i) =>
-            `<div class="panel ${i === 0 ? "active" : ""}" id="panel-${t.id}">${
-              t.body && String(t.body).trim()
-                ? escapeHtml(t.body)
-                : `<span class="empty-hint">محتوا هنوز پر نشده — از AI یا ویرایش بعدی پر می‌شود. عنوان و Meta آماده است.</span>`
-            }</div>`
-        )
-        .join("")}
+      <div class="tab-body" id="tab-body">${formatBody(tabs[0].body)}</div>
     </div>`;
 
-  viewer.querySelectorAll(".tab").forEach((tab) => {
-    tab.addEventListener("click", () => {
-      viewer.querySelectorAll(".tab").forEach((x) => x.classList.remove("active"));
-      viewer.querySelectorAll(".panel").forEach((x) => x.classList.remove("active"));
-      tab.classList.add("active");
-      const p = document.getElementById(`panel-${tab.dataset.tab}`);
-      if (p) p.classList.add("active");
+  viewer.querySelectorAll(".tab").forEach((tabBtn) => {
+    tabBtn.addEventListener("click", () => {
+      viewer.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+      tabBtn.classList.add("active");
+      const t = tabs.find((x) => x.id === tabBtn.dataset.tab);
+      $("#tab-body").innerHTML = formatBody(t ? t.body : "");
     });
   });
+}
+
+function formatBody(body) {
+  if (body == null || body === "") return "<p class=\"muted\">محتوایی ثبت نشده</p>";
+  const s = String(body);
+  if (s.includes("\n") || s.length > 80) {
+    return `<pre class="content-pre">${escapeHtml(s)}</pre>`;
+  }
+  return `<p>${escapeHtml(s)}</p>`;
 }
 
 function formatMeta(les) {
-  const m = les.meta || {};
-  const lines = [
-    "=== پرامپت تدریس ===",
-    m.ai_teach_prompt || "",
-    "",
-    "=== پرامپت جستجو ===",
-    m.ai_search_prompt || les.search_query || "",
-    "",
-    "=== پرامپت عیب‌یابی ===",
-    m.ai_troubleshoot_prompt || "",
-    "",
-    "=== حلقه مهندسی ===",
-    (m.engineering_loop || []).join(" → "),
-  ];
-  return lines.join("\n");
-}
-
-async function showScenarios() {
-  viewer.innerHTML = `<div class="loading">بارگذاری سناریوها…</div>`;
-  breadcrumb.textContent = "سناریوهای Capstone";
-  const list = await api("/api/scenarios");
-  viewer.innerHTML = `
-    <h1 style="margin-top:0">۱۰ سناریوی سازمانی</h1>
-    <div class="scenario-list">
-      ${list
-        .map(
-          (s) => `
-        <div class="scenario-card" data-sid="${s.id}">
-          <h3>${escapeHtml(s.code)} — ${escapeHtml(s.title_fa)}</h3>
-          <div class="meta-row">
-            <span class="chip">${escapeHtml(s.level)}</span>
-            <span class="chip">${escapeHtml(s.difficulty)}</span>
-            <span class="chip">${s.users || 0} کاربر</span>
-            <span class="chip">${s.sites || 0} سایت</span>
-            <span class="chip">${s.estimated_hours || 0} ساعت</span>
-          </div>
-        </div>`
-        )
-        .join("")}
-    </div>`;
-  viewer.querySelectorAll(".scenario-card").forEach((card) => {
-    card.addEventListener("click", async () => {
-      const sc = await api(`/api/scenarios/${card.dataset.sid}`);
-      breadcrumb.textContent = sc.title_fa;
-      viewer.innerHTML = `
-        <div class="scenario-detail">
-          <h1>${escapeHtml(sc.code)} — ${escapeHtml(sc.title_fa)}</h1>
-          <div class="meta-row">
-            <span class="chip">${escapeHtml(sc.vendors || "")}</span>
-            <span class="chip">${escapeHtml(sc.category || "")}</span>
-          </div>
-          ${section("بافت کسب‌وکار", sc.business_context)}
-          ${section("نیازمندی‌ها", sc.requirements)}
-          ${section("محدودیت‌ها", sc.constraints_text)}
-          ${section("وضعیت اولیه", sc.initial_state)}
-          ${section("حادثه / علائم", [sc.incident, sc.symptoms].filter(Boolean).join("\n"))}
-          ${section("اهداف", sc.objectives)}
-          ${section("وظایف", sc.tasks)}
-          ${section("راهنمایی", sc.hints)}
-          ${section("نتیجه مورد انتظار", sc.expected_result)}
-          ${section("راستی‌آزمایی", sc.verification)}
-          ${section("مهارت‌های لازم", sc.skills_required)}
-        </div>`;
-    });
-  });
-}
-
-function section(title, body) {
-  if (!body || !String(body).trim()) return "";
-  return `<h2>${escapeHtml(title)}</h2><pre>${escapeHtml(body)}</pre>`;
-}
-
-async function doSearch() {
-  const q = $("#q").value.trim();
-  if (!q) return;
-  viewer.innerHTML = `<div class="loading">جستجو…</div>`;
-  breadcrumb.textContent = `نتایج: ${q}`;
-  const rows = await api(`/api/search?q=${encodeURIComponent(q)}`);
-  if (!rows.length) {
-    viewer.innerHTML = `<p class="empty-hint">موردی پیدا نشد.</p>`;
-    return;
-  }
-  viewer.innerHTML = `<ul class="search-results">${rows
-    .map(
-      (r) => `<li data-id="${r.id}">
-      <div>${escapeHtml(r.title_fa)}</div>
-      <div class="path">${escapeHtml(r.chapter_title)} / ${escapeHtml(r.level_title)} · ${escapeHtml(r.tags || "")}</div>
-    </li>`
-    )
-    .join("")}</ul>`;
-  viewer.querySelectorAll("li").forEach((li) => {
-    li.addEventListener("click", async () => {
-      const les = await api(`/api/lessons/${li.dataset.id}`);
-      breadcrumb.textContent = les.title_fa;
-      renderLesson(les);
-    });
-  });
-}
-
-$("#btnSearch").addEventListener("click", doSearch);
-$("#q").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") doSearch();
-});
-$("#btnScenarios").addEventListener("click", showScenarios);
-$("#btnReseed").addEventListener("click", async () => {
-  if (!confirm("ساختار از نو ساخته می‌شود (عناوین). ادامه؟")) return;
-  viewer.innerHTML = `<div class="loading">بازسازی… ممکن است یک دقیقه طول بکشد</div>`;
   try {
-    const info = await api("/api/reseed", { method: "POST" });
-    state.levelsCache = {};
-    state.lessonsCache = {};
-    await loadChapters();
-    await loadStats();
-    viewer.innerHTML = `<pre>${escapeHtml(JSON.stringify(info, null, 2))}</pre>`;
+    const m = typeof les.meta === "object" && les.meta ? les.meta : JSON.parse(les.meta_json || "{}");
+    return JSON.stringify(m, null, 2);
   } catch (e) {
-    viewer.innerHTML = `<div class="loading">خطا: ${escapeHtml(e.message)}</div>`;
+    return les.meta_json || "";
   }
-});
+}
 
-(async function init() {
-  await loadChapters();
-  await loadStats();
-})();
+// init
+loadStats();
+loadChapters();
