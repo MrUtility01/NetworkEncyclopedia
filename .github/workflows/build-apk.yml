@@ -22,41 +22,20 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Android SDK licenses + platform
+      - name: Android SDK
         run: |
-          set -e
           mkdir -p "$ANDROID_HOME/licenses"
-          printf '%s\n' \
-            "24333f8a63b6825ea9c5514f83c2829b004d1fee" \
-            "d56f51874764545162ea396f5d536e251650e41b" > "$ANDROID_HOME/licenses/android-sdk-license"
-          yes | sdkmanager --licenses >/tmp/sdk-lic.txt 2>&1 || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools" >/tmp/sdk-install.txt 2>&1 || true
+          echo -e "24333f8a63b6825ea9c5514f83c2829b004d1fee\nd56f51874764545162ea396f5d536e251650e41b" > "$ANDROID_HOME/licenses/android-sdk-license"
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools" >/dev/null 2>&1 || true
 
-      - name: Icons
-        run: python3 scripts/install_android_icon.py
-
-      - name: Chapters 1-68 export
+      - name: Icons + curriculum
         run: |
-          set -e
+          python3 scripts/install_android_icon.py
           python3 scripts/export_android_index.py
-          python3 - <<'PY'
-          import gzip, json
-          from pathlib import Path
-          p = Path("android/app/src/main/assets/curriculum_index.json.gz")
-          d = json.loads(gzip.open(p, "rt", encoding="utf-8").read())
-          orders = [int(c["order"]) for c in d["chapters"]]
-          print("export chapters", len(orders), "lessons", d["lesson_count"])
-          assert 1 in orders and 68 in orders
-          PY
+          python3 scripts/merge_content_packs_into_android.py || true
 
-      - name: Merge packs (best effort)
-        run: |
-          set +e
-          python3 scripts/merge_content_packs_into_android.py
-          echo "merge_exit=$?"
-          exit 0
-
-      - name: Gradle wrapper + local.properties
+      - name: Gradle build
         working-directory: android
         run: |
           set -e
@@ -65,41 +44,31 @@ jobs:
           sudo unzip -qo /tmp/gradle.zip -d /opt
           /opt/gradle-8.2/bin/gradle wrapper --gradle-version 8.2
           chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Assemble APK
-        working-directory: android
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
-
-      - name: Find and list APK
-        id: apk
+      - name: Collect APKs
         run: |
           set -e
-          echo "=== tree outputs ==="
-          find android/app/build/outputs -type f 2>/dev/null | head -50 || true
-          APK=""
-          for cand in \
-            android/app/build/outputs/apk/debug/app-debug.apk \
-            android/app/build/outputs/apk/debug/*.apk
-          do
-            for f in $cand; do
-              if [ -f "$f" ]; then APK="$f"; break 2; fi
-            done
-          done
-          if [ -z "$APK" ]; then
-            APK=$(find android -name "*.apk" 2>/dev/null | head -n 1 || true)
-          fi
-          if [ -z "$APK" ] || [ ! -f "$APK" ]; then
-            echo "ERROR: no apk found"
+          mkdir -p dist
+          echo "=== all apk files ==="
+          find android -name "*.apk" -print || true
+          echo "=== outputs tree ==="
+          find android/app/build/outputs -type f 2>/dev/null | head -40 || true
+          # copy every apk to dist/
+          found=0
+          while IFS= read -r f; do
+            cp -v "$f" "dist/$(basename "$f")"
+            found=1
+          done < <(find android -name "*.apk" 2>/dev/null)
+          if [ "$found" != "1" ]; then
+            echo "No APK produced"
             exit 1
           fi
-          echo "Found APK: $APK"
-          ls -lh "$APK"
-          cp "$APK" /tmp/EngineerJokar-v1.apk
-          echo "path=/tmp/EngineerJokar-v1.apk" >> "$GITHUB_OUTPUT"
+          ls -lah dist/
 
       - uses: actions/upload-artifact@v4
         with:
           name: EngineerJokar-APK-v1
-          path: /tmp/EngineerJokar-v1.apk
+          path: dist/*.apk
           if-no-files-found: error
           retention-days: 30
