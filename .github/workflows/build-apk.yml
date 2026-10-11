@@ -50,16 +50,37 @@ jobs:
           python3 scripts/merge_content_packs_into_android.py || true
 
       - name: Gradle assembleDebug
+        id: gradle
         working-directory: android
+        continue-on-error: true
         run: |
           set -e
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           cat local.properties
+          # Use Gradle Wrapper generator more robustly
           curl -fsSL -o /tmp/gradle.zip https://services.gradle.org/distributions/gradle-8.2-bin.zip
           sudo unzip -qo /tmp/gradle.zip -d /opt
-          /opt/gradle-8.2/bin/gradle wrapper --gradle-version 8.2
+          /opt/gradle-8.2/bin/gradle wrapper --gradle-version 8.2 --stacktrace
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          # Capture full log
+          ./gradlew assembleDebug --no-daemon --stacktrace --info 2>&1 | tee ../gradle-build.log
+          # Force exit code from gradle
+          exit ${PIPESTATUS[0]}
+
+      - name: Upload Gradle log (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-build-log
+          path: gradle-build.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Fail if Gradle failed
+        if: steps.gradle.outcome == 'failure'
+        run: |
+          echo "Gradle assembleDebug failed. See gradle-build-log artifact for details."
+          exit 1
 
       - name: Collect APK
         run: |
