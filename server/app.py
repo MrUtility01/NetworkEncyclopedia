@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""سرور وب + API همگام‌سازی LAN — قرارداد یکسان با اندروید (فاز ۱ و ۲)."""
+"""سرور وب + API همگام‌سازی LAN — فهرست دروس عمومی؛ Sync با توکن."""
 from __future__ import annotations
 
 import hashlib
@@ -76,7 +76,7 @@ DEVICE_ID = os.environ.get("NETENC_DEVICE", socket.gethostname() or "windows-hos
 BIND_HOST = os.environ.get("NETENC_HOST", "0.0.0.0")
 
 if SYNC_TOKEN == DEFAULT_DEV_TOKEN:
-    print("WARNING: using default NETENC_TOKEN — set env NETENC_TOKEN for LAN use")
+    print("WARNING: using default NETENC_TOKEN — set env NETENC_TOKEN for production")
 
 _db = None
 
@@ -86,7 +86,8 @@ def db() -> WebDB:
     if _db is None:
         _db = WebDB()
         if not _db.is_seeded():
-            print("seed curriculum...")
+            print("seed curriculum (fast)...")
+            os.environ.setdefault("NETENC_FAST_SEED", "1")
             print(_db.seed_full(force=True))
         _db.ensure_sync_columns()
     return _db
@@ -105,7 +106,7 @@ def extract_token() -> str:
 
 def check_token() -> bool:
     if not SYNC_TOKEN:
-        return True
+        return False
     return extract_token() == SYNC_TOKEN
 
 
@@ -139,7 +140,7 @@ def health():
         "device": DEVICE_ID,
         "schema_version": SCHEMA_VERSION,
         "sync_protocol": "v1-aligned",
-        "token_required": bool(SYNC_TOKEN),
+        "token_required_for_sync": bool(SYNC_TOKEN),
         "default_token_in_use": SYNC_TOKEN == DEFAULT_DEV_TOKEN,
         "modules": {
             "workspace": _MODULE_STATUS["workspace"],
@@ -151,19 +152,38 @@ def health():
     })
 
 
+# —— فهرست دروس: عمومی (بدون توکن) تا UI وب کار کند ——
+
+@app.get("/api/stats")
+def api_stats():
+    return jsonify(db().stats())
+
+
 @app.get("/api/chapters")
 def chapters():
-    denied = require_token()
-    if denied:
-        return denied
     return jsonify(db().list_chapters())
 
 
+@app.get("/api/chapters/<int:chapter_id>/levels")
+def chapter_levels(chapter_id: int):
+    return jsonify(db().list_levels(chapter_id))
+
+
+@app.get("/api/levels/<int:level_id>/lessons")
+def level_lessons(level_id: int):
+    return jsonify(db().list_lessons(level_id))
+
+
+@app.get("/api/lessons/<int:lesson_id>")
+def lesson_by_id(lesson_id: int):
+    row = db().get_lesson(lesson_id)
+    if not row:
+        return jsonify({"error": "not found"}), 404
+    return jsonify(row)
+
+
 @app.get("/api/lessons")
-def lessons():
-    denied = require_token()
-    if denied:
-        return denied
+def lessons_query():
     level_id = request.args.get("level_id") or request.args.get("chapter_id")
     try:
         lid = int(level_id) if level_id else None
@@ -174,22 +194,38 @@ def lessons():
     return jsonify(db().list_lessons(lid))
 
 
-@app.get("/api/lesson/<uid>")
-def lesson(uid: str):
+@app.get("/api/scenarios")
+def scenarios():
+    return jsonify(db().list_scenarios())
+
+
+@app.get("/api/scenarios/<int:sid>")
+def scenario_one(sid: int):
+    row = db().get_scenario(sid)
+    if not row:
+        return jsonify({"error": "not found"}), 404
+    return jsonify(row)
+
+
+@app.get("/api/search")
+def search():
+    q = request.args.get("q") or ""
+    return jsonify(db().search(q))
+
+
+@app.post("/api/reseed")
+def reseed():
+    """بازسازی ساختار — فقط با توکن."""
     denied = require_token()
     if denied:
         return denied
-    rows = db().sync_pull([uid])
-    if rows:
-        return jsonify(rows[0])
-    try:
-        row = db().get_lesson(int(uid))
-        if row:
-            return jsonify(row)
-    except Exception:
-        pass
-    return jsonify({"error": "not found"}), 404
+    global _db
+    os.environ.setdefault("NETENC_FAST_SEED", "1")
+    result = db().seed_full(force=True)
+    return jsonify(result)
 
+
+# —— Sync: فقط با توکن ——
 
 @app.get("/api/sync/hello")
 def sync_hello():
@@ -259,15 +295,12 @@ def sync_push():
     index = {r["uid"]: r for r in db().sync_index()}
     to_apply = []
     for item in records:
-        uid = (item or {}).get("uid") or ""
+        if not isinstance(item, dict):
+            continue
+        uid = item.get("uid") or ""
         if not uid:
-            kept += 1
             continue
-        server = index.get(uid)
-        if not server:
-            to_apply.append(item)
-            accepted += 1
-            continue
+        server = index.get(uid) or {}
         decision = compare_lww(server, item)
         if decision == "accept_client":
             to_apply.append(item)
@@ -292,6 +325,7 @@ def sync_push():
 def main():
     host = BIND_HOST
     port = int(os.environ.get("NETENC_PORT", "5050"))
+    print("init db / fast seed if needed...")
     db()
     if register_study_routes:
         try:
@@ -301,9 +335,10 @@ def main():
             _MODULE_STATUS["study_error"] = str(e)
             print("study routes", e)
     print(f"NetEnc listening on http://{host}:{port}")
-    print("  sync: /api/sync/hello | manifest | pull | push")
-    print(f"  token_required={bool(SYNC_TOKEN)} default_token={SYNC_TOKEN == DEFAULT_DEV_TOKEN}")
-    app.run(host=host, port=port, debug=False)
+    print("  catalog APIs: public (no token)")
+    print("  sync APIs: require Bearer token")
+    print(f"  token_default={SYNC_TOKEN == DEFAULT_DEV_TOKEN}")
+    app.run(host=host, port=port, debug=False, threaded=True)
 
 
 if __name__ == "__main__":
