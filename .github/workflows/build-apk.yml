@@ -7,9 +7,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    env:
-      ANDROID_HOME: /usr/local/lib/android/sdk
-      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
       - uses: actions/checkout@v4
 
@@ -22,49 +19,56 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Android SDK
+      - name: Bootstrap Android SDK
         run: |
-          mkdir -p "$ANDROID_HOME/licenses"
-          echo -e "24333f8a63b6825ea9c5514f83c2829b004d1fee\nd56f51874764545162ea396f5d536e251650e41b" > "$ANDROID_HOME/licenses/android-sdk-license"
-          yes | sdkmanager --licenses >/dev/null 2>&1 || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools" >/dev/null 2>&1 || true
+          set -e
+          SDK_ROOT="$HOME/android-sdk"
+          mkdir -p "$SDK_ROOT/cmdline-tools"
+          curl -fsSL -o /tmp/cmdtools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          rm -rf "$SDK_ROOT/cmdline-tools/latest"
+          unzip -qo /tmp/cmdtools.zip -d "$SDK_ROOT/cmdline-tools"
+          mv "$SDK_ROOT/cmdline-tools/cmdline-tools" "$SDK_ROOT/cmdline-tools/latest"
+          export ANDROID_HOME="$SDK_ROOT"
+          export ANDROID_SDK_ROOT="$SDK_ROOT"
+          export PATH="$SDK_ROOT/cmdline-tools/latest/bin:$PATH"
+          mkdir -p "$SDK_ROOT/licenses"
+          printf '%s\n' "24333f8a63b6825ea9c5514f83c2829b004d1fee" "d56f51874764545162ea396f5d536e251650e41b" > "$SDK_ROOT/licenses/android-sdk-license"
+          yes | sdkmanager --licenses >/tmp/lic.txt 2>&1 || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+          test -d "$SDK_ROOT/platforms/android-34"
+          test -d "$SDK_ROOT/build-tools/34.0.0"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "sdk ok at $SDK_ROOT"
 
       - name: Icons + curriculum
         run: |
+          set -e
           python3 scripts/install_android_icon.py
           python3 scripts/export_android_index.py
           python3 scripts/merge_content_packs_into_android.py || true
 
-      - name: Gradle build
+      - name: Gradle assembleDebug
         working-directory: android
         run: |
           set -e
           echo "sdk.dir=$ANDROID_HOME" > local.properties
+          cat local.properties
           curl -fsSL -o /tmp/gradle.zip https://services.gradle.org/distributions/gradle-8.2-bin.zip
           sudo unzip -qo /tmp/gradle.zip -d /opt
           /opt/gradle-8.2/bin/gradle wrapper --gradle-version 8.2
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Collect APKs
+      - name: Collect APK
         run: |
           set -e
           mkdir -p dist
-          echo "=== all apk files ==="
-          find android -name "*.apk" -print || true
-          echo "=== outputs tree ==="
-          find android/app/build/outputs -type f 2>/dev/null | head -40 || true
-          # copy every apk to dist/
-          found=0
-          while IFS= read -r f; do
-            cp -v "$f" "dist/$(basename "$f")"
-            found=1
-          done < <(find android -name "*.apk" 2>/dev/null)
-          if [ "$found" != "1" ]; then
-            echo "No APK produced"
-            exit 1
-          fi
+          find android -name "*.apk" -print
+          find android -name "*.apk" -exec cp -v {} dist/ \;
           ls -lah dist/
+          test "$(ls -A dist/*.apk 2>/dev/null)"
 
       - uses: actions/upload-artifact@v4
         with:
