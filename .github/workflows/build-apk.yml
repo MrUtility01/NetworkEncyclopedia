@@ -25,15 +25,12 @@ jobs:
       - name: Android SDK licenses + platform
         run: |
           set -e
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          ls -la "$ANDROID_HOME" || true
           mkdir -p "$ANDROID_HOME/licenses"
           printf '%s\n' \
             "24333f8a63b6825ea9c5514f83c2829b004d1fee" \
             "d56f51874764545162ea396f5d536e251650e41b" > "$ANDROID_HOME/licenses/android-sdk-license"
           yes | sdkmanager --licenses >/tmp/sdk-lic.txt 2>&1 || true
           sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools" >/tmp/sdk-install.txt 2>&1 || true
-          tail -30 /tmp/sdk-install.txt || true
 
       - name: Icons
         run: python3 scripts/install_android_icon.py
@@ -64,44 +61,45 @@ jobs:
         run: |
           set -e
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          cat local.properties
           curl -fsSL -o /tmp/gradle.zip https://services.gradle.org/distributions/gradle-8.2-bin.zip
           sudo unzip -qo /tmp/gradle.zip -d /opt
           /opt/gradle-8.2/bin/gradle wrapper --gradle-version 8.2
           chmod +x gradlew
-          test -f gradle/wrapper/gradle-wrapper.jar
 
       - name: Assemble APK
-        id: assemble
         working-directory: android
-        run: |
-          set -o pipefail
-          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/gradle-assemble.log
-        continue-on-error: true
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Upload gradle log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: gradle-assemble-log
-          path: /tmp/gradle-assemble.log
-          if-no-files-found: ignore
-
-      - name: Upload APK or fail
+      - name: Find and list APK
+        id: apk
         run: |
           set -e
-          APK=$(find android -name "*.apk" -path "*/outputs/*" | head -n 1 || true)
+          echo "=== tree outputs ==="
+          find android/app/build/outputs -type f 2>/dev/null | head -50 || true
+          APK=""
+          for cand in \
+            android/app/build/outputs/apk/debug/app-debug.apk \
+            android/app/build/outputs/apk/debug/*.apk
+          do
+            for f in $cand; do
+              if [ -f "$f" ]; then APK="$f"; break 2; fi
+            done
+          done
           if [ -z "$APK" ]; then
-            echo "APK missing — see artifact gradle-assemble-log"
-            tail -80 /tmp/gradle-assemble.log || true
+            APK=$(find android -name "*.apk" 2>/dev/null | head -n 1 || true)
+          fi
+          if [ -z "$APK" ] || [ ! -f "$APK" ]; then
+            echo "ERROR: no apk found"
             exit 1
           fi
-          echo "APK=$APK"
+          echo "Found APK: $APK"
           ls -lh "$APK"
+          cp "$APK" /tmp/EngineerJokar-v1.apk
+          echo "path=/tmp/EngineerJokar-v1.apk" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v4
         with:
           name: EngineerJokar-APK-v1
-          path: android/app/build/outputs/apk/debug/*.apk
+          path: /tmp/EngineerJokar-v1.apk
           if-no-files-found: error
           retention-days: 30
