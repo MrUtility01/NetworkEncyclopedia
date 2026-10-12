@@ -70,7 +70,7 @@ except Exception as _e:
     register_study_routes = None
     _MODULE_STATUS["study_error"] = str(_e)
 
-DEFAULT_DEV_TOKEN = "09136555866"
+DEFAULT_DEV_TOKEN = "engineerjokar"
 SYNC_TOKEN = os.environ.get("NETENC_TOKEN", DEFAULT_DEV_TOKEN)
 DEVICE_ID = os.environ.get("NETENC_DEVICE", socket.gethostname() or "windows-host")
 BIND_HOST = os.environ.get("NETENC_HOST", "0.0.0.0")
@@ -259,7 +259,7 @@ def api_infographics():
         from core.infographics import all_infographics
         items = [{"title": t, "svg": s} for t, s in all_infographics()]
     except Exception as e:
-        return jsonify({"items": [], "error": str(e)})
+        return jsonify({"error": str(e), "items": []})
     return jsonify({"items": items, "count": len(items)})
 
 
@@ -277,7 +277,7 @@ def apply_packs():
     try:
         from core.pack_loader import apply_packs_to_db
         result = apply_packs_to_db(Path(db().path), overwrite=True)
-        db().set_meta("packs_applied", "v7")
+        db().set_meta("packs_applied", "v21")
         return jsonify(result)
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
@@ -293,7 +293,7 @@ def reseed():
         from core.pack_loader import apply_packs_to_db
         packs = apply_packs_to_db(Path(db().path), overwrite=True)
         result["packs"] = packs
-        db().set_meta("packs_applied", "v7")
+        db().set_meta("packs_applied", "v21")
     except Exception as e:
         result["packs_error"] = str(e)
     return jsonify(result)
@@ -398,12 +398,12 @@ def main():
     print("init db / rich seed if needed...")
     d = db()
     try:
-        if d.get_meta("packs_applied") != "v7":
+        if d.get_meta("packs_applied") != "v21":
             from core.pack_loader import apply_packs_to_db
             print("applying REAL JSON pack content (strict topic match)...")
             res = apply_packs_to_db(Path(d.path), overwrite=True)
             print("pack apply:", res.get("updated"), "updated /", res.get("matched"), "matched")
-            d.set_meta("packs_applied", "v7")
+            d.set_meta("packs_applied", "v21")
     except Exception as e:
         print("pack apply skipped:", e)
     if register_study_routes:
