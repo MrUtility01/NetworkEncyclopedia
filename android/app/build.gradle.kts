@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -12,8 +12,8 @@ android {
         applicationId = "com.netenc.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
-        versionName = "2.1.0-network-engineer"
+        versionCode = 6
+        versionName = "2.2.0-network-engineer"
     }
 
     buildTypes {
@@ -46,5 +46,5 @@ dependencies {
     val room = "2.6.1"
     implementation("androidx.room:room-runtime:$room")
     implementation("androidx.room:room-ktx:$room")
-    ksp("androidx.room:room-compiler:$room")
+    kapt("androidx.room:room-compiler:$room")
 }
