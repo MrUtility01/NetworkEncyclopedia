@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""محتوای عمیق: teacher اختصاصی + deep_fallback."""
+"""محتوای عمیق: teacher اختصاصی + کتاب جامع deep_fallback."""
 from __future__ import annotations
 import re
 from typing import Any, Dict
@@ -169,23 +169,25 @@ def _content_len(d: Dict[str, Any]) -> int:
 
 
 def _ensure_dense(title_fa: str, title_en: str, level: str | None, candidate: Dict[str, Any] | None) -> Dict[str, Any]:
+    """همیشه کتاب جامع deep_fallback پایه است؛ teacher فقط اضافه می‌شود — هرگز جایگزین کوتاه نمی‌شود."""
     from core.deep_fallback import build_deep_fallback
     dense = build_deep_fallback(title_fa, title_en, level or level_tag(title_fa))
     if not candidate:
         return dense
-    if _content_len(candidate) >= 4000:
-        return candidate
     out = dict(dense)
-    for k in ("commands", "examples", "notes", "lab"):
-        cv = str(candidate.get(k) or "")
-        if len(cv) > len(str(out.get(k) or "")):
-            out[k] = cv
-    cs = str(candidate.get("summary") or "").strip()
-    if cs and cs not in str(out.get("summary") or ""):
-        out["summary"] = cs + " | " + str(out.get("summary") or "")
     cf = str(candidate.get("full_content") or "").strip()
     if cf and len(cf) > 80:
-        out["full_content"] = str(out.get("full_content") or "") + "\n\n---\n## یادداشت تخصصی Teacher\n\n" + cf
+        base = str(out.get("full_content") or "")
+        if cf not in base:
+            out["full_content"] = base + "\n\n---\n## بخش تخصصی Teacher\n\n" + cf
+    for k in ("commands", "examples", "notes", "lab"):
+        cv = str(candidate.get(k) or "").strip()
+        ov = str(out.get(k) or "").strip()
+        if cv and cv not in ov:
+            out[k] = (ov + "\n\n" + cv).strip() if ov else cv
+    cs = str(candidate.get("summary") or "").strip()
+    if cs and cs not in str(out.get("summary") or ""):
+        out["summary"] = (cs + " | " + str(out.get("summary") or "")).strip(" |")
     out["level"] = candidate.get("level") or out.get("level")
     out["topic"] = candidate.get("topic") or out.get("topic")
     out["category"] = candidate.get("category") or out.get("category")
