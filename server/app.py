@@ -83,7 +83,6 @@ _db = None
 
 
 def get_lan_ips():
-    """IPهای واقعی LAN (نه فقط 127.0.0.1)."""
     ips = []
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -278,7 +277,7 @@ def apply_packs():
     try:
         from core.pack_loader import apply_packs_to_db
         result = apply_packs_to_db(Path(db().path), overwrite=True)
-        db().set_meta("packs_applied", "v6")
+        db().set_meta("packs_applied", "v7")
         return jsonify(result)
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
@@ -294,7 +293,7 @@ def reseed():
         from core.pack_loader import apply_packs_to_db
         packs = apply_packs_to_db(Path(db().path), overwrite=True)
         result["packs"] = packs
-        db().set_meta("packs_applied", "v6")
+        db().set_meta("packs_applied", "v7")
     except Exception as e:
         result["packs_error"] = str(e)
     return jsonify(result)
@@ -399,12 +398,12 @@ def main():
     print("init db / rich seed if needed...")
     d = db()
     try:
-        if d.get_meta("packs_applied") != "v6":
+        if d.get_meta("packs_applied") != "v7":
             from core.pack_loader import apply_packs_to_db
             print("applying REAL JSON pack content (strict topic match)...")
             res = apply_packs_to_db(Path(d.path), overwrite=True)
             print("pack apply:", res.get("updated"), "updated /", res.get("matched"), "matched")
-            d.set_meta("packs_applied", "v6")
+            d.set_meta("packs_applied", "v7")
     except Exception as e:
         print("pack apply skipped:", e)
     if register_study_routes:
