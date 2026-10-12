@@ -1,0 +1,117 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "v20 فوق‌عمیق",
+  "lessons": [
+    {
+      "title_fa": "[L4] BGP Route Reflector و مقیاس iBGP",
+      "title_en": "BGP Route Reflector iBGP Scale",
+      "chapter_order": 14,
+      "summary": "شکستن full-mesh iBGP با RR، قوانین reflection و تله‌های طراحی.",
+      "full_content": "# Route Reflector — فوق‌عمیق\n\n## مشکل\niBGP full-mesh با N روتر = N(N-1)/2 نشست. در مقیاس غیرعملی است.\n\n## ایده RR\nClientها فقط به Reflector وصل می‌شوند؛ RR مسیر را بین clientها بازتاب می‌دهد.\n\n## قواعد کلیدی\n- از client به client reflect می‌شود\n- از non-client به client و بالعکس\n- از non-client به non-client طبق قواعد کلاسیک\n- Cluster-ID برای جلوگیری از حلقه\n\n## طراحی\nحداقل دو RR برای افزونگی. Clientها به هر دو.\n\n## تله\nRR روی مسیر forwarding نباشد ولی policy غلط داشته باشد → سیاه‌چاله کنترل‌پلن.\n\n## Verify\n```\nshow ip bgp summary\nshow ip bgp neighbors\nshow running-config | section router bgp\n```\n",
+      "commands": "show ip bgp summary\nshow ip bgp neighbors\nshow ip bgp\nshow ip bgp cluster-ids\nshow running-config | section router bgp",
+      "examples": "Lab:\n1) ۴ روتر iBGP بدون full-mesh\n2) دو RR\n3) client فقط به RR\n4) مسیر بین clientها را ببین\n5) یک RR را خاموش کن",
+      "notes": "RR-ID یکسان اشتباه روی RRهای جدا می‌تواند مسیر را سرکوب کند.\n",
+      "learning_objectives": ["چرا RR", "cluster", "افزونگی RR"]
+    },
+    {
+      "title_fa": "[L4] OSPF LSA Types و LSDB عمیق",
+      "title_en": "OSPF LSA Types LSDB Deep Dive",
+      "chapter_order": 14,
+      "summary": "نوع ۱ تا ۵ (و ۷) و تأثیر Area روی پایگاه داده.",
+      "full_content": "# OSPF LSA — فوق‌عمیق\n\n## انواع ضروری\n| نوع | نام | نقش |\n|------|-----|-----|\n| ۱ | Router | لینک‌های هر روتر در Area |\n| ۲ | Network | برای سگمنت multi-access (DR) |\n| ۳ | Summary | از ABR بین Area |\n| ۴ | ASBR Summary | مسیر به ASBR |\n| ۵ | External | مسیر خارجی redistribute |\n| ۷ | NSSA External | در NSSA |\n\n## چرا مهم\nبدون فهم LSA نمی‌فهمی چرا route در Area دیگر دیده نمی‌شود.\n\n## Stub / Totally Stubby / NSSA\nکاهش LSA خارجی و خلاصه‌سازی — سبک‌سازی LSDB لبه.\n\n## Verify\n```\nshow ip ospf database\nshow ip ospf database router\nshow ip ospf database external\n```\n",
+      "commands": "show ip ospf database\nshow ip ospf database router\nshow ip ospf database network\nshow ip ospf database summary\nshow ip ospf database external\nshow ip ospf border-routers\nshow ip route ospf",
+      "examples": "Lab:\n1) دو Area\n2) database را قبل/بعد stub مقایسه کن\n3) یک external inject کن\n4) ببین نوع ۵ کجا هست و کجا نه",
+      "notes": "همه روترهای یک Area باید نوع Area را یکسان بفهمند.\n",
+      "learning_objectives": ["LSA 1-5", "نقش ABR/ASBR", "Stub اثر"]
+    },
+    {
+      "title_fa": "[L3] فایروال Policy مبتنی بر هویت و برنامه",
+      "title_en": "Identity and Application Aware Firewall Policy",
+      "chapter_order": 22,
+      "summary": "فراتر از IP: کاربر، گروه و application control.",
+      "full_content": "# Identity / App Policy — فوق‌عمیق\n\n## محدودیت IP-only\nIP کاربر عوض می‌شود؛ اپ روی پورت‌های پویا می‌رود.\n\n## مدل\nمنبع = کاربر/گروه (از AD/SSO)\nمقصد = ناحیه/سرور\nسرویس = application signature نه فقط port\n\n## مثال\nفروش → Salesforce و Office365\nفروش ↛ Git admin داخلی\n\n## پیش‌نیاز\nUser-ID / SSO integration، به‌روز بودن signature، لاگ Accept/Deny.\n\n## RCA\nاپ block شده: شناسایی app اشتباه، SSL decryption نبود، یا گروه AD.\n",
+      "commands": "show user\ndiagnose firewall auth list\nshow application\nget user active-list\n# وابسته به فروشنده",
+      "examples": "Lab:\n1) policy فقط بر اساس IP\n2) همان را به گروه AD ببر\n3) app-control برای یک وب\n4) لاگ را با نام کاربر ببین",
+      "notes": "بدون لاگ هویت، troubleshooting غیرممکن است.\n",
+      "learning_objectives": ["User-ID", "App control", "حد IP-only"]
+    },
+    {
+      "title_fa": "[L3] تقسیم‌بندی شرقی-غربی در دیتاسنتر",
+      "title_en": "East West Segmentation Data Center",
+      "chapter_order": 65,
+      "summary": "جلوگیری از حرکت آزاد حمله بعد از نفوذ به یک سرور.",
+      "full_content": "# East-West Segmentation — فوق‌عمیق\n\n## مشکل\nفایروال فقط شمال-جنوب؛ داخل DC همه به همه باز.\n\n## روش‌ها\n| روش | توضیح |\n|------|--------|\n| VLAN + ACL | کلاسیک |\n| Firewall داخلی / zone | مایکروزون |\n| Agent microseg | بر اساس workload |\n| Service mesh | در لایه اپ |\n\n## اصل\nحداقل دسترسی بین tierها: web → app → db فقط همان پورت.\n\n## مسیر پیاده\nنقشه جریان → سیاست deny-by-default → monitor → enforce.\n",
+      "commands": "show access-lists\nshow firewall policy\ndiagnose firewall session list\nshow vlan brief\nshow ip route vrf",
+      "examples": "Lab:\n1) سه tier\n2) فقط 443 از web به app و 5432 از app به db\n3) از web مستقیم به db باید fail شود\n4) session را ببین",
+      "notes": "enforce بدون نقشه جریان = قطعی اپ.\n",
+      "learning_objectives": ["north-south vs east-west", "tier policy", "monitor سپس enforce"]
+    },
+    {
+      "title_fa": "[L3] اتوماسیون امن Change — Pipeline واقعی",
+      "title_en": "Secure Network Change Automation Pipeline",
+      "chapter_order": 51,
+      "summary": "از PR تا apply با check، canary و rollback خودکارپذیر.",
+      "full_content": "# Secure Change Pipeline — فوق‌عمیق\n\n## مراحل\n1. PR با توضیح و risk\n2. lint / syntax\n3. ansible --check / dry-run\n4. تأیید انسانی\n5. canary\n6. full\n7. post-check\n\n## Secrets\nفقط از vault/CI secret؛ هیچ رمز در لاگ.\n\n## شواهد\nهر change باید لینک به PR و خروجی pipeline داشته باشد.\n",
+      "commands": "git checkout -b change\nansible-playbook site.yml --check\nansible-playbook site.yml --limit canary\nansible-playbook site.yml\ngit merge",
+      "examples": "Lab:\n1) یک ACL در Git\n2) pipeline با --check\n3) canary یک دستگاه\n4) rollback از Git",
+      "notes": "خودکارسازی change بدون dry-run = خطر مقیاس‌پذیر.\n",
+      "learning_objectives": ["PR gate", "dry-run", "canary", "شواهد"]
+    },
+    {
+      "title_fa": "[L2] مشاهده‌پذیری مسیر — از traceroute تا path analysis",
+      "title_en": "Path Observability Traceroute to Analysis",
+      "chapter_order": 25,
+      "summary": "فهم مسیر واقعی ترافیک و تغییرات مسیر.",
+      "full_content": "# Path Observability — فوق‌عمیق\n\n## ابزارها\ntraceroute/mtr، looking glass، flow، telemetry، synthetic probe.\n\n## سؤالات\n- ترافیک از کدام لینک خارج می‌شود؟\n- آیا مسیر رفت و برگشت متقارن است؟\n- کجا latency اضافه می‌شود؟\n\n## mtr\nترکیب ping+traceroute مداوم؛ loss per hop را با احتیاط تفسیر کن (ICMP rate-limit).\n",
+      "commands": "traceroute -n 8.8.8.8\nmtr -rwc 50 8.8.8.8\nping -c 20 8.8.8.8\nshow ip route 8.8.8.8\nshow ip cef 8.8.8.8\nshow bgp 8.8.8.8",
+      "examples": "Lab:\n1) baseline mtr به hub\n2) یک لینک را گران/قطع کن\n3) تغییر path را ثبت کن\n4) با CEF/BGP تأیید کن",
+      "notes": "loss روی hop میانی همیشه یعنی آن روتر خراب است — نه.\n",
+      "learning_objectives": ["mtr", "تقارن مسیر", "تأیید با جدول مسیر"]
+    },
+    {
+      "title_fa": "[L3] امنیت DNS عملیاتی — تا ممیزی",
+      "title_en": "Operational DNS Security to Audit",
+      "chapter_order": 12,
+      "summary": "SPF/DKIM/DMARC، recursion محدود، مانیتور و پاسخ حادثه.",
+      "full_content": "# DNS Security Ops — فوق‌عمیق\n\n## کنترل‌ها\n- recursion فقط داخلی\n- جداسازی auth/recursive\n- rate-limit\n- DNSSEC در صورت نیاز\n- لاگ queryهای غیرعادی\n\n## ایمیل\nSPF/DKIM/DMARC را با شبکه هماهنگ کن (IP ارسال، PTR).\n\n## حادثه\nترافیک تونل روی DNS، DGA، exfil — با baseline و آلارم.\n",
+      "commands": "dig example.com\ndig +dnssec example.com\ndig TXT example.com\nResolve-DnsName example.com\nshow logging | include DNS\nrndc status",
+      "examples": "Lab:\n1) open recursion را ببند\n2) SPF را بخوان\n3) query flood شبیه‌سازی (ایزوله) و rate-limit\n4) گزارش ممیزی یک‌صفحه‌ای",
+      "notes": "DNS را فقط «سرویس نام» نبین؛ کانال سوءاستفاده هم هست.\n",
+      "learning_objectives": ["hardening", "ایمیل+DNS", "نشانه سوءاستفاده"]
+    },
+    {
+      "title_fa": "[L3] بازیابی بعد از باج‌افزار از زاویه شبکه",
+      "title_en": "Ransomware Recovery Network Perspective",
+      "chapter_order": 65,
+      "summary": "جداسازی، حفظ شواهد، مسیر بازگردانی امن.",
+      "full_content": "# Ransomware و شبکه — فوق‌عمیق\n\n## فاز شبکه\n1. Isolate سگمنت آلوده\n2. قطع لینک‌های غیرضروری\n3. حفظ لاگ/flow\n4. مسیر بازگردانی از backup ایزوله\n5. باز کردن تدریجی با کنترل\n\n## نکن\n- خاموش کردن همه چیز بدون تصویر حافظه/لاگ اگر نیاز قانونی است\n- وصل دوباره کامل قبل از تمیز بودن\n\n## آمادگی قبلی\nsegmentation، backup offline، OOB، تماس‌ها.\n",
+      "commands": "show access-lists\nshow interfaces status\nshow mac address-table\nshow logging\ndiagnose firewall session list\nshutdown (پورت‌های مشکوک)",
+      "examples": "Tabletop:\n1) علائم: encryption + ترافیک SMB غیرعادی\n2) isolation plan\n3) لیست سیستم‌های critical برای restore اول\n4) معیار باز کردن دوباره شبکه",
+      "notes": "پرداخت باج موضوع حقوقی/مدیریتی است نه فنی شبکه.\n",
+      "learning_objectives": ["isolate", "شواهد", "بازگشت تدریجی"]
+    },
+    {
+      "title_fa": "[L2] ظرفیت لینک و oversubscription واقعی",
+      "title_en": "Link Capacity Real Oversubscription",
+      "chapter_order": 25,
+      "summary": "محاسبه نسبت دسترسی به uplink و تصمیم ارتقا.",
+      "full_content": "# Oversubscription — فوق‌عمیق\n\n## فرمول ذهنی\nجمع downlink / ظرفیت uplink = نسبت.\nمثال: ۴۰×۱G به ۲×۱۰G ≈ ۲:۱\n\n## کجا رایج\naccess→agg، leaf→spine، branch WAN.\n\n## داده تصمیم\n95th percentile نه فقط پیک لحظه‌ای.\n\n## اشتباه\nفرض اینکه همه پورت‌ها همزمان ۱۰۰٪ می‌شوند — یا برعکس نادیده گرفتن backup window.\n",
+      "commands": "show interfaces\nshow interfaces | include rate\nshow etherchannel summary\n# نمودار NMS 95th",
+      "examples": "تمرین:\n1) ۲۴ پورت access ۱G\n2) دو uplink ۱۰G\n3) نسبت را حساب کن\n4) با backup شبانه ببین آیا uplink اشباع می‌شود",
+      "notes": "Oversubscription بد نیست؛ بدون عدد بد است.\n",
+      "learning_objectives": ["محاسبه نسبت", "95th", "سناریو backup"]
+    },
+    {
+      "title_fa": "[L2] قرارداد SLA با ISP و اندازه‌گیری مستقل",
+      "title_en": "ISP SLA Contract and Independent Measurement",
+      "chapter_order": 5,
+      "summary": "تعهد ISP را با probe خودت بسنج نه فقط داشبورد فروشنده.",
+      "full_content": "# ISP SLA — فوق‌عمیق\n\n## در قرارداد ببین\nuptime، latency، packet loss، jitter، زمان پاسخ تیکت، اعتبار مالی.\n\n## اندازه‌گیری خودت\nprobe از لبه به مقصدهای ثابت، ثبت ماهانه، گزارش.\n\n## اختلاف با ISP\nداده خودت + timestamp + traceroute؛ مودبانه و مستند.\n\n## طراحی\nدو ISP و سیاست failover مهم‌تر از کاغذ ۹۹.۹۹٪ بدون اندازه.\n",
+      "commands": "ping -c 100 <isp-target>\nmtr -rwc 100 <target>\nshow ip sla statistics\nshow interfaces",
+      "examples": "Lab:\n1) یک ماه داده فرضی loss/latency\n2) با SLO قرارداد مقایسه کن\n3) یک گزارش یک‌صفحه‌ای برای مدیریت",
+      "notes": "SLA بدون جریمه یا جایگزین عملی ضعیف است.\n",
+      "learning_objectives": ["متریک قرارداد", "probe مستقل", "گزارش"]
+    }
+  ]
+}
