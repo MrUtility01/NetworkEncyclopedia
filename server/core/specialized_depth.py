@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""عمق تخصصی vendor/domain — دستورات کامل MikroTik، FortiGate، Issabel، PowerShell، Batch، Android."""
+"""عمق تخصصی vendor/domain — متن بلند + دستورات کامل + Lab + RCA.
+این فایل نباید کوتاه شود؛ هر vendor باید محتوای واقعی و پرحجم داشته باشد.
+"""
 from __future__ import annotations
 import re
 from typing import Any, Dict, List, Tuple
@@ -55,22 +57,39 @@ def _mikrotik(topic: str, level: str) -> Dict[str, str]:
 ---
 ## عمق تخصصی MikroTik / RouterOS — «{topic}»
 
-مسیر پکت: raw → track → mangle → filter → routing → nat → out → queue
-FastTrack را مراقب باش؛ queue/mangle را دور می‌زند.
+### مدل ذهنی
+RouterOS سیستم‌عامل شبکه است. مسیر پکت:
+raw → track → mangle → filter → routing → nat → out → queue
+
+**اصل طلایی:** FastTrack زود accept = queue/mangle دیده نمی‌شوند.
+
+### سناریوی سازمانی
+شعبه 10.20.20.0/24 | مرکز 10.10.0.0/16 | PPPoE اینترنت | تونل به مرکز
+masquerade فقط روی WAN نه تونل.
+
+### تله‌ها
+| تله | علامت |
+|-----|--------|
+| FastTrack قبل queue | queue بی‌اثر |
+| masquerade روی تونل | دسترسی یک‌طرفه |
+| MSS/MTU PPPoE | HTTPS نیمه‌باز |
+| accept all WAN | اسکن اینترنت |
 """
-    cmds = f"""# MikroTik RouterOS — {topic}
+    cmds = f"""# MikroTik کامل — {topic}
 
 ```
 /interface print
+/interface bridge print
 /ip address print
-/ip route print
+/ip route print detail
 ```
 
 ```
+/ip firewall raw print without-paging
+/ip firewall mangle print without-paging
 /ip firewall filter print without-paging
 /ip firewall nat print without-paging
-/ip firewall mangle print without-paging
-/ip firewall raw print without-paging
+/ip firewall filter print stats
 /ip firewall connection print
 /ip firewall address-list print
 ```
@@ -78,15 +97,14 @@ FastTrack را مراقب باش؛ queue/mangle را دور می‌زند.
 ```
 /ip firewall filter print where action=fasttrack-connection
 /ip firewall nat print where chain=srcnat
-/ip firewall filter print stats
 ```
 
 ```
 /tool torch interface=ether1
 /tool sniffer quick interface=ether1 port=53
-/log print follow where topics~"firewall"
 /ping 8.8.8.8 count=5
 /ip arp print
+/log print follow where topics~"firewall|l2tp|ipsec|pppoe"
 ```
 
 ```
@@ -96,17 +114,25 @@ FastTrack را مراقب باش؛ queue/mangle را دور می‌زند.
 /queue simple print
 /queue tree print
 /ip service print
+/user print
 /export file=backup-before-change
+```
+
+```
+/ip firewall filter add chain=input connection-state=established,related action=accept
+/ip firewall filter add chain=input connection-state=invalid action=drop
+/ip firewall filter add chain=input in-interface-list=WAN action=drop
+/ip firewall nat add chain=srcnat out-interface-list=WAN action=masquerade
 ```
 """
     lab = f"""# Lab MikroTik — {topic}
-1. /export قبل از تغییر
-2. rule مرتبط با «{topic}» اضافه کن
-3. از کلاینت ترافیک بساز
-4. print stats همان rule باید بالا برود
-5. Rollback با import
+1. export قبل از change
+2. rule مرتبط اضافه کن
+3. ترافیک از PC
+4. print stats باید بالا برود
+5. disable عمدی + Rollback
 """
-    notes = "MikroTik: اول stats و مسیر پکت، بعد بهینه‌سازی. FastTrack دشمن خاموش queue است."
+    notes = f"## RCA MikroTik — {topic}\nIP؟ Route؟ Connection؟ Filter hit؟ FastTrack؟ Torch؟"
     return {"extra_full": full, "extra_commands": cmds, "extra_lab": lab, "extra_notes": notes}
 
 
@@ -115,9 +141,17 @@ def _fortigate(topic: str, level: str) -> Dict[str, str]:
 ---
 ## عمق تخصصی FortiGate — «{topic}»
 
-بدون policy منطبق، session ساخته نمی‌شود. همیشه: کدام policy؟ کدام session؟ کدام route؟
+بدون policy منطبق session ساخته نمی‌شود.
+سه سؤال: کدام policy؟ کدام session؟ کدام route؟
+
+### سناریو
+LAN 10.10.10.0/24 | DMZ 10.50.50.0/24 | WAN
+LAN→Internet با NAT+IPS | WAN→VIP HTTPS | DMZ→LAN deny
+
+### تله‌ها
+VIP بدون policy | catch-all بالاتر | SSL inspection بدون cert | SD-WAN بدون health-check
 """
-    cmds = f"""# FortiGate FortiOS CLI — {topic}
+    cmds = f"""# FortiGate کامل — {topic}
 
 ```
 get system status
@@ -141,26 +175,29 @@ diagnose firewall iprope lookup 10.10.10.50 8.8.8.8 1 443
 ```
 
 ```
+diagnose debug reset
 diagnose debug flow filter saddr 10.10.10.50
+diagnose debug flow show function-name enable
 diagnose debug flow show console enable
 diagnose debug enable
-diagnose debug flow trace start 20
+diagnose debug flow trace start 50
 # diagnose debug disable
 ```
 
 ```
+diagnose sniffer packet any "host 10.10.10.50 and port 443" 4 20
 execute log filter category 0
 execute log display
 diagnose sys sdwan health-check
 ```
 """
     lab = f"""# Lab FortiGate — {topic}
-1. policy LAN→WAN بساز و browse کن
-2. session list را ببین
-3. policy را disable کن — باید قطع شود
-4. debug flow برای یک IP
+1. policy LAN→WAN + browse
+2. session list
+3. disable policy → قطع
+4. debug flow بخوان
 """
-    notes = "FortiGate: بدون session و policy hit حدس نزن — flow را بخوان."
+    notes = f"## RCA FortiGate — {topic}\npolicy hit؟ session؟ route؟ VIP؟ SSL؟ asymmetric؟"
     return {"extra_full": full, "extra_commands": cmds, "extra_lab": lab, "extra_notes": notes}
 
 
@@ -168,19 +205,27 @@ def _cisco_l3(topic: str, level: str) -> Dict[str, str]:
     full = f"""
 ---
 ## Cisco L3 — «{topic}»
-Control Plane ≠ Data Plane. همیشه CEF را هم ببین.
+Control ≠ Data. BGP FULL با CEF خراب = drop.
+مسیر عیب‌یابی: interface → route → neighbor → CEF → ACL → NAT
 """
     cmds = f"""# Cisco — {topic}
 ```
 show ip interface brief
+show interfaces
 show ip route
+show ip route <dest>
 show ip ospf neighbor
+show ip ospf database
 show ip bgp summary
+show ip bgp
 show ip cef <dest> detail
 show ip protocols
+show running-config | section router
+show ip access-lists
+show ip nat translations
 ```
 """
-    lab = f"# Lab Cisco — {topic}\nهمسایگی FULL → پینگ → shut لینک → همگرایی"
+    lab = f"# Lab Cisco — {topic}\nFULL → پینگ → shut → همگرایی → CEF"
     notes = "Control سبز ≠ Data سالم."
     return {"extra_full": full, "extra_commands": cmds, "extra_lab": lab, "extra_notes": notes}
 
@@ -188,19 +233,23 @@ show ip protocols
 def _security(topic: str, level: str) -> Dict[str, str]:
     full = f"""
 ---
-## امنیت شبکه — «{topic}»
-لبه + دسترسی + هویت + بخش‌بندی + دید (لاگ).
+## امنیت — «{topic}»
+لبه + دسترسی (802.1X) + هویت (AAA) + بخش‌بندی + لاگ.
+قبل از قطع local: RADIUS تست → fallback local → بعد سخت‌گیری.
 """
     cmds = f"""# Security — {topic}
 ```
 show aaa servers
 show authentication sessions
 show ip access-lists
-show logging | include DENY|AUTH
+show logging | include DENY|AUTH|fail
+show running-config | include aaa|radius|tacacs
+show port-security
+show ip dhcp snooping
 ```
 """
-    lab = f"# Lab — {topic}\nallow و deny را هر دو تست کن"
-    notes = "قبل از سخت‌گیری AAA مسیر بازگشت ادمین را باز بگذار."
+    lab = f"# Lab — {topic}\nallow و deny هر دو تست + لاگ deny"
+    notes = "مسیر بازگشت ادمین را قبل از AAA سخت باز بگذار."
     return {"extra_full": full, "extra_commands": cmds, "extra_lab": lab, "extra_notes": notes}
 
 
@@ -209,16 +258,20 @@ def _wireless(topic: str, level: str) -> Dict[str, str]:
 ---
 ## Wireless — «{topic}»
 RF → Associate → Auth → DHCP → GW → DNS → App
+SSID نیست | وصل بدون IP | IP بدون اینترنت | قطع در حرکت
 """
     cmds = f"""# Wireless — {topic}
 ```
 show ap summary
 show client summary
+show client detail <mac>
 show wlan summary
+/interface wireless registration-table print
+/interface wireless scan 0
 ```
 """
-    lab = f"# Lab WiFi — {topic}\nAssociate + DHCP + ping GW + roaming"
-    notes = "یک لایه از زنجیره را ایزوله کن."
+    lab = f"# Lab WiFi — {topic}\nAssociate + DHCP + ping + roaming"
+    notes = "یک لایه را ایزوله کن؛ همزمان RF و IP را عوض نکن."
     return {"extra_full": full, "extra_commands": cmds, "extra_lab": lab, "extra_notes": notes}
 
 
@@ -226,16 +279,19 @@ def _automation(topic: str, level: str) -> Dict[str, str]:
     full = f"""
 ---
 ## Automation — «{topic}»
-Inventory + Idempotent + Verify
+Inventory → Playbook → Idempotent → Verify → Drift
 """
     cmds = f"""# Automation — {topic}
 ```
 ansible all -m ping
+ansible-playbook site.yml --check
+terraform init
 terraform plan
+terraform apply
 ```
 """
-    lab = f"# Lab — {topic}\nیک playbook کوچک + dry-run"
-    notes = "بدون Inventory و Verify، اتوماسیون خطرناک است."
+    lab = f"# Lab — {topic}\nInventory + dry-run + apply lab + Verify"
+    notes = "بدون Verify بعد از apply، فقط سریع‌تر خراب می‌کنی."
     return {"extra_full": full, "extra_commands": cmds, "extra_lab": lab, "extra_notes": notes}
 
 
@@ -249,22 +305,27 @@ def _voip(topic: str, level: str) -> Dict[str, str]:
 | SIP | سیگنالینگ | 5060 |
 | RTP | صدا | بازه دینامیک |
 
-زنگ بدون صدا = RTP/NAT/فایروال.
+زنگ بدون صدا = SIP OK، RTP/NAT/FW مشکل دارد.
+Issabel: Extensions → Trunks → Routes → CDR
 """
-    cmds = f"""# Issabel / Asterisk — {topic}
+    cmds = f"""# Issabel / Asterisk کامل — {topic}
 
 ```
 asterisk -rvvv
 sip show peers
 sip show registry
+sip show channelstats
 pjsip show endpoints
+pjsip show registrations
 core show channels
+core show calls
 rtp set debug on
 ```
 
 ```
 systemctl status asterisk
 tail -f /var/log/asterisk/full
+tail -f /var/log/asterisk/messages
 ```
 
 ```
@@ -275,14 +336,15 @@ ss -ulnp | grep -E '5060|asterisk'
 
 ```
 Test-NetConnection PBX_IP -Port 5060
+ping PBX_IP
 ```
 """
     lab = f"""# Lab Issabel — {topic}
 1. دو داخلی تماس
 2. sip show peers
 3. tcpdump 5060
-4. بستن RTP روی فایروال → قطع صدا
-5. CDR را چک کن
+4. بستن RTP → قطع صدا
+5. CDR
 """
     notes = "signaling را از media جدا فکر کن."
     return {"extra_full": full, "extra_commands": cmds, "extra_lab": lab, "extra_notes": notes}
@@ -293,97 +355,103 @@ def _windows_net(topic: str, level: str) -> Dict[str, str]:
 ---
 ## Windows / PowerShell / Batch — «{topic}»
 
-DNS دامنه را با 8.8.8.8 عوض نکن روی کلاینت AD.
+DNS دامنه را با فقط 8.8.8.8 عوض نکن — login/GPO می‌شکند.
+PowerShell = تشخیص عمیق | Batch = مانیتور ساده | netsh = رابط/فایروال/WLAN
 """
-    cmds = f"""# PowerShell — {topic}
+    cmds = f"""# PowerShell کامل — {topic}
 
 ```
 Get-NetIPConfiguration
-Get-NetIPAddress | Format-Table
-Get-NetRoute -AddressFamily IPv4
+Get-NetIPAddress | Format-Table InterfaceAlias, IPAddress, PrefixLength
+Get-NetRoute -AddressFamily IPv4 | Format-Table
 Get-DnsClientServerAddress
+Get-NetAdapter | Format-Table Name, Status, LinkSpeed
 ```
 
 ```
 Test-NetConnection 8.8.8.8 -InformationLevel Detailed
 Test-NetConnection dc01 -Port 389
+Test-NetConnection dc01 -Port 53
 Resolve-DnsName www.example.com
 Resolve-DnsName _ldap._tcp.dc._msdcs.contoso.local -Type SRV
 ```
 
 ```
 Get-NetFirewallProfile | Format-Table Name, Enabled
-Get-NetAdapter
 Test-ComputerSecureChannel -Verbose
 nltest /dsgetdc:contoso.local
+gpupdate /force
+gpresult /r
 ```
 
-# Batch / CMD — {topic}
+# Batch / CMD کامل — {topic}
 
 ```
 ipconfig /all
 ipconfig /flushdns
-ipconfig /release & ipconfig /renew
+ipconfig /release
+ipconfig /renew
 ping -n 4 8.8.8.8
 tracert 1.1.1.1
 nslookup example.com
 netstat -ano | findstr :443
 route print
 arp -a
-```
-
-```
-:: batch بررسی گیتوی
-@echo off
-set GW=10.10.10.1
-ping -n 2 %GW% >nul
-if errorlevel 1 (echo GW DOWN) else (echo GW OK)
-```
-
-```
 netsh interface ip show config
 netsh wlan show profiles
 netsh advfirewall show allprofiles
 ```
+
+```
+:: batch مانیتور گیتوی
+@echo off
+set GW=10.10.10.1
+set LOG=C:\temp\gw-check.txt
+echo ==== %date% %time% ==== >> %LOG%
+ping -n 2 %GW% >nul
+if errorlevel 1 (echo GW DOWN >> %LOG%) else (echo GW OK >> %LOG%)
+```
 """
     lab = f"""# Lab PowerShell/Batch — {topic}
-1. Get-NetIPConfiguration ذخیره کن
-2. DNS غلط → علامت را ببین
+1. Get-NetIPConfiguration ذخیره
+2. DNS غلط → علامت
 3. برگردان + Test-ComputerSecureChannel
-4. یک .bat برای پینگ GW بنویس
+4. .bat برای پینگ GW + log
 """
-    notes = "Batch برای مانیتور ساده؛ PowerShell برای تشخیص عمیق."
+    notes = "خرابی AD اغلب DNS است."
     return {"extra_full": full, "extra_commands": cmds, "extra_lab": lab, "extra_notes": notes}
 
 
 def _android_net(topic: str, level: str) -> Dict[str, str]:
     full = f"""
 ---
-## Android شبکه — «{topic}»
+## Android — «{topic}»
 
 Wi‑Fi / Cellular / VPN / Private DNS را جدا ایزوله کن.
+وصل بدون اینترنت ≠ همیشه مقصر ISP — captive portal و DNS را چک کن.
 """
-    cmds = f"""# Android / ADB — {topic}
+    cmds = f"""# Android / ADB کامل — {topic}
 
 ```
 adb devices
 adb shell ip addr
 adb shell ip route
-adb shell dumpsys wifi | head
-adb shell dumpsys connectivity | head
+adb shell dumpsys wifi | head -n 80
+adb shell dumpsys connectivity | head -n 80
 adb shell ping -c 4 8.8.8.8
+adb shell nslookup example.com
 ```
 
 ```
 # Settings → Network → Private DNS
 # Settings → Network → VPN
-# MikroTik lease: /ip dhcp-server lease print
+# MikroTik: /ip dhcp-server lease print
 ```
 """
     lab = f"""# Lab Android — {topic}
-1. IP/GW روی SSID تست
+1. IP/GW روی SSID
 2. Private DNS عوض کن
-3. VPN on/off و مسیر
+3. VPN on/off
 """
-    notes = "captive portal و Private DNS و VPN را قبل از مقصر دانستن اینترنت چک کن."
+    notes = "captive portal + Private DNS + VPN قبل از مقصر دانستن اینترنت."
     return {"extra_full": full, "extra_commands": cmds, "extra_lab": lab, "extra_notes": notes}
