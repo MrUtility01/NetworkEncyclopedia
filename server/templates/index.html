@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>دایرةالمعارف جامع شبکه — نسخه وب</title>
+  <title>Engineer Jokar — دایرةالمعارف شبکه</title>
   <link rel="stylesheet" href="/static/app.css" />
   <link rel="stylesheet" href="/static/sync_ui.css" />
 </head>
@@ -11,7 +11,7 @@
   <div class="app">
     <header class="top">
       <div class="brand">
-        <strong>دایرةالمعارف شبکه</strong>
+        <strong>Engineer Jokar</strong>
         <span id="stats" class="muted">در حال آماده‌سازی…</span>
       </div>
       <div class="search-box">
@@ -19,8 +19,13 @@
         <button id="btnSearch" type="button">جستجو</button>
       </div>
       <div class="top-actions">
-        <button id="btnScenarios" type="button" class="ghost">Capstoneها</button>
-        <button id="btnReseed" type="button" class="ghost danger">بازسازی ساختار</button>
+        <button id="btnHome" type="button" class="ghost active">خانه</button>
+        <button id="btnTasks" type="button" class="ghost">کارهای روزانه</button>
+        <button id="btnNotes" type="button" class="ghost">نکته‌ها</button>
+        <button id="btnScenarios" type="button" class="ghost">سناریوها</button>
+        <button id="btnQuiz" type="button" class="ghost">سوالات</button>
+        <a href="/workspace" class="ghost" style="display:inline-flex;align-items:center;padding:8px 12px;text-decoration:none;border:1px solid var(--border);border-radius:10px;color:inherit;font-size:13px">فضای کاری+</a>
+        <button id="btnReseed" type="button" class="ghost danger">بازسازی</button>
       </div>
     </header>
 
@@ -35,24 +40,22 @@
         <code id="androidHint">http://IP:5050</code>
       </div>
       <div class="sync-item">
-        <button type="button" id="btnSyncStatus">وضعیت Sync</button>
+        <button type="button" id="btnSyncStatus" class="ghost tiny">وضعیت Sync</button>
         <span id="syncStatus" class="muted">—</span>
+      </div>
+      <div class="sync-item">
+        <span class="muted">توکن: 09136555866</span>
       </div>
     </div>
 
     <div class="main">
       <aside class="sidebar">
-        <div class="side-head">فهرست ۶۳ فصل</div>
+        <div class="side-head">فهرست فصل‌ها</div>
         <div id="chapters" class="tree"></div>
       </aside>
       <section class="content">
-        <div id="breadcrumb" class="breadcrumb">یک فصل را انتخاب کنید — بارگذاری تنبل</div>
-        <div id="viewer" class="viewer">
-          <div class="welcome">
-            <h1>نسخه وب + Sync LAN</h1>
-            <p>IP بالا را در اپ اندروید وارد کنید و همگام‌سازی بزنید.</p>
-          </div>
-        </div>
+        <div id="breadcrumb" class="breadcrumb">خانه — مطالب، کارها، نکته‌ها و سناریوها</div>
+        <div id="viewer" class="viewer"></div>
       </section>
     </div>
   </div>
