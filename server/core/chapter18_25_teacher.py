@@ -68,7 +68,12 @@ Control down | Certificate | SLA flapping | MTU/NAT
 ## چک‌لیست
 - [ ] Control سبز - [ ] Overlay up - [ ] Policy - [ ] Failover تست
 """
-    commands = "```\nshow control connections\n```\n```\nshow bfd sessions\n```\n```\nshow app-route stats\n```"
+    commands = """```
+show control connections
+show bfd sessions
+show app-route stats
+show omp peers
+```"""
     examples = f"## Lab — {topic}\nدو edge + کنترلر؛ دو underlay؛ policy؛ قطع لینک و failover."
     notes = "اول underlay و identity، بعد overlay، بعد policy."
     return _pack(summary, full, commands, examples, notes, level, topic, "sdn")
@@ -88,7 +93,27 @@ Interfaces | Bridge | IP Addresses | Routes | Firewall | System Identity
 ## اصول طلایی
 1. Identity و password قوی 2. بستن telnet/ftp 3. Winbox فقط LAN/VPN 4. /export قبل از تغییر 5. Safe Mode
 """
-    commands = "```\n/system identity set name=Branch-R1\n```\n```\n/ip service disable telnet,ftp\n```\n```\n/export file=backup-before-change\n```"
+    commands = """```
+/system identity set name=Branch-R1
+/system identity print
+```
+```
+/interface print
+/ip address print
+/ip route print
+```
+```
+/ip service print
+/ip service disable telnet,ftp
+```
+```
+/user print
+/export file=backup-before-change
+```
+```
+/ping 8.8.8.8 count=5
+/ip arp print
+```"""
     examples = f"## Lab — {topic}\nCHR؛ WAN+LAN؛ bridge؛ IP روی bridge؛ export."
     notes = "همیشه Safe Mode و export قبل از تغییرات خطرناک."
     return _pack(summary, full, commands, examples, notes, level, topic, "mikrotik")
@@ -108,7 +133,26 @@ filter input/forward/output | nat srcnat/dstnat | mangle | raw
 ## Address-list
 بهترین ابزار گروه‌بندی IP.
 """
-    commands = "```\n/ip firewall filter add chain=input connection-state=established,related action=accept\n```\n```\n/ip firewall nat add chain=srcnat out-interface=ether1 action=masquerade\n```\n```\n/ip firewall filter print stats\n```"
+    commands = """```
+/ip firewall filter add chain=input connection-state=established,related action=accept
+/ip firewall filter add chain=input connection-state=invalid action=drop
+/ip firewall filter add chain=input in-interface-list=WAN protocol=tcp dst-port=22,8291 action=accept comment=mgmt
+/ip firewall filter add chain=input in-interface-list=WAN action=drop
+```
+```
+/ip firewall filter add chain=forward connection-state=established,related action=accept
+/ip firewall filter add chain=forward connection-state=invalid action=drop
+/ip firewall filter add chain=forward in-interface-list=LAN out-interface-list=WAN action=accept
+```
+```
+/ip firewall nat add chain=srcnat out-interface-list=WAN action=masquerade
+/ip firewall nat print
+/ip firewall filter print stats
+```
+```
+/ip route print
+/ip dns set servers=1.1.1.1,8.8.8.8 allow-remote-requests=yes
+```"""
     examples = f"## Lab — {topic}\nدو روتر؛ masquerade؛ filter فقط established + management."
     notes = "Counters بهترین دوست troubleshooting هستند."
     return _pack(summary, full, commands, examples, notes, level, topic, "mikrotik")
@@ -128,7 +172,24 @@ WireGuard (ترجیح) | IPsec IKEv2 | L2TP/IPsec
 ## HA
 VRRP | Netwatch + script | recursive routing برای dual-ISP
 """
-    commands = "```\n/interface wireguard add listen-port=13231 name=wg-office\n```\n```\n/interface vrrp add interface=ether2 vrid=10 priority=200\n```"
+    commands = """```
+/interface wireguard add listen-port=13231 name=wg-office
+/interface wireguard peers add interface=wg-office public-key="PEER_KEY" endpoint-address=1.2.3.4 endpoint-port=13231 allowed-address=10.20.0.0/24
+/ip address add address=10.10.10.1/24 interface=wg-office
+```
+```
+/ip firewall mangle add chain=prerouting src-address=10.10.10.0/24 action=mark-connection new-connection-mark=vip
+/queue tree add name=vip parent=global packet-mark=vip max-limit=20M
+```
+```
+/interface vrrp add interface=ether2 vrid=10 priority=200
+/ip address add address=10.10.10.254/24 interface=vrrp1
+```
+```
+/ip ipsec identity print
+/ip ipsec active-peers print
+/log print where topics~"ipsec"
+```"""
     examples = f"## Lab — {topic}\nMark VIP؛ Queue Tree؛ WireGuard site-to-site؛ VRRP."
     notes = "QoS بدون اندازه‌گیری حدس است."
     return _pack(summary, full, commands, examples, notes, level, topic, "mikrotik")
@@ -145,7 +206,11 @@ Autonomous AP | Controller (CAPWAP) | Cloud-managed
 ## RF و امنیت
 Channel plan | Power کمتر اغلب بهتر | WPA3-Enterprise + 802.1X | Guest isolation
 """
-    commands = "```\n/interface wireless registration-table print\n```\n```\n/interface wireless scan 0\n```"
+    commands = """```
+/interface wireless registration-table print
+/interface wireless scan 0
+/interface wireless monitor 0
+```"""
     examples = f"## Lab — {topic}\nدو AP؛ SSID سازمانی + Guest؛ تست roaming."
     notes = "بدون site survey طراحی وایرلس حدس است."
     return _pack(summary, full, commands, examples, notes, level, topic, "wireless")
@@ -162,7 +227,10 @@ PtP حداکثر ظرفیت. PtMP یک Base به چند Station.
 ## عوامل
 فاصله | فرکانس | Gain | Fresnel حداقل ۶۰٪ | LOS واقعی
 """
-    commands = "```\n/tool bandwidth-test address=x.x.x.x direction=both\n```\n```\niperf3 -c <peer> -t 30 -P 4\n```"
+    commands = """```
+/tool bandwidth-test address=x.x.x.x direction=both
+iperf3 -c <peer> -t 30 -P 4
+```"""
     examples = f"## Lab — {topic}\nدو رادیو؛ alignment؛ bandwidth test دو طرفه."
     notes = "لینک بدون مانیتورینگ مداوم خطرناک است."
     return _pack(summary, full, commands, examples, notes, level, topic, "wireless")
@@ -182,7 +250,33 @@ Member + Performance SLA + Rule
 ## شکست‌های رایج
 Policy order | SSL inspection بدون cert | Asymmetric routing
 """
-    commands = "```\nget system status\n```\n```\ndiagnose debug flow filter addr x.x.x.x\ndiagnose debug flow trace start 100\n```\n```\nget router info routing-table all\n```"
+    commands = """```
+get system status
+get system interface physical
+execute ping 8.8.8.8
+```
+```
+show firewall policy
+show firewall vip
+show firewall ippool
+get router info routing-table all
+```
+```
+diagnose sys session filter src 10.10.10.50
+diagnose sys session list
+diagnose firewall iprope lookup 10.10.10.50 8.8.8.8 1 443
+```
+```
+diagnose debug flow filter saddr 10.10.10.50
+diagnose debug flow show console enable
+diagnose debug enable
+diagnose debug flow trace start 20
+# diagnose debug disable
+```
+```
+execute log filter category 0
+execute log display
+```"""
     examples = f"## Lab — {topic}\nLAN/WAN؛ policy با NAT + Web Filter؛ debug flow."
     notes = "بدون debug flow troubleshooting حدس است."
     return _pack(summary, full, commands, examples, notes, level, topic, "fortigate")
@@ -199,7 +293,11 @@ pfSense | OPNsense | Sophos
 ## مفاهیم
 Alias | Gateway Group | CARP/HA | Packages (Suricata, HAProxy, WireGuard)
 """
-    commands = "```\npfctl -sr | head\n```\n```\nnetstat -rn\n```\n```\ntcpdump -ni em0 host x.x.x.x\n```"
+    commands = """```
+pfctl -sr | head
+netstat -rn
+tcpdump -ni em0 host x.x.x.x
+```"""
     examples = f"## Lab — {topic}\nدو WAN؛ Gateway Group failover؛ Rule با Alias."
     notes = "اگر rule hit نمی‌خورد، rule بالاتر یا state قدیمی را چک کن."
     return _pack(summary, full, commands, examples, notes, level, topic, "pfsense")
