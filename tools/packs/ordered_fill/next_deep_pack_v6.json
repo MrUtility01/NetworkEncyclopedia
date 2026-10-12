@@ -1,0 +1,139 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "بسته بعدی غنی‌تر — هر درس فقط موضوع خودش + دستورات زیاد + Lab",
+  "lessons": [
+    {
+      "title_fa": "[L3] OSPF Multi-Area و ABR",
+      "title_en": "OSPF Multi-Area ABR",
+      "chapter_order": 14,
+      "summary": "فقط Multi-Area: Area0 ستون فقرات، ABR، خلاصه‌سازی مسیر بین Area.",
+      "full_content": "# OSPF Multi-Area — محدوده این درس\n\nاین درس BGP و Redistribution را پوشش نمی‌دهد.\n\n## قانون طراحی\nAreaهای غیرصفر باید به Area 0 وصل شوند. ABR روتری است که در بیش از یک Area اینترفیس دارد.\n\n## توپولوژی Lab\n- R1 فقط Area 0 (backbone)\n- R2 ABR: Area 0 + Area 1\n- R3 فقط Area 1\n\n```\n! R2 ABR\nrouter ospf 1\n router-id 2.2.2.2\n network 10.0.0.0 0.0.0.3 area 0\n network 10.1.0.0 0.0.0.3 area 1\n```\n\nدر Area 1 مسیرهای Area 0 به‌صورت Summary (LSA نوع ۳) دیده می‌شوند نه توپولوژی کامل.\n\n## معیار موفقیت\n- `show ip ospf border-routers` روی R3 هویت ABR را نشان دهد\n- LANهای دو Area از هم پینگ شوند\n",
+      "commands": "show ip ospf\nshow ip ospf border-routers\nshow ip ospf neighbor\nshow ip ospf database\nshow ip ospf database summary\nshow ip ospf database router\nshow ip route ospf\nshow ip ospf interface brief\nshow running-config | section router ospf\nping 10.10.10.1 source 10.20.20.1",
+      "examples": "Lab:\n1) سه روتر: backbone + area1\n2) FULL در هر area\n3) show database summary روی R3\n4) پینگ end-to-end\n5) لینک ABR به Area0 را shut کن و اثر را ببین\n6) برگردان",
+      "notes": "Area بدون اتصال منطقی به Area0 طراحی کلاسیک را می‌شکند.",
+      "learning_objectives": ["نقش ABR", "تفاوت Intra/Inter area", "Verify با database"]
+    },
+    {
+      "title_fa": "[L3] Redistribution کنترل‌شده با Route-Map",
+      "title_en": "Controlled Redistribution Route-Map",
+      "chapter_order": 14,
+      "summary": "فقط redistribution: یک‌طرفه، با tag و route-map تا حلقه نشود.",
+      "full_content": "# Redistribution — محدوده\n\nبدون کنترل، مسیرها بین OSPF و BGP/static حلقه یا suboptimal می‌سازند.\n\n## الگوی امن\n1. فقط prefixهای لازم\n2. tag برای شناسایی مبدأ\n3. در جهت برگشت، tag را deny کن\n\n```\nip prefix-list FROM-STATIC permit 10.50.0.0/16\nroute-map STATIC-TO-OSPF permit 10\n match ip address prefix-list FROM-STATIC\n set tag 100\nrouter ospf 1\n redistribute static subnets route-map STATIC-TO-OSPF\n```\n\nبرای جلوگیری از بازگشت:\n```\nroute-map BLOCK-TAG deny 10\n match tag 100\nroute-map BLOCK-TAG permit 20\n```\n",
+      "commands": "show ip protocols\nshow ip route\nshow ip route ospf\nshow ip route static\nshow route-map\nshow ip prefix-list\nshow running-config | section router ospf\nshow running-config | section route-map",
+      "examples": "Lab:\n1) یک static به OSPF با tag\n2) در جدول به‌صورت E2 ببین\n3) بدون route-map عمداً بازتر redistribute کن و تفاوت را حس کن\n4) با tag محدود کن",
+      "notes": "اول یک prefix، بعد گسترش به production.",
+      "learning_objectives": ["route-map", "tag", "جلوگیری از loop"]
+    },
+    {
+      "title_fa": "[L3] VRF ساده برای جداسازی مسیریابی",
+      "title_en": "Simple VRF Routing Separation",
+      "chapter_order": 14,
+      "summary": "VRF جدول مسیر جدا می‌سازد؛ ترافیک Tenant A با B قاطی نمی‌شود.",
+      "full_content": "# VRF — محدوده این درس\n\nVRF = جدول مسیریابی مجازی جدا روی یک روتر فیزیکی.\n\n```\nip vrf CUST-A\n rd 65000:10\n!\ninterface Gi0/1\n ip vrf forwarding CUST-A\n ip address 10.10.10.1 255.255.255.0\n!\nip route vrf CUST-A 0.0.0.0 0.0.0.0 10.10.10.254\n```\n\nتوجه: با `ip vrf forwarding` آدرس اینترفیس پاک می‌شود؛ دوباره IP بده.\n",
+      "commands": "show ip vrf\nshow ip vrf interfaces\nshow ip route vrf CUST-A\nshow ip cef vrf CUST-A\nshow running-config | section vrf\nping vrf CUST-A 10.10.10.50",
+      "examples": "Lab: دو VRF؛ IP هم‌پوشان در هر VRF؛ پینگ داخل VRF OK؛ بین VRF بدون route-leaking fail.\n",
+      "notes": "leak عمدی فقط با طراحی (route-target/import).",
+      "learning_objectives": ["VRF table", "ping vrf", "جداسازی"]
+    },
+    {
+      "title_fa": "[L2] AAA با RADIUS و Fallback محلی",
+      "title_en": "AAA RADIUS Local Fallback",
+      "chapter_order": 65,
+      "summary": "احراز هویت متمرکز + local backup تا قفل ادمین نشوی.",
+      "full_content": "# AAA — محدوده\n\n```\naaa new-model\naaa authentication login default group radius local\nradius server RS1\n address ipv4 10.10.10.50 auth-port 1812 acct-port 1813\n key SecretKey\n!\nusername admin privilege 15 secret LocalBackupPass\n```\n\nقبل از قطع دسترسی console/local، از یک session دیگر RADIUS را تست کن.\n",
+      "commands": "show aaa servers\nshow radius server-group all\nshow running-config | include aaa\nshow running-config | include radius\nshow users\ndebug radius\nundebug all",
+      "examples": "Lab:\n1) RADIUS درست → لاگین با کاربر مرکزی\n2) RADIUS را قطع کن → باید local کار کند\n3) اگر local نباشد، خطر قفل",
+      "notes": "هرگز method-list را بدون local روی همه خطوط نگذار مگر مسیر بازگشت داری.",
+      "learning_objectives": ["RADIUS", "local fallback"]
+    },
+    {
+      "title_fa": "[L2] Syslog و SNMP برای دید عملیاتی",
+      "title_en": "Syslog SNMP Operations Visibility",
+      "chapter_order": 25,
+      "summary": "لاگ متمرکز و مانیتورینگ؛ بدون دید، RCA دیر و کور است.",
+      "full_content": "# Syslog و SNMP — محدوده\n\n```\nlogging host 10.10.10.100\nlogging trap informational\nsnmp-server community RO_NET enc readonly\nsnmp-server host 10.10.10.100 version 2c RO_NET\n```\n\nدر production ترجیحاً SNMPv3. Community ضعیف روی اینترنت نگذار.\n",
+      "commands": "show logging\nshow logging | include %LINK\nshow snmp\nshow snmp community\nshow snmp host\nshow running-config | include logging\nshow running-config | include snmp",
+      "examples": "Lab: لینک را shut/no shut کن؛ پیام Syslog را روی سرور ببین؛ SNMP walk ساده از NMS.\n",
+      "notes": "زمان دستگاه (NTP) برای هم‌خوانی لاگ‌ها حیاتی است.",
+      "learning_objectives": ["syslog host", "SNMP read", "هم‌زمانی زمان"]
+    },
+    {
+      "title_fa": "[L2] NTP — همگام‌سازی زمان",
+      "title_en": "NTP Time Sync",
+      "chapter_order": 25,
+      "summary": "بدون زمان درست، لاگ و گواهی و همبستگی رویدادها بی‌معنی می‌شود.",
+      "full_content": "# NTP\n\n```\nntp server 10.10.10.5\nntp update-calendar\nclock timezone IRST 3 30\n```\n\nVerify: `show ntp status` باید synchronized باشد.\n",
+      "commands": "show clock\nshow ntp status\nshow ntp associations\nshow running-config | include ntp\nshow clock detail",
+      "examples": "Lab: قبل از NTP لاگ با زمان غلط؛ بعد از sync مقایسه timestamps.\n",
+      "notes": "اول NTP، بعد تحلیل لاگ امنیتی.",
+      "learning_objectives": ["ntp server", "synchronized"]
+    },
+    {
+      "title_fa": "[L2] Backup و Rollback قبل از Change",
+      "title_en": "Backup Rollback Change Discipline",
+      "chapter_order": 5,
+      "summary": "هر تغییر بدون backup یعنی قمار. Rollback را قبل از apply بنویس.",
+      "full_content": "# Backup / Rollback\n\n```\ncopy running-config tftp://10.10.10.20/r1-pre.cfg\ncopy running-config flash:pre-change.cfg\nshow archive\n```\n\nچک‌لیست:\n1) Backup\n2) پنجره تغییر\n3) Verify\n4) Rollback آماده\n5) مانیتور بعد از change\n",
+      "commands": "copy running-config startup-config\ncopy running-config flash:pre-change.cfg\ndir flash:\nshow running-config\nshow startup-config\nmore flash:pre-change.cfg\nconfigure replace flash:pre-change.cfg force",
+      "examples": "Lab: یک ACL اشتباه بده؛ با configure replace یا کپی دستی برگردان.\n",
+      "notes": "startup را با running اشتباه نگیر.",
+      "learning_objectives": ["backup", "rollback"]
+    },
+    {
+      "title_fa": "[L2] عیب‌یابی لایه‌ای — از Physical تا Application",
+      "title_en": "Layered Troubleshooting Playbook",
+      "chapter_order": 5,
+      "summary": "یک playbook ثابت: L1→L2→L3→L4→App تا وقت را روی حدس تلف نکنی.",
+      "full_content": "# Playbook عیب‌یابی\n\n1. **L1** لینک up/up؟ خطا/CRC؟\n2. **L2** VLAN/MAC/STP blocking؟\n3. **L3** IP/GW/route/ping؟\n4. **L4** پورت TCP/UDP؟\n5. **App/DNS** نام resolve می‌شود؟\n\nهرگز همزمان سه چیز را عوض نکن.\n",
+      "commands": "show interfaces\nshow interfaces status\nshow vlan brief\nshow mac address-table\nshow spanning-tree\nshow ip route\nping\ntraceroute\nTest-NetConnection -Port 443\nnslookup",
+      "examples": "Lab سناریو: کاربر «اینترنت ندارد».\n- کابل/لینک\n- IP/GW\n- ping 8.8.8.8\n- DNS\n- پورت 443\nهر مرحله را ثبت کن.\n",
+      "notes": "Symptom → Evidence → Hypothesis → Test.",
+      "learning_objectives": ["لایه‌ای فکر کند", "یک متغیر در هر تست"]
+    },
+    {
+      "title_fa": "[L3] Policy-Based Routing مفهومی",
+      "title_en": "Policy Based Routing Basics",
+      "chapter_order": 14,
+      "summary": "PBR ترافیک خاص را برخلاف جدول مسیر عادی منحرف می‌کند.",
+      "full_content": "# PBR — محدوده\n\nمثال: subnet مالی از لینک ISP-A خارج شود حتی اگر default از ISP-B باشد.\n\n```\naccess-list 110 permit ip 10.10.10.0 0.0.0.255 any\nroute-map PBR-FIN permit 10\n match ip address 110\n set ip next-hop 203.0.113.1\ninterface Vlan10\n ip policy route-map PBR-FIN\n```\n\n",
+      "commands": "show route-map PBR-FIN\nshow access-lists 110\nshow ip policy\nshow running-config | section route-map\ntraceroute 8.8.8.8",
+      "examples": "Lab: از PC مالی traceroute را با/بدون PBR مقایسه کن.\n",
+      "notes": "PBR روی اینترفیس ورودی اعمال می‌شود.",
+      "learning_objectives": ["match/set", "اثر روی traceroute"]
+    },
+    {
+      "title_fa": "[L2] MikroTik — Queue ساده برای محدودسازی",
+      "title_en": "MikroTik Simple Queue",
+      "chapter_order": 20,
+      "summary": "فقط Simple Queue: سقف پهنا برای یک subnet یا IP.\n",
+      "full_content": "# MikroTik Simple Queue\n\n```\n/queue simple\nadd name=guest target=10.50.50.0/24 max-limit=10M/10M\n```\n\nاگر FastTrack همه را می‌بلعد، صف ممکن است بی‌اثر شود — استثنا تعریف کن.\n",
+      "commands": "/queue simple print\n/queue simple print stats\n/ip firewall filter print where action=fasttrack-connection\n/tool torch interface=bridge-lan\n/ip firewall connection print",
+      "examples": "Lab: queue 2M روی یک کلاینت؛ speedtest قبل/بعد.\n",
+      "notes": "target و max-limit را درست بده؛ جهت upload/download در MikroTik با / جدا می‌شود.",
+      "learning_objectives": ["simple queue", "Verify با stats"]
+    },
+    {
+      "title_fa": "[L3] BGP Prefix-List و فیلتر ورودی",
+      "title_en": "BGP Prefix-List Inbound Filter",
+      "chapter_order": 14,
+      "summary": "هرگز همه مسیرهای اینترنت را بدون فیلتر نپذیر.\n",
+      "full_content": "# فیلتر BGP\n\n```\nip prefix-list ALLOW-DEFAULT permit 0.0.0.0/0\nroute-map FROM-ISP permit 10\n match ip address prefix-list ALLOW-DEFAULT\nroute-map FROM-ISP deny 20\nrouter bgp 65000\n neighbor 203.0.113.1 route-map FROM-ISP in\n```\n\n",
+      "commands": "show ip prefix-list\nshow route-map FROM-ISP\nshow ip bgp neighbors 203.0.113.1 routes\nshow ip bgp\nshow ip route bgp",
+      "examples": "Lab: بدون فیلتر تعداد مسیر زیاد؛ با فیلتر فقط default.\n",
+      "notes": "فیلتر خروجی هم برای جلوگیری از تبلیغ داخلی لازم است.",
+      "learning_objectives": ["prefix-list", "inbound policy"]
+    },
+    {
+      "title_fa": "[L2] ویندوز — مسیر، DNS و فایروال میزبان",
+      "title_en": "Windows Route DNS Host Firewall",
+      "chapter_order": 35,
+      "summary": "گاهی مشکل شبکه نیست؛ فایروال یا DNS خود ویندوز است.\n",
+      "full_content": "# ویندوز کلاینت/سرور\n\n```\nGet-NetIPConfiguration\nGet-NetRoute\nResolve-DnsName example.com\nTest-NetConnection 10.10.10.50 -Port 445\nGet-NetFirewallRule -Enabled True | Select-Object DisplayName,Direction,Action\n```\n\n",
+      "commands": "ipconfig /all\nroute print\nnslookup example.com\nTest-NetConnection 8.8.8.8 -TraceRoute\nGet-NetTCPConnection -State Listen\nGet-NetFirewallProfile\nnetsh advfirewall show allprofiles",
+      "examples": "Lab: پورت 445 با فایروال بسته/باز؛ تفاوت Test-NetConnection.\n",
+      "notes": "DNS دامنه AD را با 8.8.8.8 عوض نکن مگر بدانی چه می‌کنی.",
+      "learning_objectives": ["جدا کردن مشکل host از network"]
+    }
+  ]
+}
