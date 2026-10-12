@@ -110,15 +110,21 @@ class WebDB:
         return self.conn.execute("SELECT COUNT(*) c FROM chapters").fetchone()["c"]
 
     def is_seeded(self):
-        return self.chapter_count() >= 64
+        # حداقل ۶۰ فصل و محتوای واقعی (نه فقط عنوان)
+        if self.chapter_count() < 60:
+            return False
+        filled = self.conn.execute(
+            "SELECT COUNT(*) c FROM lessons WHERE length(COALESCE(full_content,''))>120"
+        ).fetchone()["c"]
+        return filled >= 1000
 
     def seed_full(self, force=False):
-        """ساخت کامل فصل‌های ۱–۶۸ با محتوای غنی."""
+        """ساخت کامل فصل‌های ۱–۶۸ با محتوای غنی؛ بعد از هر فصل commit."""
         if self.is_seeded() and not force:
             return {"ok": True, "skipped": True, "chapters": self.chapter_count()}
 
         from core.full_curriculum import get_full_curriculum
-        from core.phase_a import CAPSTONE_SCENARIOS, default_meta
+        from core.phase_a import CAPSTONE_SCENARIOS
         from core.seed_helpers import insert_rich_lesson
 
         cur = self.conn.cursor()
@@ -126,13 +132,16 @@ class WebDB:
             cur.executescript(
                 "DELETE FROM lessons; DELETE FROM levels; DELETE FROM chapters; DELETE FROM scenarios;"
             )
+            self.conn.commit()
 
-        curriculum = get_full_curriculum()
+        curriculum = list(get_full_curriculum())
         try:
             from core.extra_chapters import ensure_chapters_1_to_68
-            curriculum = ensure_chapters_1_to_68(list(curriculum))
+
+            curriculum = ensure_chapters_1_to_68(curriculum)
         except Exception as e:
             print("extra_chapters", e)
+
         n_ch = n_lv = n_les = 0
         now = datetime.now().isoformat()
 
@@ -153,6 +162,8 @@ class WebDB:
                 for oi, (lfa, len_) in enumerate(lessons, 1):
                     insert_rich_lesson(cur, lv_id, oi, lfa, len_, now)
                     n_les += 1
+            self.conn.commit()
+            print(f"  seeded chapter {order}: {title_fa} ({n_les} lessons so far)")
 
         for sc in CAPSTONE_SCENARIOS:
             cur.execute(
@@ -175,7 +186,7 @@ class WebDB:
             )
 
         self.conn.commit()
-        self.set_meta("seeded_version", "web-v3-ch68")
+        self.set_meta("seeded_version", "web-v4-rich")
         self.set_meta("seeded_at", now)
         return {"ok": True, "chapters": n_ch, "levels": n_lv, "lessons": n_les, "scenarios": len(CAPSTONE_SCENARIOS)}
 

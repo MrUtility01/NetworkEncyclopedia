@@ -1,48 +1,41 @@
 # -*- coding: utf-8 -*-
-"""درج درس در seed — حالت fast برای استارت سریع."""
+"""درج درس در seed — همیشه محتوای واقعی از build_rich_lesson."""
 from __future__ import annotations
 
 import json
-import os
+
+from core.rich_content import build_rich_lesson
+from core.phase_a import default_meta
 
 
 def insert_rich_lesson(cur, lv_id: int, oi: int, lfa: str, len_: str, now: str) -> None:
-    """اگر NETENC_FAST_SEED=0 باشد محتوای غنی می‌سازد؛ پیش‌فرض fast."""
-    fast = os.environ.get("NETENC_FAST_SEED", "1") != "0"
     tag = lfa[1:3] if str(lfa).startswith("[L") else "L0"
-    if fast:
-        summary = f"{lfa}"
-        full_content = (
-            f"# {lfa}\n\n"
-            f"**سطح:** {tag}\n\n"
-            f"محتوای پایهٔ این درس. برای نسخهٔ کتاب‌گونه از پک‌های tools/packs استفاده کنید.\n\n"
-            f"## انگلیسی\n{len_}\n"
-        )
-        commands = ""
-        examples = ""
-        notes = "fast-seed"
-        obj_text = f"درک {lfa}"
-        meta = {"learning_objectives": [obj_text], "fast": True}
-    else:
-        from core.rich_content import build_rich_lesson
-        from core.phase_a import default_meta
-
-        meta = default_meta(lfa, level=tag)
+    meta = default_meta(lfa, level=tag)
+    rich = {}
+    try:
         rich = build_rich_lesson(lfa, len_, level=tag) or {}
-        summary = rich.get("summary") or f"{lfa}"
-        full_content = rich.get("full_content") or summary
-        commands = rich.get("commands") or ""
-        examples = rich.get("examples") or ""
-        notes = rich.get("notes") or ""
-        objectives = rich.get("learning_objectives") or [f"درک {lfa}"]
-        if isinstance(objectives, str):
-            obj_text = objectives
-            obj_list = [x.strip() for x in objectives.splitlines() if x.strip()]
-        else:
-            obj_list = list(objectives)
-            obj_text = "\n".join(str(x) for x in obj_list)
-        meta["description"] = summary
-        meta["learning_objectives"] = obj_list
+    except Exception as e:
+        rich = {"summary": str(lfa), "full_content": f"# {lfa}\n\n{len_}\n\n(seed fallback: {e})"}
+
+    summary = (rich.get("summary") or "").strip() or str(lfa)
+    full_content = (rich.get("full_content") or "").strip() or summary
+    commands = rich.get("commands") or ""
+    examples = rich.get("examples") or ""
+    notes = rich.get("notes") or ""
+    objectives = rich.get("learning_objectives") or [
+        f"درک مفهوم «{lfa}»",
+        "اجرای تمرین کنترل‌شده در Lab",
+        "عیب‌یابی با شواهد قابل اندازه‌گیری",
+    ]
+    if isinstance(objectives, str):
+        obj_text = objectives
+        obj_list = [x.strip() for x in objectives.splitlines() if x.strip()]
+    else:
+        obj_list = list(objectives)
+        obj_text = "\n".join(str(x) for x in obj_list)
+
+    meta["description"] = summary
+    meta["learning_objectives"] = obj_list
 
     cur.execute(
         """INSERT INTO lessons(
@@ -61,8 +54,8 @@ def insert_rich_lesson(cur, lv_id: int, oi: int, lfa: str, len_: str, now: str) 
             commands,
             examples,
             notes,
-            lfa,
-            obj_text if fast else obj_text,
+            meta.get("ai_search_prompt") or lfa,
+            obj_text,
             json.dumps(meta, ensure_ascii=False),
             now,
         ),
