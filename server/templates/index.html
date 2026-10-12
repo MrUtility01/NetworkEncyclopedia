@@ -12,10 +12,10 @@
     <div class="login-card">
       <h1>Network Engineer</h1>
       <p class="muted">برای ورود، رمز برنامه را وارد کنید</p>
-      <form id="loginForm">
+      <form id="loginForm" action="#" method="post" onsubmit="return false;">
         <label for="loginPass">رمز ورود</label>
         <input id="loginPass" type="password" autocomplete="current-password" placeholder="رمز…" autofocus />
-        <button type="submit" id="loginBtn">ورود</button>
+        <button type="button" id="loginBtn">ورود</button>
         <p id="loginErr" class="login-err" hidden>رمز نادرست است</p>
       </form>
     </div>
