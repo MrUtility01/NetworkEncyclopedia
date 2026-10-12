@@ -1,0 +1,118 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "v19 فوق‌عمیق — درس‌های بلند با Lab و RCA متمرکز",
+  "lessons": [
+    {
+      "title_fa": "[L4] BGP Traffic Engineering عمیق — Local Pref، MED، AS-Path و Communities",
+      "title_en": "BGP Traffic Engineering Deep LocalPref MED ASPath Communities",
+      "chapter_order": 14,
+      "summary": "کنترل ورود و خروج ترافیک در لبه چندخانه با ابزارهای سیاست BGP؛ سطح پیشرفته عملیاتی.",
+      "full_content": "# BGP Traffic Engineering — فوق‌عمیق\n\n## ۱. دو مسئله جدا\n| جهت | سوال | ابزار رایج |\n|------|------|-------------|
+| خروج ترافیک (egress) | از کدام ISP خارج شوم؟ | Local Preference، IGP metric تا exit |\n| ورود ترافیک (ingress) | ترافیک اینترنت از کدام لینک وارد شود؟ | AS-Path prepend، MED (محدود)، Communities، اعلام انتخابی پیشوند |\n\n## ۲. Local Preference (داخل AS تو)\nمقدار بالاتر ترجیح داده می‌شود. روی route-map ورودی از همسایه اعمال کن.\n```\nroute-map FROM-ISP-A permit 10\n set local-preference 200\nroute-map FROM-ISP-B permit 10\n set local-preference 150\nrouter bgp 65000\n neighbor 203.0.113.1 route-map FROM-ISP-A in\n neighbor 198.51.100.1 route-map FROM-ISP-B in\n```\n\n## ۳. AS-Path Prepend (تأثیر روی دیگران)\nمسیر بلندتر برای دیگران کمتر جذاب می‌شود — ابزار اصلی شکل‌دهی **ورود**.\n```\nroute-map PREPEND-B permit 10\n set as-path prepend 65000 65000\nneighbor 198.51.100.1 route-map PREPEND-B out\n```\n\n## ۴. MED\nبین لینک‌های همان AS همسایه گاهی مفید است؛ بین ISPهای مختلف اغلب قابل‌اعتماد نیست.\n\n## ۵. Communities\nبسیاری ISPها community برای «prepend کن» یا «به فلان منطقه اعلام نکن» می‌دهند. مستند ISP را بخوان، حدس نزن.\n\n## ۶. اعلام انتخابی\nگاهی /24 را از یک لینک و aggregate را از لینک دیگر اعلام می‌کنند تا ورودی را بشکنند — با دقت و بدون سیاه‌چاله.\n\n## ۷. ترتیب تصمیم BGP (خلاصه عملی)\nWeight (سیسکو) → Local Pref → Local originate → AS-Path → Origin → MED → eBGP over iBGP → IGP metric به next-hop → ...\n\n## ۸. RCA\n| علامت | بررسی |\n|--------|--------|\n| ترافیک از لینک گران می‌رود | local-pref / جدول خروجی |\n| ورودی نامتوازن | prepend/community/اعلام پیشوند |\n| بعد از change قطع شد | فیلتر out بیش‌ازحد، session |\n\n## ۹. قانون طلایی\nیک تغییر سیاست در هر مرحله + اندازه‌گیری NetFlow/Interface قبل و بعد.\n",
+      "commands": "show ip bgp summary\nshow ip bgp\nshow ip bgp 0.0.0.0\nshow ip bgp neighbors 203.0.113.1 routes\nshow ip bgp neighbors 203.0.113.1 advertised-routes\nshow ip route bgp\nshow route-map\nshow ip community-list\nshow interfaces Gi0/0\nshow ip flow top-talkers",
+      "examples": "Lab فوق‌عمیق:\n1) دو eBGP به ISP-A و ISP-B\n2) baseline: show interface rate دو لینک\n3) local-pref به نفع A\n4) ترافیک خروجی را دوباره بسنج\n5) روی B دو بار prepend کن\n6) از نگاه AS بیرونی (یا شبیه‌ساز) مسیر ورود را مقایسه کن\n7) community مستند ISP را (در Lab شبیه‌سازی) اعمال کن\n8) rollback کامل به baseline",
+      "notes": "TE بدون visibility (flow/sniffer/NMS) تیر در تاریکی است.\n",
+      "learning_objectives": ["جدا egress/ingress", "Local Pref", "Prepend", "Communities", "اندازه‌گیری قبل/بعد"]
+    },
+    {
+      "title_fa": "[L4] MPLS TE و مهندسی ترافیک هسته",
+      "title_en": "MPLS Traffic Engineering Core Deep",
+      "chapter_order": 16,
+      "summary": "تونل TE، پهنای باند رزرو، اجتناب از لینک شلوغ در هسته MPLS.",
+      "full_content": "# MPLS Traffic Engineering — فوق‌عمیق\n\n## مشکل IGP خالص\nSPF کوتاه‌ترین مسیر را انتخاب می‌کند نه لزوماً کم‌شلوغ‌ترین. دو demand بزرگ ممکن است روی یک لینک بیفتند.\n\n## ایده TE\nLSP با محدودیت (bandwidth، affinity) از head-end ساخته می‌شود و ترافیک وارد آن می‌شود.\n\n## اجزا\n| جزء | نقش |\n|------|-----|\n| Head-end | شروع تونل |\n| Tail-end | پایان |\n| CSPF | SPF محدودشده |\n| RSVP-TE | سیگنال و رزرو (مدل کلاسیک) |\n| SR-TE | مهندسی با Segment Routing |\n\n## پیش‌نیاز\nIGP با TE extensions، جمع‌آوری bandwidth، همگام بودن جدول.\n\n## Verify\n```\nshow mpls traffic-eng tunnels\nshow ip rsvp\nshow mpls forwarding-table\n```\n\n## RCA\nتونل down: پهنای باند آزاد، affinity، reachability، RSVP blocked.\n",
+      "commands": "show mpls traffic-eng tunnels\nshow mpls traffic-eng topology\nshow ip rsvp neighbor\nshow ip rsvp interface\nshow mpls forwarding-table\nshow ip route\nshow isis database verbose",
+      "examples": "Lab:\n1) هسته با IGP+MPLS\n2) یک تونل TE بین دو edge\n3) ترافیک را به تونل بده\n4) لینک میانی را محدود کن و ببین CSPF مسیر عوض می‌کند یا تونل می‌افتد\n5) با IGP خالص مقایسه کن",
+      "notes": "TE پیچیدگی عملیاتی دارد؛ فقط وقتی IGP+capacity planning کافی نیست.\n",
+      "learning_objectives": ["LSP TE", "CSPF", "RSVP-TE در برابر SR-TE", "Verify تونل"]
+    },
+    {
+      "title_fa": "[L3] QoS سلسله‌مراتبی (HQoS) لبه WAN",
+      "title_en": "Hierarchical QoS HQoS WAN Edge",
+      "chapter_order": 18,
+      "summary": "صف‌بندی چندلایه: پر پورت فیزیکی، بعد per-VPN یا per-customer.",
+      "full_content": "# HQoS — فوق‌عمیق\n\n## چرا سلسله‌مراتبی؟\nیک policy تخت روی اینترفیس وقتی چند مشتری/کلاس روی یک لینک فیزیکی سوارند کافی نیست.\n\n## مدل ذهنی\n1. **Parent**: شکل‌دهی کل لینک به rate واقعی (مثلاً ۵۰Mbps روی گیگ)\n2. **Child**: تقسیم همان ظرفیت بین Voice / Business / Default\n\n## اصول\n- LLQ/priority همیشه با سقف\n- واحدها (kbps/%) را یکسان و مستند کن\n- در congestion تست کن نه لینک خالی\n\n## Verify\n`show policy-map interface` — بسته‌های match، drop، queue.\n\n## RCA\n| علامت | علت |\n|--------|------|\n| voice هنوز جبر | mark اشتباه / trust مرزی |\n| drop روی class مهم | سقف parent کم |\n| هیچ match | ACL/class-map |\n",
+      "commands": "show policy-map\nshow policy-map interface\nshow class-map\nshow mls qos\nshow interfaces Gi0/0\nshow running-config | section policy-map|class-map",
+      "examples": "Lab:\n1) parent shape روی ۵۰٪ لینک\n2) child: voice 10%، business 40%، rest\n3) bulk تولید کن\n4) voice را اندازه بگیر قبل/بعد\n5) class-map را خراب کن و counters را ببین",
+      "notes": "بدون علامت‌گذاری یکسان end-to-end، HQoS لبه تنها نیمی از راه است.\n",
+      "learning_objectives": ["parent/child", "shape واقعی", "خواندن counters"]
+    },
+    {
+      "title_fa": "[L3] DCI عملی — اتصال دیتاسنترها بدون فاجعه L2",
+      "title_en": "DCI Practical Data Center Interconnect",
+      "chapter_order": 16,
+      "summary": "انتخاب مدل L3 در برابر امتداد L2، کنترل failure domain.",
+      "full_content": "# DCI — فوق‌عمیق\n\n## سوال اول\nآیا واقعاً به L2 بین DC نیاز داری یا L3 + app-level کافی است؟\n\n## مدل‌ها\n| مدل |何时 |\n|------|------|\n| L3 only | پیش‌فرض سالم |\n| L2 limited (OTV/EVPN) | cluster/migration خاص |\n| Dark fiber / CWDM | تأخیر کم، کنترل فیزیکی |\n\n## خطرات امتداد L2\nSTP event، broadcast storm، split-brain cluster، failure دامنه بزرگ.\n\n## چک‌لیست طراحی\n1. تأخیر و jitter بین سایت\n2. پهنای باند و encryption\n3. مسیر مدیریت و OOB\n4. DNS/Geo failover\n5. تست قطع لینک DCI\n\n## RCA\napp بین DC کند: latency یا extension L2 یا asymmetric path.\n",
+      "commands": "show ip route\nshow bgp summary\nshow nve peers\nshow otv adjacency\nping\ntraceroute\nshow interfaces",
+      "examples": "طراحی:\n1) سه اپ: یکی L3 کافی، یکی نیاز stretch محدود، یکی فقط backup\n2) برای هر کدام مدل DCI بنویس\n3) سناریو قطع لینک و رفتار app",
+      "notes": "Stretch VLAN را پیش‌فرض نکن.\n",
+      "learning_objectives": ["L3-first", "خطر L2 stretch", "چک‌لیست DCI"]
+    },
+    {
+      "title_fa": "[L3] کلاستر فایروال و Session Sync",
+      "title_en": "Firewall Cluster Session Synchronization",
+      "chapter_order": 22,
+      "summary": "HA فعال/پشتیبان یا cluster، همگام‌سازی session و تله failover.",
+      "full_content": "# Firewall HA/Cluster — فوق‌عمیق\n\n## حالت‌ها\n| حالت | توضیح |\n|------|--------|\n| Active/Passive | یکی عبور ترافیک، دیگری آماده |\n| Active/Active | توزیع — پیچیده‌تر با session |\n\n## Session sync\nاگر session روی peer همگام نباشد، failover = قطع اتصال‌های موجود.\n\n## لینک‌های حیاتی\n- HA link / heartbeat\n- state link\n- مسیر متقارن ترجیحاً\n\n## تله\n- عدم تقارن ترافیک (رفت از FW1 برگشت از FW2) بدون cluster مناسب\n- health-check فقط ICMP در حالی که data path خراب است\n\n## Verify\nوضعیت HA، مالکیت session، آخرین failover reason.\n",
+      "commands": "get sys ha status\ndiagnose sys ha status\ndiagnose firewall session list\nshow chassis cluster status\nshow firewall ha\nshow sync",
+      "examples": "Lab:\n1) Active/Passive\n2) session برقرار کن (مثلاً SSH طولانی)\n3) failover عمدی\n4) ببین session زنده ماند یا نه\n5) لینک HA را قطع کن و رفتار را ثبت کن",
+      "notes": "بدون تست failover واقعی، HA فقط کانفیگ است.\n",
+      "learning_objectives": ["A/P vs A/A", "session sync", "تست failover"]
+    },
+    {
+      "title_fa": "[L3] طراحی RF وایرلس سازمانی — از سایت‌سرووی تا کانال",
+      "title_en": "Enterprise WLAN RF Design Survey to Channel",
+      "chapter_order": 30,
+      "summary": "پوشش، ظرفیت، تداخل، کانال ۲.۴/۵/۶GHz و اعتبارسنجی.",
+      "full_content": "# RF Design — فوق‌عمیق\n\n## دو هدف جدا\n1. **پوشش** (حداقل RSSI در همه نقاط)\n2. **ظرفیت** (تعداد کلاینت / حجم)\n\nممکن است پوشش خوب باشد و ظرفیت نه.\n\n## باندها\n| باند | ویژگی |\n|------|--------|\n| 2.4GHz | نفوذ بهتر، شلوغ، کانال کم |\n| 5GHz | ظرفیت بیشتر |\n| 6GHz (Wi-Fi 6E) | تمیزتر، برد کمتر |\n\n## کانال و قدرت\nهمپوشانی کانال و قدرت زیاد = تداخل خودی. CCA و cell size را مدیریت کن.\n\n## Survey\nقبل: predictive\nبعد: validation survey با اندازه‌گیری واقعی\n\n## RCA\n| علامت | لایه RF |\n|--------|---------|\n| قطع در یک نقطه | پوشش / مانع |\n| کندی شلوغ | ظرفیت / کانال |\n| roam بد | همپوشانی سل / کنترلر |\n",
+      "commands": "show ap summary\nshow ap auto-rf\nshow client summary\nshow wlan summary\nshow ap config general",
+      "examples": "تمرین:\n1) نقشه یک طبقه\n2) تعداد AP پیشنهادی برای ۳۰ کاربر همزمان\n3) کانال ۵GHz را طوری بچین که همسایه حداقل همپوشانی داشته باشد\n4) معیار RSSI و SNR هدف بنویس",
+      "notes": "کپی کردن قدرت حداکثر روی همه APها طراحی نیست.\n",
+      "learning_objectives": ["پوشش vs ظرفیت", "کانال", "validation survey"]
+    },
+    {
+      "title_fa": "[L3] امنیت ظرفیت و ضداشباع کنترل‌پلن",
+      "title_en": "Control Plane Protection Capacity Security",
+      "chapter_order": 65,
+      "summary": "محافظت CPU/کنترل‌پلن در برابر سیل پروتکل و مدیریت.",
+      "full_content": "# Control Plane Protection — فوق‌عمیق\n\n## مشکل\nلینک data ممکن است سالم باشد اما CPU کنترل‌پلن با flood از پا بیفتد (BGP, SSH, ARP).\n\n## ابزارها\n- CoPP (Control Plane Policing)\n- rate-limit به management\n- جدا Mgmt VRF\n- ACL سخت روی VTY\n- Storm control در L2\n\n## طراحی CoPP\nکلاس‌بندی: critical (BGP/OSPF/HSRP)، normal (SSH محدود)، undesireable (drop/police سخت).\n\n## تست\nهرگز اولین بار در production بدون lab؛ ممکن است session خودت را قطع کنی.\n\n## RCA\nCPU 100% با ترافیک کم data: show process، CoPP counters، interface input queue drops.\n",
+      "commands": "show processes cpu\nshow processes cpu history\nshow policy-map control-plane\nshow control-plane\nshow interfaces | include drop\nshow ip traffic\nshow access-lists",
+      "examples": "Lab:\n1) baseline CPU\n2) flood کنترل‌شده به پورت مدیریت (محیط ایزوله)\n3) با/بدون CoPP مقایسه کن\n4) مطمئن شو BGP class drop نمی‌شود",
+      "notes": "CoPP اشتباه خطرناک‌تر از نبود CoPP است — lab اول.\n",
+      "learning_objectives": ["CoPP", "جدا critical", "تست امن"]
+    },
+    {
+      "title_fa": "[L4] طراحی Lab حرفه‌ای برای تمرین شبکه",
+      "title_en": "Professional Network Lab Design for Practice",
+      "chapter_order": 5,
+      "summary": "از EVE-NG/GNS3 تا سخت‌افزار؛ توپولوژی حداقل برای هر مهارت.",
+      "full_content": "# Lab Design — فوق‌عمیق\n\n## هدف Lab\nتمرین برگشت‌پذیر با snapshot؛ نه تقلید کامل دیتاسنتر واقعی در خانه.\n\n## حداقل توپولوژی‌ها\n| مهارت | حداقل |\n|--------|--------|\n| VLAN/STP | ۲ سوئیچ + ۲ PC |\n| OSPF/BGP | ۳ روتر |\n| Firewall | FW + ۲ شبکه + internet sim |\n| VPN | ۲ site |\n| Automation | ۱ کنترل + ۲ node |\n\n## ابزار\nEVE-NG، GNS3، Containerlab، سخت‌افزار دست‌دوم، cloud trial.\n\n## انضباط\n- نام‌گذاری یکسان\n- ذخیره config بعد از Lab موفق\n- سناریوی شکست عمدی\n- زمان‌بندی تمرین هفتگی\n\n## ضدالگو\nتصویرهای غیرقانونی IOS؛ یا Lab بدون هدف مهارتی.\n",
+      "commands": "# داخل Lab:\nshow version\ncopy running-config tftp:\nexport\nsnapshot (در hypervisor/EVE)\n",
+      "examples": "برنامه ۳۰ روزه:\nهفته۱ L2\nهفته۲ IGP\nهفته۳ BGP/VPN\nهفته۴ Firewall/Automation\nهر هفته یک RCA عمدی",
+      "notes": "Lab خوب = تکرارپذیر + قابل rollback.\n",
+      "learning_objectives": ["توپولوژی حداقل", "snapshot", "تمرین هدفمند"]
+    },
+    {
+      "title_fa": "[L3] الگوی دفاع در عمق شبکه سازمانی",
+      "title_en": "Defense in Depth Enterprise Network Pattern",
+      "chapter_order": 65,
+      "summary": "لایه‌های کنترل از لبه تا میزبان؛ بدون تک‌نقطه اعتماد.",
+      "full_content": "# Defense in Depth — فوق‌عمیق\n\n## لایه‌ها\n1. لبه اینترنت / ایمیل / DNS\n2. فایروال و segmentation\n3. دسترسی هویت (802.1X/VPN/MFA)\n4. شرقی-غربی (ACL/microseg)\n5. میزبان و EDR\n6. لاگ و پاسخ\n\n## اصل\nشکست یک لایه نباید = شکست کامل.\n\n## ماتریس ساده\nبرای هر دارایی حیاتی بنویس: چه کسی، از کجا، با چه کنترلی، با چه لاگی.\n\n## ضدالگو\nفقط فایروال لبه + LAN تخت.\n",
+      "commands": "show firewall policy\nshow access-lists\nshow authentication sessions\nshow logging\ndiagnose firewall session list",
+      "examples": "تمرین:\n1) دارایی: DC مالی\n2) سه مسیر حمله فرضی\n3) برای هر مسیر دو کنترل جبرانی بنویس\n4) شکاف‌ها را اولویت‌بندی کن",
+      "notes": "لایه بیشتر بدون عملیات = پیچیدگی بی‌فایده.\n",
+      "learning_objectives": ["چندلایه", "جبرانی", "ماتریس دارایی"]
+    },
+    {
+      "title_fa": "[L3] ارزیابی آمادگی عملیاتی تیم شبکه (Ops Maturity)",
+      "title_en": "Network Ops Maturity Assessment",
+      "chapter_order": 5,
+      "summary": "سنجش اینکه تیم فقط «رفع تیکت» می‌کند یا سیستم پایدار دارد.",
+      "full_content": "# Ops Maturity — فوق‌عمیق\n\n## سطوح ذهنی\n| سطح | مشخصه |\n|------|--------|\n| ۰ | قهرمان تنها، بدون سند |\n| ۱ | مانیتورینگ پایه، backup گاهی |\n| ۲ | change کنترل‌شده، runbook |\n| ۳ | خودکارسازی، SLO، postmortem |\n| ۴ | بهبود مستمر با داده |\n\n## سوال‌های ارزیابی\n- زمان متوسط بازیابی قطعی لینک؟\n- چند درصد change با rollback تست‌شده؟\n- آیا inventory نسخه OS داریم؟\n- آخرین تمرین DR کی بود؟\n\n## خروجی\nسه اقدام ۹۰ روزه نه بیست پروژه همزمان.\n",
+      "commands": "show version\nshow logging\n# متریک‌های فرآیندی از تیکتینگ/NMS",
+      "examples": "تمرین:\n1) به تیم خودت از ۰ تا ۴ نمره بده\n2) ضعیف‌ترین ستون را انتخاب کن\n3) یک اقدام ۹۰ روزه با معیار موفقیت بنویس",
+      "notes": "ابزار گران بدون فرآیند، سطح بلوغ را بالا نمی‌برد.\n",
+      "learning_objectives": ["سطوح بلوغ", "ارزیابی صادقانه", "اقدام محدود و واقعی"]
+    }
+  ]
+}
