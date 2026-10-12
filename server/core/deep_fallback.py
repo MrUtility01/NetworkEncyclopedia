@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""موتور محتوای عمیق — با اینفوگرافیک و تشبیه وابسته به دسته (کم‌تکرارتر)."""
+"""موتور محتوای عمیق — با اینفوگرافیک و مثال عددی وابسته به دسته."""
 from __future__ import annotations
 import re
 from typing import Any, Dict, List, Tuple
@@ -89,136 +89,102 @@ def _story(topic: str, cat: str) -> str:
         except Exception:
             return hooks[0]
     stories = {
-        "vlan": f"در یک سازمان دو دپارتمان روی یک سوئیچ هستند. بدون جداسازی «{topic}»، broadcast و حتی ترافیک حساس بین آن‌ها قاطی می‌شود و عیب‌یابی کابوس می‌شود.",
-        "ospf": f"لینک اصلی بین دو سایت قطع شده. اگر «{topic}» درست باشد مسیر پشتیبان باید ظرف ثانیه‌ها جایگزین شود؛ وگرنه شعبه از مرکز جدا می‌ماند.",
-        "bgp": f"دو ISP دارید. بدون سیاست درست «{topic}» یا ترافیک از لینک گران می‌رود یا هنگام قطعی یکی از ISPها blackhole می‌گیرید.",
-        "nat": f"سرور داخلی باید از بیرون دیده شود. اشتباه در «{topic}» یا همه اینترنت را به داخل باز می‌کند یا سرویس از بیرون timeout می‌دهد.",
-        "wireless": f"کاربران در راهرو وای‌فای دارند ولی در اتاق جلسه قطع می‌شود. «{topic}» را باید از قدرت سیگنال تا DHCP و gateway جداگانه ایزوله کنید.",
-        "tcpip": f"پینگ جواب می‌دهد ولی اپلیکیشن نه. بدون فهم «{topic}» بین لایه ۳ و ۴ گیر می‌کنید و زمان را روی کابل تلف می‌کنید.",
+        "vlan": f"در یک سازمان دو دپارتمان روی یک سوئیچ هستند. بدون جداسازی «{topic}»، broadcast و ترافیک حساس قاطی می‌شود.",
+        "ospf": f"لینک اصلی بین دو سایت قطع شده. «{topic}» باید مسیر پشتیبان را سریع جایگزین کند.",
+        "bgp": f"دو ISP دارید. بدون سیاست درست «{topic}» ترافیک از لینک گران می‌رود یا blackhole می‌گیرید.",
+        "nat": f"اشتباه در «{topic}» یا همه اینترنت را به داخل باز می‌کند یا سرویس از بیرون timeout می‌دهد.",
+        "wireless": f"کاربران در راهرو وای‌فای دارند ولی در اتاق جلسه قطع می‌شود — «{topic}» را لایه به لایه ایزوله کنید.",
+        "tcpip": f"پینگ جواب می‌دهد ولی اپلیکیشن نه. بدون فهم «{topic}» بین لایه ۳ و ۴ گیر می‌کنید.",
     }
     return stories.get(
         cat,
-        f"گزارش NOC: سرویس مرتبط با «{topic}» ناپایدار است. باید از لایه فیزیکی تا اپلیکیشن ایزوله کنید، "
-        f"شواهد با دستور جمع کنید و با حداقل قطعی رفع نمایید — نه حدس زدن.",
+        f"NOC گزارش می‌دهد سرویس مرتبط با «{topic}» ناپایدار است. از لایه ۱ تا ۷ ایزوله کنید و با شواهد رفع کنید.",
     )
 
 
 def _arch_table(cat: str) -> str:
     tables = {
-        "vlan": "| جزء | نقش |\n|-----|-----|\n| Access Port | یک VLAN به کلاینت |\n| Trunk | چند VLAN با تگ 802.1Q |\n| Native VLAN | بدون تگ روی trunk |\n| SVI | gateway لایه ۳ همان VLAN |",
-        "stp": "| جزء | نقش |\n|-----|-----|\n| Root Bridge | مرجع توپولوژی |\n| Root Port | نزدیک‌ترین به Root |\n| Designated Port | مسئول سگمنت |\n| Blocking | جلوگیری از loop |\n| BPDU | سیگنال کنترل |",
-        "ospf": "| جزء | نقش |\n|-----|-----|\n| Area 0 | Backbone |\n| Neighbor | adjacency |\n| LSA | تبلیغ توپولوژی |\n| DR/BDR | کاهش flooding |\n| Cost | معیار مسیر |",
-        "bgp": "| جزء | نقش |\n|-----|-----|\n| AS | دامنه سیاست |\n| eBGP / iBGP | بین/داخل AS |\n| Prefix-list | فیلتر پیشوند |\n| Route-map | سیاست |\n| Next-hop | مقصد بعدی |",
-        "dhcp": "| جزء | نقش |\n|-----|-----|\n| DORA | Discover→Offer→Request→Ack |\n| Scope | محدوده آدرس |\n| Relay | عبور بین VLAN |\n| Reservation | آدرس ثابت |\n| Lease | مدت اعتبار |",
-        "dns": "| جزء | نقش |\n|-----|-----|\n| Resolver | کلاینت پرسشگر |\n| Recursive | جستجوی کامل |\n| Authoritative | منبع zone |\n| Forwarder | هدایت بالادست |\n| Cache + TTL | سرعت پاسخ |",
-        "vpn": "| جزء | نقش |\n|-----|-----|\n| Phase 1 (IKE) | کانال کنترل |\n| Phase 2 (IPsec) | تونل داده |\n| SA | Association |\n| PSK/Cert | احراز |\n| PFS | Forward Secrecy |",
-        "firewall": "| جزء | نقش |\n|-----|-----|\n| Zone | گروه‌بندی |\n| Policy | قانون عبور |\n| NAT | ترجمه آدرس |\n| Session | وضعیت اتصال |\n| Log | ثبت رویداد |",
-        "wireless": "| جزء | نقش |\n|-----|-----|\n| SSID | نام شبکه |\n| AP | رادیو لبه |\n| WLC | کنترلر مرکزی |\n| CAPWAP | تونل AP↔WLC |\n| Roaming | جابجایی بدون قطع IP |",
-        "tcpip": "| جزء | نقش |\n|-----|-----|\n| IP | آدرس منطقی |\n| TCP | اتصال قابل اعتماد |\n| UDP | سبک بدون اتصال |\n| ARP | IP→MAC |\n| ICMP | پیام کنترل/خطا |",
+        "vlan": "| جزء | نقش |\n|-----|-----|\n| Access | یک VLAN |\n| Trunk | چند VLAN + 802.1Q |\n| Native | بدون تگ |\n| SVI | gateway L3 |",
+        "ospf": "| جزء | نقش |\n|-----|-----|\n| Area 0 | Backbone |\n| Neighbor | adjacency |\n| LSA | توپولوژی |\n| Cost | معیار مسیر |",
+        "bgp": "| جزء | نقش |\n|-----|-----|\n| AS | دامنه سیاست |\n| eBGP/iBGP | بین/داخل |\n| Prefix-list | فیلتر |\n| Route-map | سیاست |",
+        "nat": "| جزء | نقش |\n|-----|-----|\n| Inside | LAN |\n| Outside | WAN |\n| PAT | چند به یک |\n| Static | یک به یک |",
+        "dhcp": "| جزء | نقش |\n|-----|-----|\n| DORA | چهار مرحله |\n| Scope | محدوده |\n| Relay | بین VLAN |\n| Lease | مدت |",
+        "dns": "| جزء | نقش |\n|-----|-----|\n| Resolver | کلاینت |\n| Recursive | جستجو |\n| Auth | zone |\n| TTL | cache |",
+        "vpn": "| جزء | نقش |\n|-----|-----|\n| Phase1 | IKE |\n| Phase2 | IPsec |\n| SA | association |\n| PFS | secrecy |",
+        "firewall": "| جزء | نقش |\n|-----|-----|\n| Zone | گروه |\n| Policy | قانون |\n| Session | حالت |\n| Log | رویداد |",
+        "wireless": "| جزء | نقش |\n|-----|-----|\n| SSID | نام |\n| AP | رادیو |\n| WLC | کنترلر |\n| CAPWAP | تونل |",
+        "tcpip": "| جزء | نقش |\n|-----|-----|\n| IP | منطقی |\n| TCP/UDP | انتقال |\n| ARP | IP→MAC |\n| ICMP | کنترل |",
     }
-    return tables.get(
-        cat,
-        "| جزء | نقش |\n|-----|-----|\n| Control plane | تصمیم و سیگنالینگ |\n| Data plane | عبور ترافیک |\n| Management | پیکربندی و لاگ |\n| Policy / AAA | مجوز |",
-    )
+    return tables.get(cat, "| جزء | نقش |\n|-----|-----|\n| Control | تصمیم |\n| Data | عبور ترافیک |\n| Mgmt | پیکربندی |")
 
 
 def _frame_steps(cat: str) -> str:
     steps = {
-        "vlan": "1. کلاینت فریم می‌فرستد\n2. سوئیچ VLAN را از پورت access می‌فهمد\n3. روی trunk تگ 802.1Q می‌خورد\n4. مقصد در همان VLAN → forward؛ وگرنه drop یا به L3\n5. SVI اگر gateway باشد ARP و route",
-        "ospf": "1. Hello برای کشف همسایه\n2. تبادل DBD / LSA\n3. ساخت LSDB یکسان در Area\n4. SPF → جدول مسیریابی\n5. تغییر لینک → LSA جدید و محاسبه مجدد",
-        "bgp": "1. TCP 179 و Open\n2. تبادل UPDATE (prefix + attributes)\n3. Best path selection\n4. نصب در RIB/FIB در صورت مجاز\n5. سیاست با prefix-list/route-map",
-        "nat": "1. پکت از داخل با IP خصوصی\n2. مطابقت با rule NAT\n3. بازنویسی Src/Dst و ذخیره در جدول\n4. ارسال به WAN\n5. پاسخ با ترجمه معکوس",
-        "dhcp": "1. Discover (broadcast)\n2. Offer\n3. Request\n4. Ack + Lease\n5. Renewal در ۵۰٪ و ۸۷٫۵٪",
-        "dns": "1. پرسش به Resolver\n2. Cache یا Recursive\n3. Root → TLD → Authoritative\n4. پاسخ + TTL\n5. Split-Horizon در صورت سیاست",
-        "vpn": "1. IKE Phase1\n2. IKE Phase2 / IPsec SA\n3. Interesting traffic\n4. Encrypt + ارسال\n5. DPD/Keepalive",
-        "wireless": "1. Probe / Association\n2. 802.1X یا PSK\n3. کلیدهای نشست WPA\n4. DHCP روی SSID/VLAN\n5. ترافیک از AP به سوئیچ/WLC",
-        "tcpip": "1. App داده می‌دهد\n2. TCP/UDP هدر و پورت\n3. IP Src/Dst + TTL\n4. فریم Ethernet با MAC\n5. روی مدیوم فیزیکی",
-        "stp": "1. انتخاب Root\n2. محاسبه Root Port / Designated\n3. Blocking پورت‌های اضافی\n4. BPDU دوره‌ای\n5. شکست لینک → همگرایی مجدد",
+        "vlan": "1. فریم از access\n2. تعیین VLAN\n3. تگ روی trunk\n4. forward در همان VLAN\n5. L3 فقط با SVI/روتر",
+        "ospf": "1. Hello\n2. DBD/LSA\n3. LSDB یکسان\n4. SPF\n5. نصب route",
+        "bgp": "1. TCP 179\n2. UPDATE\n3. Best path\n4. RIB/FIB\n5. سیاست",
+        "nat": "1. پکت داخلی\n2. match rule\n3. rewrite\n4. WAN\n5. ترجمه معکوس",
+        "dhcp": "1. Discover\n2. Offer\n3. Request\n4. Ack\n5. Renew",
+        "dns": "1. پرسش\n2. cache/recursive\n3. Root→TLD→Auth\n4. پاسخ+TTL",
+        "vpn": "1. IKE1\n2. IKE2\n3. interesting traffic\n4. encrypt\n5. DPD",
+        "wireless": "1. Association\n2. Auth\n3. DHCP\n4. Gateway\n5. Internet",
+        "tcpip": "1. App\n2. L4 port\n3. IP\n4. MAC\n5. Physical",
+        "stp": "1. Root\n2. RP/DP\n3. Block\n4. BPDU\n5. reconverge",
     }
-    return steps.get(
-        cat,
-        "1. Backup\n2. دامنه تغییر\n3. پیکربندی حداقلی\n4. Verify محلی\n5. Verify End-to-End\n6. لاگ\n7. Rollback در صورت شکست",
-    )
+    return steps.get(cat, "1. Backup\n2. Change\n3. Verify\n4. RCA\n5. Rollback")
 
 
 def _lab_concrete(topic: str, cat: str, level: str) -> str:
-    base = f"""# آزمایشگاه عملی — {topic}
+    base = f"""# Lab — {topic}
 
 ## توپولوژی
-- حداقل: ۲ کلاینت + ۱ سوئیچ + ۱ روتر (یا EVE-NG / GNS3 / Packet Tracer)
-- یک uplink و در صورت امکان یک مسیر backup
+۲ کلاینت + سوئیچ + روتر (یا EVE-NG/GNS3)
 
 ## مراحل
-
-### ۱) Baseline
-| مورد | قبل از تغییر | دستور |
-|------|-------------|--------|
-| اینترفیس | | `show ip interface brief` / `ip -br a` |
-| مسیر / جدول | | وابسته به «{topic}» |
-| لاگ | | `show logging` / `journalctl -n 50` |
-
-### ۲) Backup
-```
-copy running-config startup-config
-show running-config | redirect flash:pre-lab.cfg
-```
-
-### ۳) تغییر حداقلی مرتبط با «{topic}» سپس Verify
-- [ ] Verify روی دستگاه
-- [ ] Verify از کلاینت (ping / curl / nslookup)
-- [ ] بدون خطای جدید در لاگ
-
-### ۴) Failure Injection
-عمداً یک مورد را بشکن (کابل، VLAN اشتباه، ACL deny) و با RCA پیدا کن.
-
-### ۵) Rollback نوشته‌شده را اجرا کن
+1. Baseline: `show ip interface brief` / لاگ
+2. Backup: `copy run start`
+3. تغییر حداقلی «{topic}»
+4. Verify محلی + از کلاینت
+5. Failure injection و RCA
+6. Rollback
 """
     if level in ("L3", "L4"):
-        base += f"""
-### ۶) سطح {level}
-- پنجره Change و اطلاع‌رسانی
-- Runbook یک‌صفحه
-- مانیتور حداقل ۳۰ دقیقه بعد از apply
-"""
+        base += f"\n## سطح {level}\nChange window + Runbook + مانیتور ۳۰ دقیقه\n"
     return base
 
 
 def _rca_table(cat: str) -> str:
     rows = ERRORS.get(cat, [
-        ("سرویس قطع", "فیزیکی / gateway", "show interface / ping gateway"),
-        ("فقط بعضی کلاینت‌ها", "VLAN / ACL / DNS", "مقایسه کلاینت خوب و بد"),
-        ("کندی", "duplex / congestion / DNS", "interface counters / dig"),
+        ("قطع کامل", "فیزیکی/GW", "show interface / ping"),
+        ("بعضی کلاینت‌ها", "VLAN/ACL/DNS", "مقایسه خوب/بد"),
+        ("کندی", "duplex/DNS", "counters / dig"),
     ])
-    lines = ["| علامت | علت محتمل | دستور اول |", "|--------|-----------|-----------|"]
+    lines = ["| علامت | علت | دستور |", "|--------|------|--------|"]
     for a, b, c in rows[:6]:
         lines.append(f"| {a} | {b} | `{c}` |")
     return "\n".join(lines)
 
 
 def _security_block(cat: str, level: str) -> str:
-    common = (
-        "- حداقل دسترسی مدیریت (AAA، SSH key، غیرفعال کردن Telnet)\n"
-        "- تغییر فقط با Backup و Rollback\n"
-        "- جداسازی Management از User VLAN\n"
-    )
+    common = "- AAA/SSH\n- Backup قبل change\n- Management جدا از User\n"
     extra = {
-        "vlan": "- Native VLAN غیرپیش‌فرض\n- Prune VLANهای بلااستفاده روی trunk",
-        "stp": "- BPDU Guard روی access\n- Root Guard روی لبه",
-        "dhcp": "- DHCP Snooping\n- Trust فقط uplink سرور",
-        "wireless": "- WPA3/WPA2-Enterprise در صورت امکان\n- جداسازی Guest",
-        "firewall": "- Default deny\n- Policy از خاص به عام",
-        "vpn": "- AES-GCM / SHA2\n- PFS",
+        "vlan": "- Native غیرپیش‌فرض\n- Prune VLAN اضافه",
+        "stp": "- BPDU Guard\n- Root Guard",
+        "dhcp": "- Snooping\n- Trust فقط uplink",
+        "wireless": "- WPA2/3-Ent\n- Guest جدا",
+        "firewall": "- Default deny\n- Log deny",
+        "vpn": "- AES-GCM\n- PFS",
     }
     return common + extra.get(cat, "")
 
 
 def _level_guidance(level: str) -> str:
     return {
-        "L0": "تصویر ذهنی و تشبیه؛ هنوز حفظ دستور لازم نیست.",
-        "L1": "مشاهده + Lab ساده؛ خروجی show را بخوان.",
+        "L0": "تصویر ذهنی و نمودار؛ حفظ دستور بعداً.",
+        "L1": "Lab ساده + خواندن خروجی show.",
         "L2": "پیکربندی + Verify + Rollback.",
-        "L3": "طراحی چندسگمنت و RCA سیستماتیک.",
-        "L4": "معماری سازمانی، Change Control، Runbook.",
+        "L3": "طراحی و RCA.",
+        "L4": "معماری و Change Control.",
     }.get(level, "")
 
 
@@ -231,18 +197,20 @@ def build_deep_fallback(
     level_fa = _LEVEL_FA.get(level, level)
     bank = BANKS.get(cat, BANKS.get("general", COMMON))
     story = _story(topic, cat)
-    analogy = _ANALOGY.get(cat, f"«{topic}» قطعه‌ای از زنجیره تحویل سرویس است؛ اگر اینجا بشکند، علامت ممکن است جای دیگر دیده شود.")
+    analogy = _ANALOGY.get(cat, f"«{topic}» حلقه‌ای از زنجیره سرویس است.")
 
     try:
-        from core.infographics import markdown_block
+        from core.infographics import markdown_block, worked_example
 
         info = markdown_block(cat)
+        example = worked_example(cat, topic)
     except Exception:
         info = ""
+        example = ""
 
     summary = (
-        f"«{topic}» ({level_fa}). "
-        f"تمرکز این درس: جریان واقعی ترافیک، نقاط شکست، Verify و Rollback — نه تکرار شعار کلی."
+        f"«{topic}» ({level_fa}) — با اینفوگرافیک مسیر پکت و مثال عددی؛ "
+        f"تمرکز روی جریان واقعی، Verify و Rollback."
     )
 
     commands = "\n".join(
@@ -256,8 +224,8 @@ def build_deep_fallback(
             "## Backup",
             _fmt(
                 [
-                    ("show running-config | redirect flash:pre-change.cfg", "بک‌آپ قبل تغییر"),
-                    ("copy running-config startup-config", "ذخیره پس از Verify"),
+                    ("show running-config | redirect flash:pre-change.cfg", "بک‌آپ"),
+                    ("copy running-config startup-config", "ذخیره بعد Verify"),
                 ]
             ),
         ]
@@ -277,13 +245,13 @@ def build_deep_fallback(
 
 ---
 
-## تشبیه مخصوص این دسته
+## تشبیه
 
 {analogy}
 
 ---
 
-## معماری اجزا
+## معماری
 
 {_arch_table(cat)}
 
@@ -293,6 +261,10 @@ def build_deep_fallback(
 
 {_frame_steps(cat)}
 {info}
+## مثال حل‌شده (با اعداد واقعی)
+
+{example}
+
 ---
 
 ## سطح تو ({level})
@@ -301,24 +273,24 @@ def build_deep_fallback(
 
 ---
 
-## امنیت مرتبط
+## امنیت
 
 {_security_block(cat, level)}
 
 ---
 
-## RCA سریع
+## RCA
 
 {_rca_table(cat)}
 
-مسیر: Symptom → Scope → Evidence → Hypothesis → Test → Fix → Verify → Document
+Symptom → Scope → Evidence → Hypothesis → Test → Fix → Verify → Document
 
 ---
 
-## چک‌لیست قبل از Production
+## چک‌لیست Production
 
-- [ ] Backup و مسیر Rollback
-- [ ] دامنه تغییر مشخص
+- [ ] Backup + Rollback
+- [ ] دامنه تغییر
 - [ ] Verify محلی و End-to-End
 - [ ] مانیتور بعد از change
 
@@ -326,9 +298,8 @@ def build_deep_fallback(
 
 ## جمع‌بندی
 
-از این درس سه چیز ببر:
-1. اولین دستورات Verify برای «{topic}»
-2. نقطه شکست رایج در دسته {cat}
+1. Verify اول برای «{topic}»
+2. نقطه شکست رایج دسته {cat}
 3. مسیر Rollback
 """
 
@@ -336,7 +307,7 @@ def build_deep_fallback(
         "summary": summary,
         "full_content": full,
         "commands": commands,
-        "examples": _lab_concrete(topic, cat, level),
+        "examples": (_lab_concrete(topic, cat, level) + "\n\n" + (example or "")),
         "notes": f"## RCA — {topic}\n\n{_rca_table(cat)}\n\n{_level_guidance(level)}\n",
         "level": level,
         "topic": topic,
