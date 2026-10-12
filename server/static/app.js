@@ -1,4 +1,4 @@
-/* Engineer Jokar Web — light UI + tasks + notes + scenarios + quiz */
+/* Engineer Jokar Web — light UI + tasks + notes + scenarios + quiz + infographics */
 const $ = (s) => document.querySelector(s);
 const chaptersEl = $("#chapters");
 const viewer = $("#viewer");
@@ -52,7 +52,7 @@ function saveLS(key, arr) {
 }
 
 function setNav(activeId) {
-  ["btnHome", "btnTasks", "btnNotes", "btnScenarios", "btnQuiz"].forEach((id) => {
+  ["btnHome", "btnTasks", "btnNotes", "btnScenarios", "btnQuiz", "btnInfo"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle("active", id === activeId);
   });
@@ -101,8 +101,9 @@ function renderHome() {
   viewer.innerHTML = `
     <div class="welcome">
       <h1>دایرةالمعارف شبکه — Engineer Jokar</h1>
-      <p>تم روشن · مطالب آموزشی · کارهای روزانه · نکته‌ها · سناریو و سوالات. از فهرست سمت راست فصل را باز کنید.</p>
+      <p>مطالب دسته‌محور · اینفوگرافیک مسیر پکت · کارها و نکته‌ها · سناریو و سوالات.</p>
       <div class="grid">
+        <div class="card-link" data-go="info"><strong>اینفوگرافیک</strong><span class="muted">مسیر پکت / سوئیچ / روتر / وای‌فای</span></div>
         <div class="card-link" data-go="tasks"><strong>کارهای روزانه</strong><span class="muted">لیست کار و پیگیری</span></div>
         <div class="card-link" data-go="notes"><strong>نکته‌ها</strong><span class="muted">یادداشت سریع</span></div>
         <div class="card-link" data-go="scenarios"><strong>سناریوها</strong><span class="muted">Capstone سازمانی</span></div>
@@ -116,6 +117,7 @@ function renderHome() {
       if (g === "notes") renderNotes();
       if (g === "scenarios") renderScenarios();
       if (g === "quiz") renderQuiz();
+      if (g === "info") renderInfographics();
     });
   });
 }
@@ -124,13 +126,12 @@ function renderTasks() {
   state.view = "tasks";
   setNav("btnTasks");
   breadcrumb.textContent = "کارهای روزانه";
-  const tasks = loadLS(LS_TASKS);
   const today = new Date().toISOString().slice(0, 10);
   viewer.innerHTML = `
     <div class="ws-panel">
       <h2>مدیریت کارهای روزانه</h2>
       <div class="ws-form">
-        <input id="taskTitle" placeholder="عنوان کار (مثلاً بکاپ روتر شعبه)" />
+        <input id="taskTitle" placeholder="عنوان کار" />
         <textarea id="taskBody" placeholder="توضیح / چک‌لیست"></textarea>
         <input id="taskDue" type="date" value="${today}" />
         <button type="button" id="taskAdd">افزودن کار</button>
@@ -176,10 +177,7 @@ function renderTasks() {
     listEl.querySelectorAll(".t-del").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = btn.closest(".ws-item").dataset.id;
-        saveLS(
-          LS_TASKS,
-          loadLS(LS_TASKS).filter((x) => x.id !== id)
-        );
+        saveLS(LS_TASKS, loadLS(LS_TASKS).filter((x) => x.id !== id));
         paint();
       });
     });
@@ -189,8 +187,7 @@ function renderTasks() {
     if (!title) return;
     const all = loadLS(LS_TASKS);
     all.unshift({
-      id: uid(),
-      title,
+      id: uid(), title,
       body: $("#taskBody").value.trim(),
       due: $("#taskDue").value,
       done: false,
@@ -213,8 +210,8 @@ function renderNotes() {
       <h2>مدیریت نکته‌ها</h2>
       <div class="ws-form">
         <input id="noteTitle" placeholder="عنوان نکته" />
-        <textarea id="noteBody" placeholder="متن نکته / دستور / هشدار"></textarea>
-        <input id="noteTag" placeholder="برچسب (مثلاً MikroTik، BGP)" />
+        <textarea id="noteBody" placeholder="متن نکته"></textarea>
+        <input id="noteTag" placeholder="برچسب" />
         <button type="button" id="noteAdd">ذخیره نکته</button>
       </div>
       <div class="ws-list" id="noteList"></div>
@@ -246,10 +243,7 @@ function renderNotes() {
     listEl.querySelectorAll(".n-del").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = btn.closest(".ws-item").dataset.id;
-        saveLS(
-          LS_NOTES,
-          loadLS(LS_NOTES).filter((x) => x.id !== id)
-        );
+        saveLS(LS_NOTES, loadLS(LS_NOTES).filter((x) => x.id !== id));
         paint();
       });
     });
@@ -259,8 +253,7 @@ function renderNotes() {
     if (!title) return;
     const all = loadLS(LS_NOTES);
     all.unshift({
-      id: uid(),
-      title,
+      id: uid(), title,
       body: $("#noteBody").value.trim(),
       tag: $("#noteTag").value.trim(),
       created: new Date().toLocaleString("fa-IR"),
@@ -282,7 +275,7 @@ async function renderScenarios() {
   try {
     const list = asList(await api("/api/scenarios"), "scenarios");
     if (!list.length) {
-      viewer.innerHTML = `<div class="ws-panel"><p>سناریویی ثبت نشده. پس از seed کامل اینجا ظاهر می‌شود.</p></div>`;
+      viewer.innerHTML = `<div class="ws-panel"><p>سناریویی ثبت نشده.</p></div>`;
       return;
     }
     viewer.innerHTML = `<div class="scenario-list">${list
@@ -293,49 +286,35 @@ async function renderScenarios() {
         <div class="tags">
           <span class="chip">${escapeHtml(s.category || "Capstone")}</span>
           <span class="chip">${escapeHtml(s.level || "")}</span>
-          <span class="chip">${escapeHtml(s.difficulty || "")}</span>
         </div>
       </div>`
       )
       .join("")}</div>`;
     viewer.querySelectorAll(".scenario-card").forEach((card) => {
       card.addEventListener("click", async () => {
-        viewer.innerHTML = `<div class="loading">بارگذاری…</div>`;
-        try {
-          const sc = await api(`/api/scenarios/${card.dataset.sid}`);
-          breadcrumb.textContent = sc.title_fa || "سناریو";
-          viewer.innerHTML = `
-            <div class="lesson-card">
-              <h1>${escapeHtml(sc.title_fa || "")}</h1>
-              <div class="meta-row">
-                <span class="chip">${escapeHtml(sc.code || "")}</span>
-                <span class="chip">${escapeHtml(sc.level || "")}</span>
-                <span class="chip">${escapeHtml(sc.difficulty || "")}</span>
-              </div>
-              <div class="tabs">
-                <button type="button" class="tab active" data-k="business_context">زمینه</button>
-                <button type="button" class="tab" data-k="requirements">نیازمندی</button>
-                <button type="button" class="tab" data-k="tasks">وظایف</button>
-                <button type="button" class="tab" data-k="hints">راهنما</button>
-                <button type="button" class="tab" data-k="solution">راه‌حل</button>
-                <button type="button" class="tab" data-k="verification">اعتبارسنجی</button>
-              </div>
-              <div class="tab-body"><pre class="content-pre">${escapeHtml(sc.business_context || "—")}</pre></div>
-              <p style="margin-top:12px"><button type="button" class="ghost" id="backSc">بازگشت به لیست</button></p>
-            </div>`;
-          const body = viewer.querySelector(".tab-body");
-          viewer.querySelectorAll(".tab").forEach((tab) => {
-            tab.addEventListener("click", () => {
-              viewer.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
-              tab.classList.add("active");
-              const k = tab.dataset.k;
-              body.innerHTML = `<pre class="content-pre">${escapeHtml(sc[k] || "—")}</pre>`;
-            });
+        const sc = await api(`/api/scenarios/${card.dataset.sid}`);
+        breadcrumb.textContent = sc.title_fa || "سناریو";
+        viewer.innerHTML = `
+          <div class="lesson-card">
+            <h1>${escapeHtml(sc.title_fa || "")}</h1>
+            <div class="tabs">
+              <button type="button" class="tab active" data-k="business_context">زمینه</button>
+              <button type="button" class="tab" data-k="tasks">وظایف</button>
+              <button type="button" class="tab" data-k="solution">راه‌حل</button>
+              <button type="button" class="tab" data-k="verification">اعتبارسنجی</button>
+            </div>
+            <div class="tab-body"><pre class="content-pre">${escapeHtml(sc.business_context || "—")}</pre></div>
+            <p style="margin-top:12px"><button type="button" class="ghost" id="backSc">بازگشت</button></p>
+          </div>`;
+        const body = viewer.querySelector(".tab-body");
+        viewer.querySelectorAll(".tab").forEach((tab) => {
+          tab.addEventListener("click", () => {
+            viewer.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+            tab.classList.add("active");
+            body.innerHTML = `<pre class="content-pre">${escapeHtml(sc[tab.dataset.k] || "—")}</pre>`;
           });
-          $("#backSc").onclick = () => renderScenarios();
-        } catch (e) {
-          viewer.innerHTML = `<div class="loading">خطا: ${escapeHtml(e.message)}</div>`;
-        }
+        });
+        $("#backSc").onclick = () => renderScenarios();
       });
     });
   } catch (e) {
@@ -344,87 +323,29 @@ async function renderScenarios() {
 }
 
 const QUIZ_BANK = [
-  {
-    q: "کدام پروتکل برای تفکیک Broadcast Domain در لایه ۲ استفاده می‌شود؟",
-    opts: ["VLAN", "OSPF", "FTP", "NTP"],
-    a: 0,
-    exp: "VLAN دامنه پخش را در سوئیچ جدا می‌کند.",
-  },
-  {
-    q: "در TCP، مرحله برقراری اتصال چه نام دارد؟",
-    opts: ["Three-way Handshake", "ARP Request", "DHCP Discover", "ICMP Echo"],
-    a: 0,
-    exp: "SYN → SYN-ACK → ACK",
-  },
-  {
-    q: "کدام آدرس خصوصی است؟",
-    opts: ["8.8.8.8", "192.168.10.5", "1.1.1.1", "9.9.9.9"],
-    a: 1,
-    exp: "RFC1918: 10/8, 172.16/12, 192.168/16",
-  },
-  {
-    q: "هدف اصلی NAT چیست؟",
-    opts: ["رمزنگاری ترافیک", "ترجمه آدرس خصوصی به عمومی", "تعیین مسیر OSPF", "سرویس DNS"],
-    a: 1,
-    exp: "NAT آدرس‌ها را بین داخل و خارج نگاشت می‌کند.",
-  },
-  {
-    q: "MikroTik از چه رابطی برای CLI استفاده می‌کند؟",
-    opts: ["RouterOS CLI / Winbox / API", "فقط GUI ویندوز", "فقط SNMP", "فقط Telnet بدون احراز"],
-    a: 0,
-    exp: "RouterOS چند روش مدیریت دارد.",
-  },
-  {
-    q: "کدام رکورد DNS برای IPv6 است؟",
-    opts: ["A", "AAAA", "MX", "CNAME"],
-    a: 1,
-    exp: "AAAA برای IPv6",
-  },
-  {
-    q: "در OSPF، DR/BDR در کدام نوع شبکه مهم‌تر است؟",
-    opts: ["Point-to-Point", "Broadcast Multi-access", "فقط Loopback", "فقط Static"],
-    a: 1,
-    exp: "در شبکه‌های Multi-access مثل Ethernet",
-  },
-  {
-    q: "هدف ACL استاندارد معمولاً چیست؟",
-    opts: ["فیلتر بر اساس IP مبدأ", "فیلتر لایه ۷", "رمزنگاری", "Load Balancing"],
-    a: 0,
-    exp: "Standard ACL بر source IP تمرکز دارد.",
-  },
+  { q: "جداسازی Broadcast Domain در لایه ۲؟", opts: ["VLAN", "OSPF", "FTP", "NTP"], a: 0, exp: "VLAN" },
+  { q: "برقراری TCP؟", opts: ["Three-way Handshake", "ARP", "DHCP", "ICMP"], a: 0, exp: "SYN SYN-ACK ACK" },
+  { q: "آدرس خصوصی؟", opts: ["8.8.8.8", "192.168.10.5", "1.1.1.1", "9.9.9.9"], a: 1, exp: "RFC1918" },
+  { q: "هدف NAT؟", opts: ["رمزنگاری", "ترجمه آدرس", "OSPF", "DNS"], a: 1, exp: "NAT" },
+  { q: "رکورد IPv6؟", opts: ["A", "AAAA", "MX", "CNAME"], a: 1, exp: "AAAA" },
 ];
 
 function renderQuiz() {
   state.view = "quiz";
   setNav("btnQuiz");
-  breadcrumb.textContent = "سوالات چندگزینه‌ای";
-  let i = 0;
-  let score = 0;
+  breadcrumb.textContent = "سوالات";
+  let i = 0, score = 0;
   function show() {
     if (i >= QUIZ_BANK.length) {
-      viewer.innerHTML = `
-        <div class="quiz-box">
-          <h2>پایان آزمون</h2>
-          <p>امتیاز: <strong>${score}</strong> از ${QUIZ_BANK.length}</p>
-          <button type="button" id="quizAgain">شروع دوباره</button>
-        </div>`;
-      $("#quizAgain").onclick = () => {
-        i = 0;
-        score = 0;
-        show();
-      };
+      viewer.innerHTML = `<div class="quiz-box"><h2>پایان</h2><p>${score}/${QUIZ_BANK.length}</p>
+        <button type="button" id="quizAgain">دوباره</button></div>`;
+      $("#quizAgain").onclick = () => { i = 0; score = 0; show(); };
       return;
     }
     const item = QUIZ_BANK[i];
-    viewer.innerHTML = `
-      <div class="quiz-box">
-        <div class="muted">سوال ${i + 1} از ${QUIZ_BANK.length}</div>
-        <div class="q">${escapeHtml(item.q)}</div>
-        ${item.opts
-          .map((o, idx) => `<button type="button" class="opt" data-i="${idx}">${escapeHtml(o)}</button>`)
-          .join("")}
-        <div id="quizExp" class="muted" style="margin-top:10px"></div>
-      </div>`;
+    viewer.innerHTML = `<div class="quiz-box"><div class="q">${escapeHtml(item.q)}</div>
+      ${item.opts.map((o, idx) => `<button type="button" class="opt" data-i="${idx}">${escapeHtml(o)}</button>`).join("")}
+      <div id="quizExp" class="muted"></div></div>`;
     let locked = false;
     viewer.querySelectorAll(".opt").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -432,20 +353,35 @@ function renderQuiz() {
         locked = true;
         const choice = +btn.dataset.i;
         viewer.querySelectorAll(".opt").forEach((b) => {
-          const bi = +b.dataset.i;
-          if (bi === item.a) b.classList.add("correct");
-          if (bi === choice && choice !== item.a) b.classList.add("wrong");
+          if (+b.dataset.i === item.a) b.classList.add("correct");
+          if (+b.dataset.i === choice && choice !== item.a) b.classList.add("wrong");
         });
         if (choice === item.a) score++;
         $("#quizExp").textContent = item.exp || "";
-        setTimeout(() => {
-          i++;
-          show();
-        }, 900);
+        setTimeout(() => { i++; show(); }, 800);
       });
     });
   }
   show();
+}
+
+async function renderInfographics() {
+  state.view = "info";
+  setNav("btnInfo");
+  breadcrumb.textContent = "اینفوگرافیک شبکه";
+  viewer.innerHTML = `<div class="loading">بارگذاری نمودارها…</div>`;
+  try {
+    const data = await api("/api/infographics");
+    const items = data.items || [];
+    viewer.innerHTML = `
+      <div class="ws-panel" style="max-width:900px">
+        <h2>اینفوگرافیک مسیر پکت و اجزا</h2>
+        <p class="muted">کلاینت → سوئیچ → روتر → مودم/فایروال → ISP | وایرلس | تصمیم L2/L3 | Encapsulation</p>
+        ${items.map((it) => `<h3 style="margin-top:18px">${escapeHtml(it.title || "")}</h3><div class="infographic">${it.svg || ""}</div>`).join("")}
+      </div>`;
+  } catch (e) {
+    viewer.innerHTML = `<div class="loading">خطا: ${escapeHtml(e.message)}</div>`;
+  }
 }
 
 chaptersEl.addEventListener("click", async (e) => {
@@ -461,42 +397,27 @@ async function onChapterClick(btn) {
   const id = +btn.dataset.id;
   const nest = document.getElementById(`ch-nest-${id}`);
   const caret = btn.querySelector(".caret");
-  const isOpen = nest.classList.contains("open");
-  if (isOpen) {
-    nest.classList.remove("open");
-    caret.textContent = "▶";
-    btn.classList.remove("active");
-    return;
+  if (nest.classList.contains("open")) {
+    nest.classList.remove("open"); caret.textContent = "▶"; btn.classList.remove("active"); return;
   }
-  document.querySelectorAll(".ch-btn.active").forEach((b) => b.classList.remove("active"));
-  btn.classList.add("active");
-  caret.textContent = "▼";
-  nest.classList.add("open");
-  nest.innerHTML = `<div class="loading">بارگذاری زیر‌فصل‌ها…</div>`;
+  btn.classList.add("active"); caret.textContent = "▼"; nest.classList.add("open");
+  nest.innerHTML = `<div class="loading">…</div>`;
   breadcrumb.textContent = btn.querySelector(".ch-title").textContent;
   try {
     let levels = state.levelsCache[id];
     if (!levels) {
-      const data = await api(`/api/chapters/${id}/levels`);
-      levels = asList(data, "levels");
+      levels = asList(await api(`/api/chapters/${id}/levels`), "levels");
       state.levelsCache[id] = levels;
     }
-    if (!levels.length) {
-      nest.innerHTML = `<div class="loading">زیر‌فصلی نیست</div>`;
-      return;
-    }
-    nest.innerHTML = levels
-      .map(
-        (lv) => `
+    nest.innerHTML = levels.length
+      ? levels.map((lv) => `
       <div class="lv-item">
-        <button type="button" class="lv-btn" data-id="${lv.id}" data-cid="${id}">
-          <span class="caret">▶</span>
-          <span class="ch-title">${escapeHtml(lv.title_fa || "")}</span>
+        <button type="button" class="lv-btn" data-id="${lv.id}">
+          <span class="caret">▶</span><span class="ch-title">${escapeHtml(lv.title_fa || "")}</span>
         </button>
         <div class="nested" id="lv-nest-${lv.id}"></div>
-      </div>`
-      )
-      .join("");
+      </div>`).join("")
+      : `<div class="loading">زیر‌فصلی نیست</div>`;
   } catch (err) {
     nest.innerHTML = `<div class="loading">خطا: ${escapeHtml(err.message)}</div>`;
   }
@@ -507,40 +428,27 @@ async function onLevelClick(btn) {
   const nest = document.getElementById(`lv-nest-${id}`);
   if (!nest) return;
   const caret = btn.querySelector(".caret");
-  const isOpen = nest.classList.contains("open");
-  if (isOpen) {
-    nest.classList.remove("open");
-    caret.textContent = "▶";
-    btn.classList.remove("active");
-    return;
+  if (nest.classList.contains("open")) {
+    nest.classList.remove("open"); caret.textContent = "▶"; return;
   }
-  btn.classList.add("active");
-  caret.textContent = "▼";
-  nest.classList.add("open");
-  nest.innerHTML = `<div class="loading">بارگذاری درس‌ها…</div>`;
+  caret.textContent = "▼"; nest.classList.add("open");
+  nest.innerHTML = `<div class="loading">…</div>`;
   try {
     let lessons = state.lessonsCache[id];
     if (!lessons) {
-      const data = await api(`/api/levels/${id}/lessons`);
-      lessons = asList(data, "lessons");
+      lessons = asList(await api(`/api/levels/${id}/lessons`), "lessons");
       state.lessonsCache[id] = lessons;
     }
-    if (!lessons.length) {
-      nest.innerHTML = `<div class="loading">درسی نیست</div>`;
-      return;
-    }
-    nest.innerHTML = lessons
-      .map(
-        (les) => `
+    nest.innerHTML = lessons.length
+      ? lessons.map((les) => `
       <div class="les-item">
         <button type="button" class="les-btn" data-id="${les.id}">
           <span class="dot ${les.has_content ? "ok" : ""}"></span>
           <span class="ch-title">${escapeHtml(les.title_fa || "")}</span>
           <span class="badge">${escapeHtml(les.tags || "")}</span>
         </button>
-      </div>`
-      )
-      .join("");
+      </div>`).join("")
+      : `<div class="loading">درسی نیست</div>`;
   } catch (err) {
     nest.innerHTML = `<div class="loading">خطا: ${escapeHtml(err.message)}</div>`;
   }
@@ -548,10 +456,7 @@ async function onLevelClick(btn) {
 
 async function onLessonClick(btn) {
   const id = +btn.dataset.id;
-  document.querySelectorAll(".les-btn.active").forEach((b) => b.classList.remove("active"));
-  btn.classList.add("active");
-  setNav("btnHome");
-  viewer.innerHTML = `<div class="loading">بارگذاری درس…</div>`;
+  viewer.innerHTML = `<div class="loading">…</div>`;
   try {
     const les = await api(`/api/lessons/${id}`);
     breadcrumb.textContent = les.title_fa || "";
@@ -567,9 +472,8 @@ function renderLesson(les) {
     { id: "summary", label: "خلاصه", body: les.summary },
     { id: "content", label: "درس کامل", body: les.full_content },
     { id: "commands", label: "دستورات", body: les.commands },
-    { id: "examples", label: "مثال‌ها", body: les.examples },
-    { id: "notes", label: "عیب‌یابی / نکات", body: les.notes },
-    { id: "objectives", label: "اهداف", body: les.learning_objectives },
+    { id: "examples", label: "Lab", body: les.examples },
+    { id: "notes", label: "RCA", body: les.notes },
   ];
   viewer.innerHTML = `
     <div class="lesson-card">
@@ -582,9 +486,6 @@ function renderLesson(les) {
         ${tabs.map((t, i) => `<button type="button" class="tab ${i === 0 ? "active" : ""}" data-tab="${t.id}">${t.label}</button>`).join("")}
       </div>
       <div class="tab-body" id="tab-body">${formatBody(tabs[0].body)}</div>
-      <p style="margin-top:12px">
-        <button type="button" class="ghost" id="saveNoteFromLesson">ذخیره به‌عنوان نکته</button>
-      </p>
     </div>`;
   viewer.querySelectorAll(".tab").forEach((tabBtn) => {
     tabBtn.addEventListener("click", () => {
@@ -594,26 +495,22 @@ function renderLesson(les) {
       $("#tab-body").innerHTML = formatBody(t ? t.body : "");
     });
   });
-  const sn = $("#saveNoteFromLesson");
-  if (sn) {
-    sn.onclick = () => {
-      const all = loadLS(LS_NOTES);
-      all.unshift({
-        id: uid(),
-        title: les.title_fa || "درس",
-        body: (les.summary || les.full_content || "").slice(0, 2000),
-        tag: les.tags || "",
-        created: new Date().toLocaleString("fa-IR"),
-      });
-      saveLS(LS_NOTES, all);
-      sn.textContent = "ذخیره شد ✓";
-    };
-  }
 }
 
 function formatBody(body) {
   if (body == null || body === "") return `<p class="muted-p">محتوایی ثبت نشده</p>`;
-  return `<pre class="content-pre">${escapeHtml(String(body))}</pre>`;
+  const s = String(body);
+  if (s.includes("<svg")) {
+    const parts = s.split(/(<svg[\s\S]*?<\/svg>)/gi);
+    return parts
+      .map((part) => {
+        if (/^<svg/i.test(part)) return `<div class="infographic">${part}</div>`;
+        if (!part.trim()) return "";
+        return `<pre class="content-pre">${escapeHtml(part)}</pre>`;
+      })
+      .join("");
+  }
+  return `<pre class="content-pre">${escapeHtml(s)}</pre>`;
 }
 
 $("#btnHome").onclick = () => renderHome();
@@ -621,62 +518,42 @@ $("#btnTasks").onclick = () => renderTasks();
 $("#btnNotes").onclick = () => renderNotes();
 $("#btnScenarios").onclick = () => renderScenarios();
 $("#btnQuiz").onclick = () => renderQuiz();
+$("#btnInfo").onclick = () => renderInfographics();
 
 $("#btnSearch").onclick = async () => {
   const q = $("#q").value.trim();
   if (!q) return;
   breadcrumb.textContent = `جستجو: ${q}`;
-  viewer.innerHTML = `<div class="loading">جستجو…</div>`;
+  viewer.innerHTML = `<div class="loading">…</div>`;
   try {
     const rows = asList(await api(`/api/search?q=${encodeURIComponent(q)}`), "items");
-    if (!rows.length) {
-      viewer.innerHTML = `<div class="ws-panel"><p>نتیجه‌ای نبود</p></div>`;
-      return;
-    }
-    viewer.innerHTML = `<div class="scenario-list">${rows
-      .map(
-        (r) => `
-      <div class="scenario-card" data-lid="${r.id}">
-        <h3>${escapeHtml(r.title_fa || "")}</h3>
-        <div class="tags">
-          <span class="chip">${escapeHtml(r.chapter_title || "")}</span>
-          <span class="chip">${escapeHtml(r.level_title || "")}</span>
-          <span class="chip">${escapeHtml(r.tags || "")}</span>
-        </div>
-      </div>`
-      )
-      .join("")}</div>`;
+    viewer.innerHTML = rows.length
+      ? `<div class="scenario-list">${rows.map((r) => `
+        <div class="scenario-card" data-lid="${r.id}"><h3>${escapeHtml(r.title_fa || "")}</h3></div>`).join("")}</div>`
+      : `<div class="ws-panel"><p>نتیجه‌ای نبود</p></div>`;
     viewer.querySelectorAll("[data-lid]").forEach((card) => {
       card.addEventListener("click", async () => {
         const les = await api(`/api/lessons/${card.dataset.lid}`);
-        breadcrumb.textContent = les.title_fa || "";
         renderLesson(les);
       });
     });
   } catch (e) {
-    viewer.innerHTML = `<div class="loading">خطا: ${escapeHtml(e.message)}</div>`;
+    viewer.innerHTML = `<div class="loading">خطا</div>`;
   }
 };
 
-$("#q").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") $("#btnSearch").click();
-});
+$("#q").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#btnSearch").click(); });
 
 $("#btnReseed").onclick = async () => {
-  if (!confirm("بازسازی ساختار دیتابیس؟ ممکن است چند دقیقه طول بکشد.")) return;
+  if (!confirm("بازسازی؟ چند دقیقه طول می‌کشد.")) return;
   try {
     await api("/api/reseed", {
       method: "POST",
       headers: { Authorization: "Bearer 09136555866", "X-NetEnc-Token": "09136555866" },
     });
-    state.levelsCache = {};
-    state.lessonsCache = {};
-    await loadStats();
-    await loadChapters();
-    alert("انجام شد");
-  } catch (e) {
-    alert("خطا: " + e.message);
-  }
+    state.levelsCache = {}; state.lessonsCache = {};
+    await loadStats(); await loadChapters(); alert("انجام شد");
+  } catch (e) { alert("خطا: " + e.message); }
 };
 
 loadStats();
