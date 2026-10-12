@@ -1,0 +1,117 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "ادامه v14 — غنی و عمیق، هر درس فقط موضوع خودش",
+  "lessons": [
+    {
+      "title_fa": "[L3] Multicast — از PIM تا IGMP عمیق",
+      "title_en": "Multicast PIM IGMP Deep",
+      "chapter_order": 15,
+      "summary": "ترافیک یک‌به‌چند، IGMP روی access و PIM در هسته؛ Verify و RCA.",
+      "full_content": "# Multicast — عمیق\n\n## چرا\nویدئو، IPTV، برخی پروتکل‌های بازار — به‌جای unicast تکراری.\n\n## اجزا\n| جزء | نقش |\n|------|-----|\n| IGMP | عضویت کلاینت در گروه روی LAN |\n| PIM | مسیریابی multicast بین روترها |\n| RP | نقطه ملاقات در Sparse Mode |\n| Group | آدرس 224.0.0.0/4 |\n\n## Sparse Mode (رایج‌تر سازمانی)\nمنبع و گیرنده‌ها از طریق RP به هم می‌رسند؛ بعد ممکن است مسیر بهینه‌تر Shortest-Path شود.\n\n## پیکربندی مفهومی\n```\nip multicast-routing\ninterface Gi0/0\n ip pim sparse-mode\ninterface Vlan20\n ip pim sparse-mode\n ip igmp version 2\nip pim rp-address 10.10.10.1\n```\n\n## RCA\n| علامت | بررسی |\n|--------|--------|\n| کلاینت group نمی‌گیرد | IGMP / snooping / VLAN |\n| بین سگمنت نه | PIM / RP / TTL |\n| storm | scope و boundary |\n\n## نکته\nIGMP Snooping روی سوئیچ جلوی flood بی‌مورد را می‌گیرد.\n",
+      "commands": "show ip pim neighbor\nshow ip pim rp\nshow ip pim interface\nshow ip mroute\nshow ip igmp groups\nshow ip igmp interface\nshow ip multicast\nshow running-config | include pim|igmp|multicast",
+      "examples": "Lab:\n1) RP را مشخص کن\n2) PIM روی لینک‌های هسته\n3) یک receiver join\n4) mroute را ببین\n5) RP را بردار و علامت را ثبت کن",
+      "notes": "Multicast را بدون RP مشخص در SM رها نکن.\n",
+      "learning_objectives": ["IGMP", "PIM SM", "RP", "mroute"]
+    },
+    {
+      "title_fa": "[L2] EtherChannel / LAG کامل",
+      "title_en": "EtherChannel LAG Complete",
+      "chapter_order": 11,
+      "summary": "باندل کردن لینک‌ها، LACP، تعادل بار و عیب‌یابی.",
+      "full_content": "# EtherChannel / LAG — کامل\n\n## هدف\nچند لینک فیزیکی = یک لینک منطقی: پهنای باند بیشتر + افزونگی.\n\n## حالت‌ها\n| پروتکل | حالت |\n|---------|------|\n| LACP | active/passive (پیشنهادی) |\n| PAgP | Cisco قدیمی |\n| on | بدون مذاکره (خطرناک اگر ناهمسان) |\n\n## نمونه\n```\ninterface range Gi1/0/1-2\n channel-group 1 mode active\ninterface Port-channel1\n switchport mode trunk\n switchport trunk allowed vlan 10,20,30\n```\n\n## شروط\nسرعت/دوبلکس یکسان، VLAN/trunk یکسان، MTU یکسان.\n\n## Load-balance\nبر اساس src/dst IP یا MAC — برای ترافیک تک‌جریان ممکن است فقط یک عضو استفاده شود.\n\n## RCA\n| علامت | علت |\n|--------|------|\n| port-channel down | mode ناهمسان / کابل |\n| یک عضو جدا | error / mismatch |\n| ترافیک نامتوازن | الگوریتم hash |\n",
+      "commands": "show etherchannel summary\nshow etherchannel detail\nshow interfaces port-channel1\nshow lacp neighbor\nshow spanning-tree\nshow interfaces status\nshow running-config | section Port-channel",
+      "examples": "Lab:\n1) دو لینک LACP active\n2) summary → Po up\n3) یک کابل را بکش → ترافیک روی عضو دیگر\n4) mode را ناهمسان کن → fail\n5) برگردان",
+      "notes": "on-on بدون LACP فقط وقتی دقیقاً کنترل داری.\n",
+      "learning_objectives": ["LACP", "Port-channel", "hash", "RCA"]
+    },
+    {
+      "title_fa": "[L3] EVPN / VXLAN — آشنایی عمیق دیتاسنتر",
+      "title_en": "EVPN VXLAN Deep Data Center Intro",
+      "chapter_order": 16,
+      "summary": "Overlay دیتاسنتر، VTEP و کنترل‌پلن EVPN در برابر flood قدیمی.",
+      "full_content": "# EVPN / VXLAN — عمیق\n\n## مشکل\nVLAN کلاسیک و STP در مقیاس دیتاسنتر محدود است.\n\n## ایده\n- **VXLAN**: encapsulation ترافیک L2 روی شبکه IP (UDP)\n- **VTEP**: نقطه ورود/خروج تونل\n- **EVPN**: کنترل‌پلن BGP برای یادگیری MAC/IP به‌جای فقط flood-and-learn\n\n## مزیت\nمقیاس بهتر، multi-tenancy، east-west بهینه، ادغام با leaf-spine.\n\n## مسیر یادگیری\n1. underlay IP (BGP/OSPF) سالم\n2. loopback VTEP\n3. VXLAN interface / VNI\n4. EVPN address-family\n5. Verify MAC و route تایپ‌ها\n\n## Verify\n```\nshow nve peers\nshow bgp l2vpn evpn summary\nshow mac address-table\n```\n",
+      "commands": "show nve peers\nshow nve vni\nshow bgp l2vpn evpn summary\nshow bgp l2vpn evpn\nshow vxlan\nshow ip route\nshow mac address-table",
+      "examples": "Lab مفهومی:\n1) دو leaf با underlay\n2) VNI مشترک\n3) VM دو طرف همان L2\n4) peer VTEP را ببین\n5) underlay را قطع کن → overlay بمیرد",
+      "notes": "بدون underlay پایدار، EVPN را شروع نکن.\n",
+      "learning_objectives": ["VTEP", "VNI", "نقش EVPN", "underlay اول"]
+    },
+    {
+      "title_fa": "[L2] SASE و SSE — مفهوم امنیت ابری لبه",
+      "title_en": "SASE SSE Cloud Edge Security Concept",
+      "chapter_order": 57,
+      "summary": "ادغام WAN و امنیت در ابر؛ تفاوت با فایروال سنتی شعبه.",
+      "full_content": "# SASE / SSE — عمیق مفهومی\n\n## تعریف کوتاه\n**SASE**: شبکه (SD-WAN) + امنیت به‌صورت سرویس ابری.\n**SSE**: بخش امنیتی (SWG، CASB، ZTNA) بدون الزام SD-WAN.\n\n## اجزای رایج\n| سرویس | کار |\n|--------|-----|\n| SWG | فیلتر وب |\n| CASB | کنترل SaaS |\n| ZTNA | دسترسی صفراعتماد به اپ |\n| FWaaS | فایروال ابری |\n\n## در برابر مدل سنتی\nسنتی: ترافیک شعبه → دیتاسنتر → اینترنت.\nSASE: کاربر/شعبه → نقطه حضور ابری نزدیک → سیاست.\n\n## تصمیم خرید\nهویت کاربر، دستگاه، حساسیت داده، و محل اپ (SaaS در برابر DC) را بنویس.\n",
+      "commands": "# بیشتر کنسولی/ابری است؛ Verify سمت کلاینت:\ncurl -I https://app.company.com\nnslookup gateway.sase-provider\nTest-NetConnection <sse-pop> -Port 443",
+      "examples": "تمرین طراحی:\n1) سه پروفایل کاربر: کارمند، پیمانکار، مهمان\n2) برای هر کدام مسیر دسترسی بنویس\n3) مشخص کن چه چیزی هنوز به فایروال DC نیاز دارد",
+      "notes": "SASE جایگزین طراحی هویت ضعیف نمی‌شود.\n",
+      "learning_objectives": ["SASE vs SSE", "ZTNA", "مدل ترافیک"]
+    },
+    {
+      "title_fa": "[L2] Zero Trust شبکه — از شعار تا کنترل",
+      "title_en": "Zero Trust Network Slogan to Controls",
+      "chapter_order": 65,
+      "summary": "عدم اعتماد پیش‌فرض، میکروسگمنت، هویت و سیاست حداقل دسترسی.",
+      "full_content": "# Zero Trust — عمیق برای مهندس شبکه\n\n## اصل\n«هرگز اعتماد نکن، همیشه Verify» — حتی داخل LAN.\n\n## ستون‌ها\n1. هویت قوی (MFA)\n2. دستگاه سالم (posture)\n3. حداقل دسترسی (least privilege)\n4. میکروسگمنت (east-west محدود)\n5. لاگ و پاسخ\n\n## کار شبکه\n- VLAN/VRF جدا\n- ACL/policy east-west\n- 802.1X\n- جدا Mgmt\n- VPN/ZTNA به‌جای باز کردن RDP به اینترنت\n\n## ضدالگو\nFlat network + trust on IP alone.\n\n## مسیر پیاده‌سازی\nاول دارایی‌ها را بشناس → جریان‌ها را نقشه بکش → سیاست حداقل → مانیتور.\n",
+      "commands": "show access-lists\nshow vlan brief\nshow authentication sessions\nshow firewall policy\ndiagnose firewall session list\nshow ip route vrf",
+      "examples": "Lab سیاست:\n1) سرور مالی فقط از subnet مالی\n2) از VLAN کاربر fail + log\n3) Mgmt فقط از jump host\n4) شواهد session/log",
+      "notes": "Zero Trust پروژه یک‌شبه نیست؛ فازبندی کن.\n",
+      "learning_objectives": ["حداقل دسترسی", "میکروسگمنت", "هویت + شبکه"]
+    },
+    {
+      "title_fa": "[L2] IPv6 عملی برای شبکه سازمانی",
+      "title_en": "IPv6 Practical Enterprise Networking",
+      "chapter_order": 12,
+      "summary": "آدرس‌دهی، SLAAC/DHCPv6، dual-stack و عیب‌یابی.",
+      "full_content": "# IPv6 عملی — عمیق\n\n## انواع آدرس\n| نوع | مثال کاربرد |\n|------|-------------|\n| Link-Local | fe80::/10 همسایگی |\n| GUA | اینترنت |\n| ULA | fd00::/8 داخلی |\n\n## Dual-Stack\nIPv4 و IPv6 همزمان؛ اپ ممکن است ترجیح v6 بدهد (Happy Eyeballs).\n\n## SLAAC و DHCPv6\nSLAAC با RA؛ DHCPv6 برای کنترل بیشتر؛ اغلب ترکیبی.\n\n## نمونه\n```\ninterface Vlan10\n ipv6 address 2001:db8:10::1/64\n ipv6 enable\nipv6 route ::/0 2001:db8:ffff::1\n```\n\n## RCA\n| علامت | بررسی |\n|--------|--------|\n| فقط v4 کار می‌کند | RA / فایروال ICMPv6 |\n| آدرس عجیب | privacy extension |\n| path fail | route / ACL v6 جدا |\n\n## امنیت\nACL و فایروال IPv6 را فراموش نکن — خاموش بودن «چون کسی v6 ندارد» خطرناک است.\n",
+      "commands": "show ipv6 interface brief\nshow ipv6 route\nshow ipv6 neighbors\nshow ipv6 routers\nping ipv6 2001:db8:10::2\ntraceroute ipv6 2001:db8:ffff::1\nipconfig /all\nResolve-DnsName example.com -Type AAAA",
+      "examples": "Lab:\n1) dual-stack روی VLAN\n2) ping v6 بین دو host\n3) AAAA را resolve کن\n4) ACL v6 را تست کن\n5) RA را محدود کن و اثر را ببین",
+      "notes": "ICMPv6 را کورکورانه block نکن.\n",
+      "learning_objectives": ["انواع آدرس", "dual-stack", "Verify v6", "ACL v6"]
+    },
+    {
+      "title_fa": "[L2] HAProxy عمیق — پراکسی و تعادل بار",
+      "title_en": "HAProxy Deep Proxy Load Balancing",
+      "chapter_order": 40,
+      "summary": "frontend/backend، health-check، ACL لایه ۷ و Reload امن.",
+      "full_content": "# HAProxy — عمیق\n\n## ساختار\n```\nfrontend fe_web\n  bind *:80\n  default_backend be_web\n\nbackend be_web\n  balance roundrobin\n  option httpchk GET /health\n  server s1 10.10.10.11:80 check\n  server s2 10.10.10.12:80 check\n```\n\n## قابلیت‌ها\n- L4 TCP یا L7 HTTP\n- Sticky session\n- TLS termination\n- ACL بر اساس path/header\n\n## Reload\n`haproxy -c -f config` قبل از reload؛ قطع کم‌اثر.\n\n## RCA\n| علامت | بررسی |\n|--------|--------|\n| 503 | همه backend down |\n| timeout | health / فایروال |\n| sticky نمی‌چسبد | cookie/config |\n",
+      "commands": "haproxy -c -f /etc/haproxy/haproxy.cfg\nsystemctl reload haproxy\nsystemctl status haproxy\ncurl -sI http://127.0.0.1/\ncurl -sI http://10.10.10.11/health\nss -lntu | grep -E ':80|:443'\njournalctl -u haproxy -n 50",
+      "examples": "Lab:\n1) دو backend\n2) health endpoint\n3) یک سرور را down کن\n4) 503 یا فقط سرور سالم\n5) config را validate کن",
+      "notes": "health باید اپ را بسنجد نه فقط TCP open.\n",
+      "learning_objectives": ["frontend/backend", "httpchk", "reload امن"]
+    },
+    {
+      "title_fa": "[L2] Terraform عمیق‌تر — State و ماژول شبکه",
+      "title_en": "Terraform Deeper State Network Modules",
+      "chapter_order": 51,
+      "summary": "state به‌عنوان منبع حقیقت، remote state و ماژول‌بندی.",
+      "full_content": "# Terraform — عمیق‌تر\n\n## State\nفایل state نگاشت resource به واقعیت است. خراب شدن state = دردسر.\n\n## Remote State\nS3/GCS/HTTP backend با lock تا دو نفر همزمان apply نکنند.\n\n## جریان\n```\nterraform init\nterraform plan -out=plan.bin\nterraform apply plan.bin\n```\n\n## ماژول\nشبکه، امنیت، compute را جدا ماژول کن؛ ورودی/خروجی مشخص.\n\n## شبکه\nProvider ابری یا فایروال API؛ در Lab اول local/file.\n\n## ضدالگو\n- state در Git عمومی\n- apply بدون plan\n- destroy روی production بدون review\n",
+      "commands": "terraform version\nterraform init\nterraform validate\nterraform plan\nterraform apply\nterraform state list\nterraform destroy",
+      "examples": "Lab:\n1) یک resource ساده\n2) plan/apply\n3) state list\n4) تغییر و دوباره plan\n5) destroy",
+      "notes": "قفل state را جدی بگیر.\n",
+      "learning_objectives": ["state", "plan/apply", "ماژول", "remote lock"]
+    },
+    {
+      "title_fa": "[L2] ChatOps شبکه — از تیکت تا اقدام کنترل‌شده",
+      "title_en": "Network ChatOps Controlled Actions",
+      "chapter_order": 51,
+      "summary": "اجرای دستورات از چت با تأیید، لاگ و محدودیت.",
+      "full_content": "# ChatOps شبکه — عمیق\n\n## ایده\nدر کانال عملیات: `/net ping 10.10.10.1` یا `/net show bgp` با bot.\n\n## الزامات ایمنی\n1. احراز هویت کاربر\n2. allowlist دستورات\n3. تأیید برای change\n4. لاگ کامل\n5. هرگز arbitrary shell باز\n\n## معماری ساده\nChat → Bot → API محدود → Ansible/Netmiko read-only → نتیجه در thread\n\n## ضدالگو\nربات با دسترسی root بدون audit.\n",
+      "commands": "# نمونه‌های سمت زیرساخت\nansible routers -m ios_command -a \"commands='show ip int brief'\"\npython chatops_handler.py --cmd show-version --host r1",
+      "examples": "Lab:\n1) فقط دستورات show در allowlist\n2) درخواست change نیاز به تأیید دوم\n3) همه درخواست‌ها در فایل لاگ",
+      "notes": "ChatOps بدون RBAC خطرناک است.\n",
+      "learning_objectives": ["allowlist", "approval", "audit log"]
+    },
+    {
+      "title_fa": "[L2] Runbook عملیاتی شبکه — نوشتن و اجرا",
+      "title_en": "Network Operational Runbook Write and Execute",
+      "chapter_order": 5,
+      "summary": "تبدیل تجربه RCA به دستورالعمل تکرارپذیر برای تیم.",
+      "full_content": "# Runbook — عمیق\n\n## ساختار استاندارد\n1. عنوان و دامنه\n2. علائم (symptoms)\n3. پیش‌نیاز دسترسی\n4. گام‌های تشخیص با دستور\n5. معیار تصمیم\n6. اقدام اصلاحی\n7. Verify\n8. Rollback\n9. تماس‌های بالاسری\n\n## مثال کوتاه: «اینترنت شعبه قطع»\n1. لینک WAN up؟\n2. default route؟\n3. NAT/policy؟\n4. DNS؟\n5. اگر فقط یک سایت → لبه؛ اگر همه → مرکز/ISP\n\n## کیفیت\nهر گام باید خروجی مورد انتظار داشته باشد نه فقط «بررسی کن».\n\n## نگهداری\nبعد از هر حادثه واقعی runbook را به‌روز کن.\n",
+      "commands": "show interfaces\nshow ip route\nshow ip nat translations\nshow firewall policy\nping 8.8.8.8\nnslookup example.com\ntraceroute 8.8.8.8",
+      "examples": "تمرین:\n1) برای «VPN کاربران وصل نمی‌شوند» یک runbook یک‌صفحه‌ای بنویس\n2) در Lab اجرا کن\n3) زمان رسیدن به تشخیص را اندازه بگیر",
+      "notes": "Runbook بدون Verify و Rollback ناقص است.\n",
+      "learning_objectives": ["قالب runbook", "معیار تصمیم", "به‌روزرسانی بعد از حادثه"]
+    }
+  ]
+}
