@@ -1,0 +1,117 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "محتوای غنی و کامل — هر درس فقط موضوع خودش، با عمق کتابی",
+  "lessons": [
+    {
+      "title_fa": "[L2] VLAN — طراحی، Access، Trunk و Inter-VLAN کامل",
+      "title_en": "VLAN Design Access Trunk InterVLAN Complete",
+      "chapter_order": 11,
+      "summary": "راهنمای کامل VLAN از طراحی تا Verify و عیب‌یابی Inter-VLAN؛ بدون مخلوط کردن OSPF یا BGP.",
+      "full_content": "# VLAN — محتوای کامل و متمرکز\n\n## ۱. چرا VLAN؟\nBroadcast Domain را جدا می‌کند، امنیت و سیاست را ساده‌تر می‌کند و از یک سوئیچ فیزیکی چند شبکه منطقی می‌سازد.\n\n## ۲. Access در برابر Trunk\n| ویژگی | Access | Trunk |\n|--------|--------|-------|\n| کلاینت معمولی | بله | خیر |\n| تعداد VLAN | ۱ | چند |\n| تگ 802.1Q روی کابل | معمولاً ندارد | دارد (غیر از Native) |\n\n## ۳. طرح عددی سازمانی\n| واحد | VLAN | شبکه | Gateway |\n|------|------|-------|---------|\n| مالی | 10 | 10.10.10.0/24 | 10.10.10.1 |\n| کاربران | 20 | 10.10.20.0/24 | 10.10.20.1 |\n| سرور | 30 | 10.10.30.0/24 | 10.10.30.1 |\n| مدیریت | 99 | 10.10.99.0/24 | 10.10.99.1 |\n\n## ۴. پیکربندی نمونه (Cisco IOS)\n```\nvlan 10\n name FINANCE\nvlan 20\n name USERS\nvlan 30\n name SERVERS\nvlan 99\n name MGMT\n!\ninterface range FastEthernet0/1-10\n switchport mode access\n switchport access vlan 20\n spanning-tree portfast\n spanning-tree bpduguard enable\n!\ninterface FastEthernet0/11\n switchport mode access\n switchport access vlan 10\n!\ninterface GigabitEthernet0/1\n description UPLINK-TO-L3\n switchport trunk encapsulation dot1q\n switchport mode trunk\n switchport trunk allowed vlan 10,20,30,99\n switchport trunk native vlan 999\n```\n\n## ۵. Inter-VLAN Routing\nبدون SVI یا روتر روی stick، PC در VLAN20 به VLAN10 نمی‌رسد. روی L3:\n```\ninterface Vlan10\n ip address 10.10.10.1 255.255.255.0\ninterface Vlan20\n ip address 10.10.20.1 255.255.255.0\nip routing\n```\n\n## ۶. مسیر عیب‌یابی اختصاصی VLAN\n1. کلاینت IP از DHCP همان VLAN گرفته؟\n2. `show vlan brief` — پورت در VLAN درست است؟\n3. `show interfaces trunk` — VLAN در allowed و forwarding؟\n4. Gateway همان VLAN پینگ می‌شود؟\n5. اگر Gateway OK و بین VLAN نه → ACL یا Routing\n\n## ۷. اشتباهات رایج\n- Native VLAN دو سر متفاوت\n- VLAN در allowed نیست\n- پورت access اشتباهاً trunk\n- فراموش کردن `ip routing` روی L3 switch\n",
+      "commands": "show vlan brief\nshow vlan id 10\nshow interfaces trunk\nshow interfaces switchport\nshow interfaces Gi0/1 switchport\nshow running-config | section vlan\nshow mac address-table vlan 10\nshow mac address-table vlan 20\nshow spanning-tree vlan 10\nshow ip interface brief\nshow ip route\nping 10.10.10.1\nping 10.10.20.1",
+      "examples": "Lab کامل:\n1) VLAN 10/20 بساز و دو PC بگذار\n2) بدون SVI پینگ بین VLAN باید fail شود\n3) SVI و ip routing\n4) پینگ بین VLAN\n5) allowed را تنگ کن و علامت را ثبت کن\n6) Native را عمداً ناهمسان کن و رفتار را ببین\n7) Rollback",
+      "notes": "هرگز بدون allowed صریح و Native یکسان trunk را production نکن.\n",
+      "learning_objectives": ["طراحی جدول VLAN", "Access/Trunk", "Inter-VLAN", "RCA لایه‌ای VLAN"]
+    },
+    {
+      "title_fa": "[L2] OSPF کامل — از Hello تا جدول مسیر",
+      "title_en": "OSPF Complete Hello to Routing Table",
+      "chapter_order": 14,
+      "summary": "درس کامل OSPF تک‌Area و پایه Multi-Area: همسایگی، LSA، SPF، Verify و عیب‌یابی.",
+      "full_content": "# OSPF — محتوای کامل\n\n## ۱. نقش OSPF\nپروتکل Link-State داخلی (IGP). تغییر توپولوژی را با LSA پخش می‌کند و با SPF بهترین مسیر را می‌سازد.\n\n## ۲. مفاهیم ضروری\n| مفهوم | معنی |\n|--------|------|\n| Router ID | هویت روتر |\n| Area | دامنه LSDB |\n| Neighbor | روتر مجاور |\n| Adjacency | همسایگی کامل (FULL) |\n| LSA | تبلیغ وضعیت لینک |\n| LSDB | پایگاه توپولوژی |\n| Cost | معیار مسیر |\n\n## ۳. مراحل همسایگی\nDown → Init → 2-Way → ExStart → Exchange → Loading → **Full**\n\n## ۴. توپولوژی Lab\n```\nR1 LAN 10.1.1.0/24\n   |\n 10.0.0.0/30\n   |\nR2 LAN 10.2.2.0/24\nArea 0\n```\n\n## ۵. کانفیگ\n```\n! R1\nrouter ospf 1\n router-id 1.1.1.1\n passive-interface default\n no passive-interface GigabitEthernet0/0\n network 10.0.0.0 0.0.0.3 area 0\n network 10.1.1.0 0.0.0.255 area 0\nauto-cost reference-bandwidth 10000\n```\n\n## ۶. شروط همسایگی\nArea یکسان، subnet/mask یکسان، Hello/Dead سازگار، احراز یکسان، MTU سازگار، network type سازگار.\n\n## ۷. Multi-Area کوتاه\nABR بین Area0 و Area1؛ خلاصه LSA نوع ۳ به Area فرعی.\n\n## ۸. RCA\n| علامت | اقدام |\n|--------|--------|\n| Neighbor نمی‌آید | interface / network / ACL / timer |\n| 2-Way می‌ماند | DR/BDR یا مشکل |\n| FULL ولی route نیست | database / filter / redistribute |\n",
+      "commands": "show ip ospf\nshow ip ospf neighbor\nshow ip ospf neighbor detail\nshow ip ospf interface\nshow ip ospf interface brief\nshow ip ospf database\nshow ip ospf database router\nshow ip ospf database summary\nshow ip ospf border-routers\nshow ip route\nshow ip route ospf\nshow ip protocols\ndebug ip ospf adj\ndebug ip ospf hello\nundebug all\nping 10.2.2.1 source 10.1.1.1",
+      "examples": "Lab:\n1) دو روتر Area0 → FULL\n2) پینگ LAN-LAN\n3) Hello را خراب کن → بشکند\n4) برگردان\n5) cost را عوض کن و مسیر را ببین\n6) (پیشرفته) ABR و Area1",
+      "notes": "اول FULL بعد route. بدون همسایگی دنبال جدول نگرد.\n",
+      "learning_objectives": ["مراحل adjacency", "Verify کامل", "RCA همسایگی", "پایه Multi-Area"]
+    },
+    {
+      "title_fa": "[L2] NAT/PAT کامل لبه اینترنت",
+      "title_en": "Complete Edge NAT PAT",
+      "chapter_order": 12,
+      "summary": "Static، Dynamic و PAT با مثال عددی، دستورات و عیب‌یابی کامل.",
+      "full_content": "# NAT/PAT — کامل\n\n## انواع\n1. **Static**: یک به یک (سرور)\n2. **Dynamic**: استخر\n3. **PAT/Overload**: چند به یک با پورت\n\n## سناریو PAT\nLAN 10.10.10.0/24 → WAN 203.0.113.10\n\n```\naccess-list 1 permit 10.10.10.0 0.0.0.255\nip nat inside source list 1 interface GigabitEthernet0/0 overload\ninterface Gi0/1\n ip nat inside\ninterface Gi0/0\n ip nat outside\nip route 0.0.0.0 0.0.0.0 203.0.113.9\n```\n\n## Static سرور\n```\nip nat inside source static tcp 10.10.10.50 443 203.0.113.50 443\n```\n\n## Verify\n`show ip nat translations` باید بعد از ترافیک ردیف داشته باشد.\n\n## RCA\n- inside/outside جابه‌جا → هیچ translation\n- ACL مبدأ را cover نمی‌کند\n- default route نیست\n- فایروال بعد از NAT\n",
+      "commands": "show ip nat translations\nshow ip nat translations verbose\nshow ip nat statistics\nclear ip nat translation *\nshow running-config | include nat\nshow access-lists\nshow ip route\nshow interfaces Gi0/0\nping 8.8.8.8\ntraceroute 8.8.8.8",
+      "examples": "Lab:\n1) PAT\n2) از کلاینت ترافیک\n3) translations\n4) static برای یک host\n5) clear و دوباره\n6) برداشتن ip nat inside → fail",
+      "notes": "لاگ فایروال را با IP قبل/بعد NAT اشتباه نگیر.\n",
+      "learning_objectives": ["PAT", "Static", "RCA translation"]
+    },
+    {
+      "title_fa": "[L2] MikroTik Firewall و NAT — بسته کامل لبه",
+      "title_en": "MikroTik Firewall NAT Edge Complete",
+      "chapter_order": 20,
+      "summary": "filter + nat لبه شعب: ترتیب rule، stats، masquerade محدود، تله FastTrack.",
+      "full_content": "# MikroTik لبه — کامل\n\n## ساختار\n- filter: input / forward / output\n- nat: srcnat / dstnat\n- mangle: علامت‌گذاری (این درس اختیاری)\n\n## حداقل امن\n```\n/interface list\nadd name=LAN\nadd name=WAN\n/interface list member\nadd list=LAN interface=bridge-lan\nadd list=WAN interface=pppoe-out1\n\n/ip firewall filter\nadd chain=input connection-state=established,related action=accept\nadd chain=input connection-state=invalid action=drop\nadd chain=input in-interface-list=LAN action=accept\nadd chain=input in-interface-list=WAN action=drop\nadd chain=forward connection-state=established,related action=accept\nadd chain=forward connection-state=invalid action=drop\nadd chain=forward in-interface-list=LAN action=accept\nadd chain=forward action=drop\n\n/ip firewall nat\nadd chain=srcnat out-interface-list=WAN action=masquerade comment=\"LAN to Inet\"\n```\n\n## FastTrack\nبرای سرعت خوب است؛ اگر queue/mangle لازم داری استثنا بگذار.\n\n## Verify\n`print stats` — اگر صفر است match نمی‌شود.\n",
+      "commands": "/ip firewall filter print\n/ip firewall filter print stats without-paging\n/ip firewall nat print\n/ip firewall nat print stats\n/ip firewall connection print\n/interface list print\n/interface list member print\n/ip address print\n/ip route print detail\n/ping 8.8.8.8 count=5\n/tool torch interface=pppoe-out1\n/export compact file=fw-backup",
+      "examples": "Lab:\n1) export قبل از change\n2) ruleها را اعمال کن\n3) از LAN اینترنت OK\n4) از WAN به Winbox بسته\n5) stats را بخوان\n6) masquerade را disable کن → اینترنت قطع",
+      "notes": "masquerade روی تونل مرکز نگذار.\n",
+      "learning_objectives": ["input/forward", "masquerade", "stats", "backup export"]
+    },
+    {
+      "title_fa": "[L3] BGP لبه کامل — Session، Policy، Filter",
+      "title_en": "BGP Edge Complete Session Policy Filter",
+      "chapter_order": 14,
+      "summary": "از نشست eBGP تا Local Preference و Prefix-List؛ مناسب لبه سازمان.",
+      "full_content": "# BGP لبه — کامل\n\n## کی BGP؟\nMulti-homing، سیاست مسیر، تبادل با ISP — نه جایگزین OSPF داخل دیتاسنتر کوچک.\n\n## حداقل eBGP\n```\nrouter bgp 65000\n bgp log-neighbor-changes\n neighbor 203.0.113.1 remote-as 65001\n neighbor 198.51.100.1 remote-as 65002\n network 203.0.113.0 mask 255.255.255.0\n```\n\n## ترجیح خروجی\n```\nroute-map PREFER-A permit 10\n set local-preference 200\nneighbor 203.0.113.1 route-map PREFER-A in\n```\n\n## فیلتر ورودی (فقط default)\n```\nip prefix-list ONLY-DEFAULT permit 0.0.0.0/0\nroute-map FROM-ISP permit 10\n match ip address prefix-list ONLY-DEFAULT\nroute-map FROM-ISP deny 20\nneighbor 203.0.113.1 route-map FROM-ISP in\n```\n\n## Best Path (خلاصه عملی)\nWeight → Local Pref → Local originate → AS-Path → ...\n",
+      "commands": "show ip bgp summary\nshow ip bgp\nshow ip bgp neighbors\nshow ip bgp neighbors 203.0.113.1 routes\nshow ip bgp 0.0.0.0\nshow ip route bgp\nshow route-map\nshow ip prefix-list\nshow running-config | section router bgp",
+      "examples": "Lab:\n1) دو همسایه\n2) summary\n3) local-pref\n4) فقط default بپذیر\n5) primary را قطع کن",
+      "notes": "بدون فیلتر به اینترنت واقعی وصل نشو.\n",
+      "learning_objectives": ["eBGP", "Local Pref", "prefix-list", "Verify"]
+    },
+    {
+      "title_fa": "[L3] IPsec Site-to-Site — پیاده‌سازی و RCA کامل",
+      "title_en": "IPsec Site to Site Full Implement RCA",
+      "chapter_order": 57,
+      "summary": "Phase1/Phase2، interesting traffic، NAT-T، عیب‌یابی مرحله‌ای.",
+      "full_content": "# IPsec Site-to-Site کامل\n\n## اجزا\n- IKE Phase1: کانال کنترل\n- IKE Phase2: SA داده\n- Interesting traffic: چه subnetهایی تونل شوند\n\n## سناریو\nSiteA 10.1.0.0/24 ↔ SiteB 10.2.0.0/24\n\n## چک‌لیست جفت بودن\nIKEv1/v2، Encryption، Hash، DH، PSK/Cert، PFS، ACL آینه‌ای\n\n## RCA ترتیبی\n1. WAN به WAN پینگ؟\n2. UDP 500/4500؟\n3. Phase1 SA؟\n4. Phase2 SA؟\n5. پینگ LAN با source درست؟\n6. NAT روی تونل؟ route؟\n\n## تله\nPhase1 بالا ≠ داده کار می‌کند.\n",
+      "commands": "show crypto isakmp sa\nshow crypto ipsec sa\nshow crypto session\nshow crypto map\nshow running-config | section crypto\ndebug crypto isakmp\ndebug crypto ipsec\nundebug all\nping 10.2.0.10 source 10.1.0.10\ntraceroute 10.2.0.10",
+      "examples": "Lab:\n1) تونل را بالا بیاور\n2) isakmp/ipsec sa\n3) پینگ LAN\n4) PSK خراب → Phase1 fail\n5) ACL یک‌طرفه → داده fail\n6) برگردان",
+      "notes": "interesting traffic را دو طرف آینه کن.\n",
+      "learning_objectives": ["Phase1/2", "ACL", "RCA کامل"]
+    },
+    {
+      "title_fa": "[L2] DHCP و DNS — از صفر تا عیب‌یابی سازمانی",
+      "title_en": "DHCP DNS Enterprise Troubleshooting",
+      "chapter_order": 12,
+      "summary": "DORA، Relay، APIPA، مسیر DNS و جدا کردن مشکل نام از مشکل IP.",
+      "full_content": "# DHCP + DNS کامل\n\n## DHCP — DORA\nDiscover → Offer → Request → Ack\n\n## Relay\n```\ninterface Vlan30\n ip helper-address 10.10.10.50\n```\n\n## APIPA 169.254.x.x\nیعنی کلاینت به DHCP نرسیده: VLAN، کابل، helper، سرویس، ACL.\n\n## DNS\nنام fail و IP OK = DNS.\nکلاینت AD باید DNS دامنه داشته باشد نه فقط 8.8.8.8.\n\n## ابزار\n```\nipconfig /all\nipconfig /renew\nnslookup corp.local\ndig example.com A\nResolve-DnsName example.com\n```\n",
+      "commands": "show ip dhcp binding\nshow ip dhcp server statistics\nshow ip dhcp conflict\nshow running-config | include helper\nipconfig /all\nipconfig /release\nipconfig /renew\nnslookup example.com\ndig example.com A\nResolve-DnsName example.com\nTest-NetConnection example.com -Port 443",
+      "examples": "Lab DHCP: بدون helper fail؛ با helper OK.\nLab DNS: DNS غلط → نام fail؛ IP مستقیم OK.\n",
+      "notes": "اول L2/IP بعد DNS.\n",
+      "learning_objectives": ["DORA", "Relay", "ایزوله DNS"]
+    },
+    {
+      "title_fa": "[L2] عیب‌یابی کامل لایه‌ای شبکه",
+      "title_en": "Complete Layered Network Troubleshooting",
+      "chapter_order": 5,
+      "summary": "Playbook حرفه‌ای از Physical تا Application با دستورات هر لایه.",
+      "full_content": "# عیب‌یابی لایه‌ای — کامل\n\n## اصل\nیک متغیر در هر تست. همزمان سه چیز را عوض نکن.\n\n## L1 Physical\nلینک up؟ CRC/error؟ کابل/SFP؟\n\n## L2 Data Link\nVLAN، MAC، STP blocking، trunk allowed\n\n## L3 Network\nIP، ماسک، GW، route، ping، traceroute\n\n## L4 Transport\nپورت TCP/UDP، ACL، فایروال میزبان\n\n## L7 / DNS\nresolve نام، گواهی TLS، خود اپ\n\n## الگوی ثبت\nSymptom → Scope → Evidence → Hypothesis → Test → Fix → Verify → Document\n",
+      "commands": "show interfaces\nshow interfaces status\nshow interfaces counters errors\nshow vlan brief\nshow mac address-table\nshow spanning-tree\nshow interfaces trunk\nshow ip interface brief\nshow ip route\nping\ntraceroute\nTest-NetConnection -Port 443\nss -lntu\ntcpdump -ni any port 443\nnslookup\ndig",
+      "examples": "سناریو: «اینترنت ندارم»\n1) لینک\n2) ipconfig\n3) ping GW\n4) ping 8.8.8.8\n5) nslookup\n6) Test-NetConnection 443\nهر مرحله را یادداشت کن.\n",
+      "notes": "ICMP OK بودن به معنی باز بودن پورت اپ نیست.\n",
+      "learning_objectives": ["playbook لایه‌ای", "ثبت شواهد", "جدا کردن DNS از IP"]
+    },
+    {
+      "title_fa": "[L3] ACL و فایروال Policy — کنترل دسترسی کامل",
+      "title_en": "ACL and Firewall Policy Complete Access Control",
+      "chapter_order": 13,
+      "summary": "از extended ACL تا منطق Zone-Policy با مثال و counters.",
+      "full_content": "# کنترل دسترسی کامل\n\n## ACL Extended\n```\naccess-list 100 permit tcp 10.10.10.0 0.0.0.255 any eq 443\naccess-list 100 permit tcp 10.10.10.0 0.0.0.255 any eq 80\naccess-list 100 deny ip any any log\ninterface Gi0/0\n ip access-group 100 in\n```\n\n## Zone-Policy\nLAN→WAN allow+NAT\nWAN→LAN deny مگر DNAT\nDMZ→LAN deny+log\n\n## ترتیب\nSpecific → General ؛ implicit deny را فراموش نکن.\n\n## Verify\ncounters و session/hit policy\n",
+      "commands": "show access-lists\nshow access-lists 100\nshow ip interface Gi0/0\nclear access-list counters\nshow firewall policy\ndiagnose firewall session list\nshow running-config | include access-list",
+      "examples": "Lab ACL: فقط وب؛ SSH باید fail و log شود.\nLab Policy: disable policy و اثر session.\n",
+      "notes": "جهت in/out و zone مبدأ/مقصد را اشتباه نگیر.\n",
+      "learning_objectives": ["extended ACL", "zone policy", "counters"]
+    },
+    {
+      "title_fa": "[L2] وایرلس سازمانی کامل — از RF تا اینترنت",
+      "title_en": "Enterprise Wireless Complete RF to Internet",
+      "chapter_order": 30,
+      "summary": "زنجیره کامل: RF، Association، Auth، DHCP، GW، DNS، ایزوله SSID.",
+      "full_content": "# وایرلس سازمانی کامل\n\n## زنجیره\nRF → Probe/Associate → Auth (PSK/802.1X) → DHCP → GW → DNS → App\n\n## جدول تشخیص\n| علامت | لایه |\n|--------|------|\n| SSID دیده نمی‌شود | RF/AP/قدرت سیگنال |\n| وصل بدون IP | DHCP/VLAN map |\n| IP دارد اینترنت نه | GW/NAT/DNS/Policy |\n\n## طراحی\n| SSID | VLAN | کاربرد |\n|------|------|--------|\n| CORP | 40 | کارمندان |\n| GUEST | 50 | مهمان — فقط اینترنت |\n\nسوئیچ به AP: trunk با allowed همان VLANها.\n",
+      "commands": "show ap summary\nshow client summary\nshow client detail <mac>\nshow wlan summary\nshow interface vlan 40\nshow interfaces trunk\nping 10.40.40.1\nipconfig /all",
+      "examples": "Lab:\n1) CORP Associate\n2) IP و ping GW\n3) Guest نتواند به LAN سازمانی برسد\n4) VLAN map را خراب کن و علامت DHCP را ببین",
+      "notes": "مشکل WiFi را از همان اول DNS فرض نکن.\n",
+      "learning_objectives": ["زنجیره کامل", "SSID→VLAN", "ایزوله Guest"]
+    }
+  ]
+}
