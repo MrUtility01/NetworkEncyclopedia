@@ -3,15 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Engineer Jokar — دایرةالمعارف شبکه</title>
+  <title>Network Engineer — ورود</title>
   <link rel="stylesheet" href="/static/app.css" />
   <link rel="stylesheet" href="/static/sync_ui.css" />
 </head>
 <body>
-  <div class="app">
+  <div id="loginGate" class="login-gate">
+    <div class="login-card">
+      <h1>Network Engineer</h1>
+      <p class="muted">برای ورود رمز برنامه را وارد کنید</p>
+      <form id="loginForm">
+        <label for="loginPass">رمز ورود</label>
+        <input id="loginPass" type="password" autocomplete="current-password" placeholder="رمز…" autofocus />
+        <button type="submit" id="loginBtn">ورود</button>
+        <p id="loginErr" class="login-err" hidden>رمز نادرست است</p>
+      </form>
+    </div>
+  </div>
+
+  <div class="app" id="appRoot" hidden>
     <header class="top">
       <div class="brand">
-        <strong>Engineer Jokar</strong>
+        <strong>Network Engineer</strong>
         <span id="stats" class="muted">در حال آماده‌سازی…</span>
       </div>
       <div class="search-box">
@@ -26,6 +39,7 @@
         <button id="btnScenarios" type="button" class="ghost">سناریوها</button>
         <button id="btnQuiz" type="button" class="ghost">سوالات</button>
         <a href="/workspace" class="ghost" style="display:inline-flex;align-items:center;padding:8px 12px;text-decoration:none;border:1px solid var(--border);border-radius:10px;color:inherit;font-size:13px">فضای کاری+</a>
+        <button id="btnLogout" type="button" class="ghost danger">خروج</button>
         <button id="btnReseed" type="button" class="ghost danger">بازسازی</button>
       </div>
     </header>

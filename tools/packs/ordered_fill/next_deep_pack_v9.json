@@ -1,0 +1,51 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "بسته v9",
+  "lessons": [
+    {
+      "title_fa": "[L2] 802.1X — کنترل دسترسی پورت",
+      "title_en": "802.1X Port Access Control",
+      "chapter_order": 65,
+      "summary": "احراز هویت قبل از دسترسی کامل به شبکه روی پورت access.",
+      "full_content": "# 802.1X\n\nکلاینت (supplicant) → سوئیچ (authenticator) → RADIUS (authentication server).\nتا موفق نشود، ترافیک data محدود است (مگر guest VLAN).\n",
+      "commands": "show authentication sessions\nshow dot1x all\nshow aaa servers\nshow running-config | include dot1x",
+      "examples": "Lab: پورت access با 802.1X؛ بدون اعتبار fail؛ با اعتبار OK.\n",
+      "notes": "حالت fail-open/fail-closed را آگاهانه انتخاب کن.\n",
+      "learning_objectives": ["نقش سه‌گانه", "session"]
+    },
+    {
+      "title_fa": "[L3] BGP AS-Path Filter",
+      "title_en": "BGP AS-Path Filter",
+      "chapter_order": 14,
+      "summary": "فیلتر بر اساس مسیر AS برای کنترل پذیرش تبلیغات.\n",
+      "full_content": "# AS-Path Filter\n\n```\nip as-path access-list 10 permit _65001$\nroute-map FROM-ISP permit 10\n match as-path 10\nrouter bgp 65000\n neighbor 203.0.113.1 route-map FROM-ISP in\n```\n",
+      "commands": "show ip as-path-access-list\nshow ip bgp regexp\nshow ip bgp neighbors 203.0.113.1 routes\nshow route-map FROM-ISP",
+      "examples": "Lab: فقط مسیرهایی که به AS مشخص ختم می‌شوند.\n",
+      "notes": "با prefix-list ترکیب کن.\n",
+      "learning_objectives": ["as-path ACL", "route-map"]
+    },
+    {
+      "title_fa": "[L2] روتینگ لینوکس — ip rule و policy",
+      "title_en": "Linux Policy Routing ip rule",
+      "chapter_order": 40,
+      "summary": "چند جدول مسیر و انتخاب بر اساس مبدأ.\n",
+      "full_content": "# Policy routing لینوکس\n\n```\nip rule add from 10.10.10.0/24 table 100\nip route add default via 203.0.113.1 table 100\n```\n",
+      "commands": "ip rule list\nip route show table 100\nip route\nping -I 10.10.10.50 8.8.8.8",
+      "examples": "Lab: subnet خاص از GW دیگر خارج شود.\n",
+      "notes": "جدول main را با rule اشتباه نگیر.\n",
+      "learning_objectives": ["ip rule", "table"]
+    },
+    {
+      "title_fa": "[L2] پشتیبان‌گیری منظم کانفیگ شبکه",
+      "title_en": "Scheduled Network Config Backup",
+      "chapter_order": 5,
+      "summary": "Backup خودکار روزانه به TFTP/SCP/Git.\n",
+      "full_content": "# Backup منظم\n\n- روزانه running-config\n- نام با تاریخ\n- تست restore ماهانه\n",
+      "commands": "copy running-config tftp://10.10.10.20/r1-$(date).cfg\nshow archive\n# ansible/netmiko scheduled job",
+      "examples": "Lab: یک backup بساز و از آن restore آزمایشی کن.\n",
+      "notes": "فقط backup کافی نیست؛ restore را هم تمرین کن.\n",
+      "learning_objectives": ["backup زمان‌بندی", "تست restore"]
+    }
+  ]
+}

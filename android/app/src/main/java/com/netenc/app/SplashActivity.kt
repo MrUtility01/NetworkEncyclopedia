@@ -20,7 +20,7 @@ class SplashActivity : AppCompatActivity() {
             setPadding(48, 48, 48, 48)
         }
         root.addView(TextView(this).apply {
-            text = "Network Encyclopedia"
+            text = "Network Engineer"
             textSize = 26f
             setTextColor(Color.parseColor("#1D4ED8"))
             gravity = Gravity.CENTER
@@ -33,15 +33,15 @@ class SplashActivity : AppCompatActivity() {
             setPadding(0, 16, 0, 8)
         })
         root.addView(TextView(this).apply {
-            text = "آفلاین · ۶۳ فصل · یادگیری عمیق"
+            text = "آفلاین · یادگیری عمیق"
             textSize = 13f
             setTextColor(Ui.MUTED)
             gravity = Gravity.CENTER
         })
         setContentView(root)
         Handler(Looper.getMainLooper()).postDelayed({
-            startActivity(Intent(this, MainActivity::class.java))
+            startActivity(Intent(this, LoginActivity::class.java))
             finish()
-        }, 900)
+        }, 700)
     }
 }
