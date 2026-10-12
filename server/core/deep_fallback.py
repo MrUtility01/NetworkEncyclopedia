@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""محتوای عمیق عمومی برای درس‌هایی که teacher اختصاصی ندارند."""
+"""محتوای عمیق سطح‌بندی‌شده (L0→L4) برای درس‌های بدون teacher اختصاصی."""
 from __future__ import annotations
 import re
-from typing import Any, Dict
+from typing import Any, Dict, List, Tuple
 
 def level_tag(title: str) -> str:
     m = re.match(r"\[(L[0-4])\]", title or "")
@@ -15,203 +15,288 @@ def clean_topic(title: str) -> str:
 
 def _cat_for(topic: str) -> str:
     t = (topic or "").lower()
-    rules = [
-        (("vlan", "trunk", "svi", "access port"), "vlan"),
-        (("ospf", "lsa", "area 0", "neighbor ospf"), "ospf"),
-        (("bgp", "as number", "prefix-list", "route-map"), "bgp"),
-        (("nat", "pat", "masquerade", "source nat"), "nat"),
-        (("dhcp", "dora", "lease", "relay agent"), "dhcp"),
-        (("dns", "resolver", "zone", "record a"), "dns"),
-        (("vpn", "ipsec", "tunnel", "phase1", "phase2", "wireguard", "openvpn"), "vpn"),
-        (("firewall", "acl", "policy", "filter", "ids", "ips"), "firewall"),
-        (("wireless", "wifi", "ssid", "wpa", "802.11", "wlc"), "wireless"),
-        (("tcp", "udp", "arp", "icmp", "mtu", "mss"), "tcpip"),
+    rules: List[Tuple[Tuple[str, ...], str]] = [
+        (("vlan", "trunk", "svi", "access port", "private vlan"), "vlan"),
+        (("ospf", "lsa", "area 0", "neighbor ospf", "dr/bdr"), "ospf"),
+        (("bgp", "as number", "prefix-list", "route-map", "as-path"), "bgp"),
+        (("nat", "pat", "masquerade", "source nat", "destination nat"), "nat"),
+        (("dhcp", "dora", "lease", "relay agent", "snooping"), "dhcp"),
+        (("dns", "resolver", "zone", "record a", "doh", "dot"), "dns"),
+        (("vpn", "ipsec", "tunnel", "phase1", "phase2", "wireguard", "openvpn", "gre"), "vpn"),
+        (("firewall", "acl", "policy", "filter", "ids", "ips", "waf"), "firewall"),
+        (("wireless", "wifi", "ssid", "wpa", "802.11", "wlc", "capwap"), "wireless"),
+        (("tcp", "udp", "arp", "icmp", "mtu", "mss", "ecn"), "tcpip"),
         (("mikrotik", "routeros", "winbox"), "mikrotik"),
-        (("stp", "rstp", "mstp", "bpdu", "root bridge"), "stp"),
-        (("qos", "queue", "dscp", "policer", "shaper"), "qos"),
+        (("stp", "rstp", "mstp", "bpdu", "root bridge", "loop guard"), "stp"),
+        (("qos", "queue", "dscp", "policer", "shaper", "cbwfq"), "qos"),
         (("ha", "hsrp", "vrrp", "glbp", "failover", "cluster"), "ha"),
-        (("monitor", "snmp", "syslog", "netflow", "prometheus", "grafana", "zabbix"), "monitor"),
-        (("automat", "ansible", "terraform", "python net", "api rest", "netconf"), "automation"),
-        (("cloud", "aws", "azure", "gcp", "vpc", "s3"), "cloud"),
-        (("security", "aaa", "radius", "tacacs", "802.1x", "zero trust", "pki"), "security"),
+        (("monitor", "snmp", "syslog", "netflow", "prometheus", "grafana", "zabbix", "telemetry"), "monitor"),
+        (("automat", "ansible", "terraform", "python net", "api rest", "netconf", "napalm"), "automation"),
+        (("cloud", "aws", "azure", "gcp", "vpc", "s3", "tgw"), "cloud"),
+        (("security", "aaa", "radius", "tacacs", "802.1x", "zero trust", "pki", "hardening"), "security"),
         (("storage", "san", "nas", "iscsi", "nfs", "smb"), "storage"),
-        (("virtual", "vmware", "hyper-v", "kvm", "docker", "kubernet"), "virtualization"),
-        (("linux", "systemd", "iptables", "nftables", "sshd"), "linux"),
+        (("virtual", "vmware", "hyper-v", "kvm", "docker", "kubernet", "overlay"), "virtualization"),
+        (("linux", "systemd", "iptables", "nftables", "sshd", "iproute"), "linux"),
         (("window", "active directory", "gpo", "powershell", "dns server"), "windows"),
         (("backup", "snapshot", "restore", "dr ", "rpo", "rto"), "backup"),
-        (("sdn", "sd-wan", "overlay", "underlay", "controller"), "sdn"),
+        (("sdn", "sd-wan", "overlay", "underlay", "controller", "vxlan"), "sdn"),
         (("fortigate", "fortinet", "fortios"), "fortigate"),
         (("pfsense", "opnsense"), "pfsense"),
+        (("mpls", "label", "l3vpn", "l2vpn", "vrf"), "mpls"),
+        (("ipv6", "slaac", "ndp", "ra ", "dad"), "ipv6"),
     ]
     for keys, cat in rules:
         if any(k in t for k in keys):
             return cat
     return "general"
 
+def _level_depth(level: str) -> str:
+    return {
+        "L0": "آشنایی — مفهوم و تصویر ذهنی",
+        "L1": "مقدماتی — پیکربندی ساده و Verify",
+        "L2": "ادمین — طراحی چنددستگاهی و عیب‌یابی",
+        "L3": "مهندس — مقیاس سازمانی و Failure Domain",
+        "L4": "خبره — تصمیم معماری، Trade-off و مصاحبه فنی",
+    }.get(level, "عمومی")
+
 def _arch_for(topic: str, cat: str) -> str:
     tables = {
-        "vlan": "Access / Trunk / Native / SVI — جداسازی L2 و gateway",
-        "ospf": "Area / Neighbor / LSA / Cost — مسیریابی link-state",
-        "bgp": "AS / eBGP-iBGP / prefix-list / route-map — سیاست مسیر",
-        "nat": "Inside-Outside / PAT / Static — ترجمه آدرس",
-        "dhcp": "DORA / Scope / Relay / Reservation",
-        "dns": "Resolver / Auth Zone / Cache / TTL",
-        "vpn": "Phase1-IKE / Phase2-IPsec / interesting traffic",
-        "firewall": "Zone / Policy order / Stateful session / Log",
-        "wireless": "SSID / AP-WLC / Auth (PSK/802.1X) / VLAN map",
-        "tcpip": "L2 MAC / L3 IP / L4 port / ARP-ND",
-        "mikrotik": "filter-nat-mangle / route / address-list",
-        "stp": "Root / Root Port / Designated / Blocked / BPDU",
-        "qos": "Classification / Marking / Queuing / Policing / Shaping",
-        "ha": "Active-Standby / VIP / Hello / Preempt",
-        "monitor": "Agent / SNMP trap / Syslog / Metrics / Alert",
-        "automation": "Inventory / Playbook-Module / Idempotent / Drift",
-        "cloud": "Region-VPC / SG-NACL / Route table / IAM",
-        "security": "Identity / AuthN-AuthZ / Encryption / Audit",
-        "storage": "Block-File-Object / LUN / Snapshot / Multipath",
-        "virtualization": "Hypervisor / vSwitch / Overlay / Resource pool",
-        "linux": "Kernel-Netfilter / iproute2 / systemd unit",
-        "windows": "AD DS / DNS-DHCP role / GPO / Firewall profile",
-        "backup": "Full-Inc-Diff / RPO-RTO / Offsite / Test restore",
-        "sdn": "Control-Data plane / Overlay / Controller API",
-        "fortigate": "VDOM / Policy / UTM / SD-WAN rule",
-        "pfsense": "Interface / Rule / NAT / Package",
-        "general": f"ورودی → پردازش «{topic}» → خروجی Verify",
+        "vlan": "Access / Trunk / Native / SVI / Inter-VLAN Routing",
+        "ospf": "Area / Neighbor FSM / LSA Types / Cost / DR-BDR",
+        "bgp": "AS / eBGP-iBGP / NLRI / Attributes / Policy",
+        "nat": "Inside-Outside / Static / Dynamic / PAT / Twice NAT",
+        "dhcp": "DORA / Scope / Relay / Reservation / Snooping",
+        "dns": "Stub-Resolver / Auth Zone / Cache / TTL / DNSSEC",
+        "vpn": "IKE Phase1 / IPsec Phase2 / Interesting Traffic / SA",
+        "firewall": "Zone / Policy order / Stateful / NAT / Log",
+        "wireless": "SSID / AP-WLC / 802.1X/PSK / VLAN map / Roaming",
+        "tcpip": "Ethernet / IP / TCP-UDP / ARP-ND / Path MTU",
+        "mikrotik": "filter / nat / mangle / raw / route / queue",
+        "stp": "Root / RP / DP / Alternate / BPDU Guard-Filter",
+        "qos": "Classify / Mark / Queue / Police / Shape",
+        "ha": "VIP / Active-Standby / Hello / Preempt / Track",
+        "monitor": "Metric / Log / Trace / Alert / Baseline",
+        "automation": "Inventory / Module / Idempotent / CI / Drift",
+        "cloud": "VPC / Subnet / SG-NACL / RT / IAM / Edge",
+        "security": "Identity / AuthZ / Encrypt / Segment / Audit",
+        "backup": "Full-Inc / Snapshot / RPO-RTO / Offsite / Test",
+        "sdn": "Control / Data / Overlay / Underlay / Policy",
+        "mpls": "Label / LFIB / VRF / PE-CE / LDP-RSVP",
+        "ipv6": "Global / Link-Local / RA / SLAAC / DHCPv6",
+        "general": f"ورودی → پردازش «{topic}» → خروجی قابل Verify",
     }
     return tables.get(cat, tables["general"])
 
-def _focused_story(topic: str, cat: str) -> str:
-    stories = {
-        "vlan": f"«{topic}»: دو گروه کاربر روی یک سوئیچ؛ بدون VLAN ترافیک قاطی می‌شود.",
-        "ospf": f"«{topic}»: چند لینک بین روترها؛ OSPF همسایه و بهترین Cost را می‌سازد.",
-        "bgp": f"«{topic}»: مرز سازمان با ISP؛ BGP مسیر را با سیاست انتخاب می‌کند.",
-        "monitor": f"«{topic}»: بدون مانیتورینگ فقط وقتی کاربر فریاد می‌زند می‌فهمی قطع شده.",
-        "automation": f"«{topic}»: پیکربندی دستی روی ۲۰ دستگاه = خطای انسانی.",
-        "security": f"«{topic}»: فایروال لازم است ولی بدون Identity و لاگ، RCA ناقص است.",
-        "cloud": f"«{topic}»: در ابر مرز امنیتی SG/NACL است نه فقط کابل.",
-        "backup": f"«{topic}»: Backup بدون تست Restore فقط حس امنیت کاذب است.",
-    }
-    return stories.get(cat, f"«{topic}» را در شبکه واقعی تصور کن: ورودی، پردازش، خروجی قابل اندازه‌گیری.")
+def _progressive_body(topic: str, cat: str, level: str) -> str:
+    L = level or "L0"
+    parts: List[str] = []
+    parts.append(f"""## ۱) چرا «{topic}» مهم است؟
 
-def _steps_for(topic: str, cat: str) -> str:
-    return f"""1. Baseline بگیر (وضعیت قبل از تغییر «{topic}»).
-2. تغییر حداقلی و مستند اعمال کن.
-3. Verify محلی و از دید کلاینت.
-4. یک شکست عمدی مرتبط و RCA.
-5. Rollback و مقایسه با Baseline."""
+در شبکه واقعی، «{topic}» نقطه‌ای است که اگر اشتباه پیکربندی شود، سرویس قطع می‌شود یا عیب‌یابی ساعت‌ها طول می‌کشد.
+قبل از config این سه سؤال را جواب بده:
+1. **دامنه اثر** چیست؟ (یک پورت، یک VLAN، کل سایت)
+2. **معیار موفقیت** چیست؟ (پینگ، نام، Session، Metric)
+3. **Rollback** چطور است؟ (کپی running، checkpoint)
+""")
+    parts.append(f"""## ۲) معماری مرتبط
 
-def _topic_commands(topic: str, cat: str) -> str:
-    samples = {
-        "vlan": "show vlan brief\nshow interfaces trunk\nshow interfaces switchport",
-        "ospf": "show ip ospf neighbor\nshow ip route ospf\nshow ip ospf database",
-        "bgp": "show ip bgp summary\nshow ip bgp\nshow ip route bgp",
-        "nat": "show ip nat translations\nshow ip nat statistics",
-        "dhcp": "show ip dhcp binding\nshow ip dhcp pool",
-        "dns": "nslookup example.com\ndig example.com +short",
-        "vpn": "show crypto isakmp sa\nshow crypto ipsec sa",
-        "firewall": "show access-lists\nshow log | include deny",
-        "mikrotik": "/ip firewall filter print stats\n/ip route print\n/interface print",
-        "wireless": "show ap summary\nshow wireless client summary",
-        "stp": "show spanning-tree\nshow spanning-tree root",
-        "qos": "show policy-map interface\nshow queueing interface",
-        "ha": "show standby\nshow vrrp\nshow track",
-        "monitor": "snmpwalk -v2c -c public HOST system\ntail -f /var/log/syslog",
-        "automation": "ansible all -m ping\nterraform plan",
-        "cloud": "aws ec2 describe-instances\naz network vnet list",
-        "security": "show aaa servers\nshow authentication sessions",
-        "linux": "ip -br a\nss -tulpn\nnft list ruleset",
-        "windows": "Get-NetIPConfiguration\nGet-NetFirewallProfile",
-        "backup": "# verify last backup job + test restore path",
-        "sdn": "show sdwan\n# controller API health",
-        "fortigate": "get system status\ndiagnose sys session list",
-        "pfsense": "# Status > System Logs > Firewall",
+{_arch_for(topic, cat)}
+
+توپولوژی مرجع:
+`Client → Access → Distribution/Core → Edge/FW → WAN/Internet`
+«{topic}» معمولاً در یکی از این لایه‌ها متمرکز است.
+""")
+    parts.append(f"""## ۳) مفهوم به زبان ساده (پایه)
+
+فرض کن یک دفتر کوچک داری. «{topic}» مثل یک **قانون مشخص** است:
+- بدون قانون → هرج‌ومرج
+- قانون بیش‌ازحد پیچیده → کسی جرأت تغییر ندارد
+
+در سطح آشنایی بدان:
+- ورودی‌اش چیست؟
+- چه چیزی را جدا / وصل / محدود / مشاهده می‌کند؟
+- با کدام دستور ساده می‌فهمی کار می‌کند؟
+
+### واژه‌های کلیدی
+- **Interface / Port / SSID** — نقطه اتصال
+- **Policy / ACL / Route** — تصمیم‌گیری
+- **State / Session / Neighbor** — زنده‌بودن
+- **Log / Counter / Metric** — شواهد Verify
+""")
+    if L in ("L1", "L2", "L3", "L4"):
+        parts.append(f"""## ۴) پیکربندی حداقلی و Verify
+
+الگوی استاندارد برای «{topic}»:
+
+```
+1) Baseline: show / log قبل از تغییر
+2) Config حداقلی فقط برای همین موضوع
+3) Verify محلی روی دستگاه
+4) Verify از دید کلاینت
+5) ذخیره فقط بعد از موفقیت
+```
+
+| چک | انتظار |
+|----|--------|
+| وضعیت سرویس/پروتکل | up / established |
+| مسیر یا Policy | در جدول دیده شود |
+| تست کلاینت | پایدار |
+| لاگ خطا | بدون deny غیرمنتظره |
+""")
+    if L in ("L2", "L3", "L4"):
+        parts.append(f"""## ۵) طراحی چنددستگاهی و عیب‌یابی (ادمین+)
+
+### ماتریس عیب‌یابی سریع
+| علامت | احتمال نزدیک | اقدام اول |
+|-------|---------------|-----------|
+| کلاینت IP ندارد | DHCP / VLAN / Port | interface + scope |
+| IP دارد اینترنت ندارد | GW / NAT / DNS / Policy | پینگ GW → 1.1.1.1 → نام |
+| بعضی VLANها OK | Trunk / Allowed / SVI | show trunk / svi |
+| قطعی متناوب | STP / Duplex / HA | log + errdisable |
+| بعد از تغییر خراب شد | آخرین change | diff / rollback |
+
+### قوانین RCA برای «{topic}»
+1. **یک متغیر** را عوض کن.
+2. از **لبه نزدیک کاربر** شروع کن.
+3. **زمان‌بندی** علامت‌ها را با پنجره تغییر‌ها تطبیق بده.
+""")
+    if L in ("L3", "L4"):
+        parts.append(f"""## ۶) مقیاس سازمانی و Failure Domain (مهندس)
+
+«{topic}» نباید Single Point of Failure پنهان بسازد.
+
+**سؤالات طراحی**
+- اگر از کار بیفتد، شعاع خرابی چند کاربر/سایت است؟
+- Redundancy Active-Standby یا Active-Active؟
+- تغییر سایت A روی سایت B اثر دارد؟ (Shared fate)
+
+**الگوی پیشنهادی**
+- جداسازی Control و Data
+- محدودیت دامنه (Area / Zone / VRF)
+- Observability: Metric + Log + Synthetic test
+""")
+    if L == "L4":
+        parts.append(f"""## ۷) سطح خبره — Trade-off و مصاحبه فنی
+
+### Trade-offها
+| انتخاب | سود | هزینه |
+|--------|-----|-------|
+| سادگی عملیاتی | خطای انسانی کمتر | انعطاف کمتر |
+| Policy زیاد | دقت/امنیت | پیچیدگی |
+| Vendor واحد | یکپارچگی | lock-in |
+| اتوماسیون کامل | تکرارپذیری | هزینه اولیه |
+
+### سؤالات مصاحبه
+1. «{topic}» را در ۲ دیتاسنتر با لینک نابرابر چطور طراحی می‌کنی؟
+2. چه Metricهایی برای SLO تعریف می‌کنی؟
+3. یک رخداد واقعی RCA که به «{topic}» ختم شد را شرح بده.
+""")
+    parts.append(f"""## ۸) مثال حل‌شده
+
+**سناریو:** دفتر ۴۰ نفره + سرور داخلی + اینترنت روی Edge.
+
+هدف مرتبط با «{topic}»:
+- Users به اینترنت
+- Servers فقط پورت‌های لازم
+- تغییر بدون قطعی کامل
+
+**مراحل**
+1. Baseline از Edge و Access
+2. تغییر در پنجره نگهداری
+3. کلاینت تست: DHCP → GW → DNS → HTTPS
+4. لاگ Edge برای deny جدید
+5. ثبت خروجی Verify
+""")
+    parts.append(f"""## ۹) جمع‌بندی پیش‌رونده
+
+| سطح | باید بتوانی |
+|-----|-------------|
+| L0 | مفهوم را با مثال بگویی |
+| L1 | Config ساده و Verify |
+| L2 | عیب‌یابی چند دستگاه |
+| L3 | Failure Domain و مقیاس |
+| L4 | Trade-off و مصاحبه فنی |
+
+**سطح فعلی این درس:** {_level_depth(L)}
+""")
+    return "\n".join(parts)
+
+def _topic_commands(topic: str, cat: str, level: str) -> str:
+    base = {
+        "vlan": ["show vlan brief", "show interfaces trunk", "show interfaces switchport", "show ip interface brief"],
+        "ospf": ["show ip ospf neighbor", "show ip route ospf", "show ip ospf database", "show ip ospf interface"],
+        "bgp": ["show ip bgp summary", "show ip bgp", "show ip route bgp", "show bgp ipv4 unicast neighbors"],
+        "nat": ["show ip nat translations", "show ip nat statistics", "show run | section nat"],
+        "dhcp": ["show ip dhcp binding", "show ip dhcp pool", "show ip dhcp conflict"],
+        "dns": ["nslookup example.com", "dig example.com +short", "resolvectl status"],
+        "vpn": ["show crypto isakmp sa", "show crypto ipsec sa", "show run | section crypto"],
+        "firewall": ["show access-lists", "show log | include deny", "show zone-pair security"],
+        "mikrotik": ["/ip firewall filter print stats", "/ip route print", "/interface print", "/log print"],
+        "wireless": ["show ap summary", "show wireless client summary", "show wlan summary"],
+        "stp": ["show spanning-tree", "show spanning-tree root", "show spanning-tree inconsistentports"],
+        "qos": ["show policy-map interface", "show queueing interface"],
+        "ha": ["show standby brief", "show vrrp", "show track"],
+        "monitor": ["snmpwalk -v2c -c public HOST system", "tail -f /var/log/syslog", "show logging | last 50"],
+        "automation": ["ansible all -m ping", "terraform plan", "napalm --help"],
+        "security": ["show aaa servers", "show authentication sessions", "show run | section radius"],
+        "linux": ["ip -br a", "ss -tulpn", "nft list ruleset", "journalctl -u NetworkManager -n 50"],
+        "sdn": ["show sdwan", "show control connections", "show omp peers"],
+        "fortigate": ["get system status", "diagnose sys session list", "show firewall policy"],
+        "ipv6": ["show ipv6 interface brief", "show ipv6 route", "show ipv6 neighbors"],
+        "mpls": ["show mpls ldp neighbor", "show mpls forwarding-table", "show vrf"],
     }
-    body = samples.get(cat, f"# دستورات مرتبط با {topic}\nshow running-config | include related")
-    lines = [ln for ln in body.strip().splitlines() if ln.strip()]
+    lines = base.get(cat, [f"show running-config | include {topic[:24]}", "show logging | last 30"])
+    if level in ("L3", "L4"):
+        lines = lines + ["# packet-capture / debug فقط در lab با برنامه rollback"]
     return "\n".join(f"```\n{ln}\n```" for ln in lines)
 
 def _focused_lab(topic: str, cat: str, level: str) -> str:
-    return f"""## Lab متمرکز — {topic} (سطح {level})
+    extra = ""
+    if level in ("L2", "L3", "L4"):
+        extra = f"""
+### سناریوی خراب‌کاری عمدی
+1. یک تنظیم حیاتی «{topic}» را عمداً اشتباه کن
+2. با ماتریس عیب‌یابی علت را پیدا کن
+3. Rollback تمیز انجام بده
+"""
+    if level in ("L3", "L4"):
+        extra += f"""
+### سناریوی مقیاس
+- دو سایت (HQ / Branch) برای «{topic}» طراحی کن
+- Shared Fate را مشخص کن
+- یک تست Failover بنویس
+"""
+    return f"""## Lab — {topic} ({_level_depth(level)})
 
-**هدف:** پیاده‌سازی و Verify فقط «{topic}».
-
-| مرحله | کار | معیار موفقیت |
-|-------|-----|----------------|
-| 1 | Lab در GNS3/EVE/سخت‌افزار | توپولوژی بالا می‌آید |
-| 2 | پیکربندی حداقلی «{topic}» | config ذخیره شد |
-| 3 | دستورات Verify | خروجی با انتظار می‌خواند |
-| 4 | یک خطا عمدی | RCA زیر ۱۵ دقیقه |
-| 5 | Rollback | برگشت به Baseline |
-
-**تحویل:** اسکرین‌شات Verify + ۳ خط یادداشت RCA.
+| مرحله | کار | معیار |
+|-------|-----|-------|
+| 1 | توپولوژی Lab | لینک‌ها up |
+| 2 | Config «{topic}» | ذخیره شد |
+| 3 | Verify دستگاه | مطابق انتظار |
+| 4 | Verify کلاینت | سرویس پایدار |
+| 5 | مستندسازی | ۳ خط + اسکرین |
+{extra}
 """
 
-def _quiz_block(topic: str, cat: str) -> str:
-    bank = {
-        "vlan": [
-            ("Native VLAN روی Trunk؟", "VLAN بدون تگ روی trunk", "VLAN مدیریتی همیشه", "VLAN مهمان", 0),
-            ("SVI برای چیست؟", "Gateway لایه ۳ برای VLAN", "فقط مانیتورینگ", "جایگزین STP", 0),
-        ],
-        "ospf": [
-            ("LSA نوع ۱؟", "Router LSA", "Summary", "External", 0),
-            ("Area 0 نقش؟", "Backbone", "Stub فقط", "فقط BGP", 0),
-        ],
-        "bgp": [
-            ("eBGP در برابر iBGP؟", "بین AS در برابر داخل AS", "سرعت بیشتر", "فقط IPv6", 0),
-            ("Local Preference بالاتر؟", "ترجیح خروجی از آن مسیر", "حذف مسیر", "قطع همسایه", 0),
-        ],
-        "firewall": [
-            ("ترتیب Policy؟", "اولین match برنده است", "آخرین همیشه", "تصادفی", 0),
-            ("Stateful یعنی؟", "Session را به خاطر می‌سپارد", "فقط IP", "بدون لاگ", 0),
-        ],
-        "monitor": [
-            ("Metric در برابر Log؟", "عدد پیوسته در برابر رویداد متنی", "یکی هستند", "فقط SNMP", 0),
-            ("Alert بدون Baseline؟", "False positive زیاد", "دقیق‌تر", "نیازی نیست", 0),
-        ],
-        "security": [
-            ("AAA یعنی؟", "Authentication Authorization Accounting", "فقط فایروال", "VPN", 0),
-            ("802.1X کجا؟", "لبه دسترسی پورت/وایرلس", "فقط هسته", "فقط اینترنت", 0),
-        ],
-        "automation": [
-            ("Idempotent؟", "تکرار نتیجه را خراب نمی‌کند", "فقط یک‌بار اجرا", "بدون لاگ", 0),
-            ("Inventory؟", "فهرست میزبان‌ها و گروه‌ها", "رمز عبور", "لایسنس", 0),
-        ],
-        "backup": [
-            ("RPO یعنی؟", "حداکثر داده قابل از دست رفتن", "زمان بازیابی", "حجم دیسک", 0),
-            ("Backup بدون تست Restore؟", "اعتبار ندارد", "کافی است", "فقط برای لاگ", 0),
-        ],
-    }
-    qs = bank.get(cat) or [
-        (f"اولین قدم برای «{topic}»؟", "Baseline و Verify", "حذف همه ACL", "قطع اینترنت", 0),
-        (f"Rollback برای «{topic}»؟", "برگشت امن بعد از تغییر بد", "فقط زیبایی", "نیازی نیست", 0),
-        (f"RCA از کجا؟", "علائم + آخرین تغییر", "تعویض سخت‌افزار فوری", "نادیده گرفتن لاگ", 0),
+def _quiz_block(topic: str, cat: str, level: str) -> str:
+    common = [
+        (f"اولین قدم برای «{topic}»؟", "Baseline و معیار موفقیت", "حذف همه ACLها", "قطع اینترنت سازمان", 0),
+        (f"Verify خوب؟", "دستگاه + کلاینت", "فقط LED", "فقط حس تکنسین", 0),
+        (f"بعد از تغییر خراب شد؟", "آخرین change محور RCA", "ریبوت همه", "نادیده بگیر", 0),
     ]
-    lines = [f"## آزمون سریع — {topic}\n"]
+    advanced = [
+        (f"Failure Domain یعنی؟", "شعاع خرابی در صورت ازکارافتادن", "سرعت پورت", "برند دستگاه", 0),
+        (f"سطح مهندس چه اضافه می‌کند؟", "مقیاس، افزونگی، Observability", "رنگ کابل", "حذف مستندات", 0),
+    ]
+    qs = common + (advanced if level in ("L3", "L4") else [])
+    lines = [f"## آزمون — {topic} ({level})\n"]
     for i, (q, a, b, c, ans) in enumerate(qs, 1):
         opts = [a, b, c]
         lines.append(f"**{i}. {q}**")
         for j, o in enumerate(opts):
-            mark = "✓" if j == ans else "○"
-            lines.append(f"- {mark} {o}")
+            lines.append(f"- {'✓' if j == ans else '○'} {o}")
         lines.append(f"  *پاسخ: {opts[ans]}*\n")
     return "\n".join(lines)
-
-def _worked_example(topic: str, cat: str) -> str:
-    examples = {
-        "vlan": f"""### مثال عددی — {topic}
-PC-A VLAN10=10.10.10.10/24 GW 10.10.10.1 | PC-B VLAN20=10.10.20.10/24
-بدون روتر/SVI بین VLANها پینگ نمی‌شود.""",
-        "ospf": f"""### مثال — {topic}
-R1-R2 لینک 10.0.0.0/30 | شبکه 10.1.0.0/24 روی R1
-network statements در area 0 → neighbor Full و route در جدول.""",
-        "monitor": f"""### مثال — {topic}
-اگر ICMP به GW سه بار fail شد Alert. Baseline latency ۲۰ms؛ آستانه ۱۰۰ms یا loss>۲٪.""",
-        "backup": f"""### مثال — {topic}
-RPO=۴ ساعت → Backup هر ۴ ساعت. RTO=۱ ساعت → Restore زیر ۶۰ دقیقه تست شود.""",
-    }
-    return examples.get(cat, f"""### مثال عملی — {topic}
-دفتر ۲۰ نفره. «{topic}» را طوری پیاده کن که کلاینت تست قبل/بعد را مقایسه کند.
-معیار: دستور Verify + نتیجه کلاینت.""")
 
 def build_deep_fallback(title_fa: str, title_en: str = "", level: str | None = None) -> Dict[str, Any]:
     level = level or level_tag(title_fa)
@@ -225,51 +310,39 @@ def build_deep_fallback(title_fa: str, title_en: str = "", level: str | None = N
     except Exception:
         pass
 
+    body = _progressive_body(topic, cat, level)
+    if spec.get("extra_full"):
+        body += "\n\n## عمق تخصصی\n" + spec["extra_full"]
+
     summary = (
-        f"«{topic}» — سطح {level}. "
-        f"معماری، جریان عملی، دستور Verify، Lab و آزمون کوتاه."
+        f"«{topic}» | {level} — {_level_depth(level)}. "
+        f"از مفهوم تا Verify، Lab، RCA و (سطوح بالاتر) مقیاس و Trade-off."
     )
-    quiz = _quiz_block(topic, cat)
-    example = _worked_example(topic, cat)
-    lab = _focused_lab(topic, cat, level)
-    info = spec.get("extra_full") or ""
+    notes = f"""## RCA و آزمون — {topic}
 
-    full = f"""# {topic}
+### مسیر RCA
+1. علامت دقیق (چه کسی، کی، کجا)
+2. آخرین تغییر مرتبط
+3. Verify لایه به لایه
+4. یک فرضیه، یک تست
+5. Monitoring بعد از رفع
 
-**سطح:** {level} · **دسته:** {cat}
-
-## تصویر ذهنی
-{_focused_story(topic, cat)}
-
-## معماری مرتبط
-{_arch_for(topic, cat)}
-
-## جریان عملی
-{_steps_for(topic, cat)}
-{info}
-
-## مثال حل‌شده
-{example}
-
-## جمع‌بندی
-«{topic}» را وقتی بلدی که بتوانی Verify، RCA و Rollback کنی.
-"""
-
-    notes = f"""## نکات RCA — {topic}
-
-1. آخرین تغییر مرتبط چه بود؟
-2. Verify محلی OK است یا از کلاینت هم؟
-3. همیشگی است یا بعد از رویداد خاص؟
-4. لاگ/Alarm چه می‌گوید؟
-
-{quiz}
+{_quiz_block(topic, cat, level)}
 """ + (spec.get("extra_notes") or "")
+
+    examples = _focused_lab(topic, cat, level)
+    if spec.get("extra_lab"):
+        examples += "\n\n" + spec["extra_lab"]
+
+    commands = _topic_commands(topic, cat, level)
+    if spec.get("extra_commands"):
+        commands += "\n" + spec["extra_commands"]
 
     return {
         "summary": summary,
-        "full_content": full,
-        "commands": _topic_commands(topic, cat) + ("\n" + (spec.get("extra_commands") or "")),
-        "examples": lab + "\n\n" + example + ("\n\n" + (spec.get("extra_lab") or "")),
+        "full_content": body,
+        "commands": commands,
+        "examples": examples,
         "notes": notes,
         "level": level,
         "topic": topic,
