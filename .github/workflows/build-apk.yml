@@ -24,19 +24,24 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: ''
+          accept-android-sdk-licenses: true
 
       - name: Install platform 34 + build-tools
         run: |
           set -e
+          # do NOT install obsolete package "tools"
           sdkmanager --install "platforms;android-34" "build-tools;34.0.0" "platform-tools"
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
           echo "ANDROID_HOME=${ANDROID_HOME}"
           ls "${ANDROID_HOME}/platforms" || true
+          ls "${ANDROID_HOME}/build-tools" || true
 
       - name: Icons (safe)
         run: |
           set -e
-          python3 scripts/install_android_icon.py
+          python3 scripts/install_android_icon.py || echo "icons skip"
           echo "icons ok"
 
       - name: Curriculum export (keep existing asset on failure)
@@ -68,14 +73,27 @@ jobs:
         working-directory: android
         run: |
           set -e
+          mkdir -p gradle/wrapper
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            curl -fsSL -o gradle/wrapper/gradle-wrapper.jar \
+              https://github.com/gradle/gradle/raw/v8.2.0/gradle/wrapper/gradle-wrapper.jar
+          fi
           if [ ! -f gradlew ]; then
             curl -fsSL -o /tmp/gradle-8.2-bin.zip https://services.gradle.org/distributions/gradle-8.2-bin.zip
             sudo unzip -qo /tmp/gradle-8.2-bin.zip -d /opt
             /opt/gradle-8.2/bin/gradle wrapper --gradle-version 8.2
           fi
           chmod +x gradlew
-          sed -i 's/networkTimeout=.*/networkTimeout=120000/' gradle/wrapper/gradle-wrapper.properties || true
-          cat gradle/wrapper/gradle-wrapper.properties
+          cat > gradle/wrapper/gradle-wrapper.properties << 'PROP'
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-bin.zip
+networkTimeout=120000
+validateDistributionUrl=true
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+PROP
+          ls -la gradlew gradle/wrapper/
 
       - name: Assemble Debug APK
         working-directory: android
