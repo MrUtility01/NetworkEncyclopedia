@@ -1,0 +1,158 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR / NetworkEncyclopedia",
+  "generated_on": "2026-10-12",
+  "purpose": "محتوای واقعی درس‌محور (نه قالب) برای مباحث پایه و تخصصی شبکه",
+  "lessons": [
+    {
+      "title_fa": "[L2] VLAN — جداسازی لایه ۲ و Trunk",
+      "title_en": "VLAN and 802.1Q Trunking",
+      "chapter_order": 11,
+      "summary": "VLAN دامنه پخش را جدا می‌کند؛ Access یک VLAN دارد و Trunk چند VLAN را با تگ 802.1Q حمل می‌کند. اشتباه در Native VLAN یا allowed list باعث قاطی شدن ترافیک یا قطعی خاموش می‌شود.",
+      "full_content": "# VLAN و Trunk — محتوای عملی\n\n## مفهوم\nVLAN (Virtual LAN) یک شبکه لایه ۲ منطقی روی زیرساخت مشترک فیزیکی است. دستگاه‌های دو VLAN مختلف حتی روی یک سوئیچ، بدون عبور از لایه ۳ (روتر یا SVI) به هم نمی‌رسند. این جداسازی هم برای امنیت (مثلاً جدا کردن Guest از مالی) و هم برای محدود کردن Broadcast Domain است.\n\n## Access در برابر Trunk\n- **Access port:** معمولاً به یک کلاینت/سرور وصل می‌شود و فقط یک VLAN دارد. فریم روی کابل بدون تگ 802.1Q است.\n- **Trunk port:** بین سوئیچ‌ها یا سوئیچ و روتر است و چند VLAN را حمل می‌کند. هر فریم (به‌جز Native) تگ VLAN دارد.\n\n## مثال عددی\n| پورت | حالت | VLAN |\n|------|------|------|\n| Fa0/1 | access | 10 (مالی) |\n| Fa0/2 | access | 20 (کاربران) |\n| Gi0/1 | trunk | allowed 10,20 |\n\nPC در VLAN 10: `10.10.10.50/24` — Gateway: `10.10.10.1` (SVI یا روتر)\nPC در VLAN 20: `10.10.20.50/24` — Gateway: `10.10.20.1`\n\nبدون مسیریابی بین VLANها، این دو PC همدیگر را پینگ نمی‌کنند.\n\n## پیکربندی نمونه Cisco IOS\n```\nvlan 10\n name FINANCE\nvlan 20\n name USERS\n\ninterface FastEthernet0/1\n switchport mode access\n switchport access vlan 10\n\ninterface GigabitEthernet0/1\n switchport trunk encapsulation dot1q\n switchport mode trunk\n switchport trunk allowed vlan 10,20\n```\n\n## Verify\n```\nshow vlan brief\nshow interfaces trunk\nshow interfaces Gi0/1 switchport\n```\n\n## اشتباهات رایج\n1. Native VLAN دو سر trunk متفاوت باشد → ترافیک بدون تگ به VLAN اشتباه می‌رود.\n2. VLAN در allowed list نباشد → آن VLAN روی trunk سیاه می‌شود.\n3. پورت access اشتباهاً trunk باشد → کلاینت رفتار عجیب می‌بیند.\n\n## مسیر عیب‌یابی\n1. کلاینت IP درست از DHCP همان VLAN گرفته؟\n2. `show vlan brief` — پورت در VLAN درست است؟\n3. `show interfaces trunk` — VLAN در allowed و forwarding است؟\n4. Gateway همان VLAN پینگ می‌شود؟ اگر نه مشکل L3/SVI است نه لزوماً VLAN.",
+      "commands": "show vlan brief\nshow interfaces trunk\nshow interfaces switchport\nshow mac address-table vlan 10",
+      "examples": "Lab: دو PC در VLAN 10 و 20 روی یک سوئیچ؛ trunk به روتر با sub-interface؛ پینگ بین VLAN فقط بعد از پیکربندی L3.",
+      "notes": "Native VLAN را از 1 خارج کن و دو سر را یکسان نگه دار.",
+      "learning_objectives": [
+        "تفاوت Access و Trunk را عملی توضیح دهد",
+        "VLAN و allowed list را پیکربندی و Verify کند",
+        "قطع بودن بین VLAN را از مشکل Trunk جدا کند"
+      ]
+    },
+    {
+      "title_fa": "[L2] OSPF — همسایگی، Area و SPF",
+      "title_en": "OSPF Adjacency Areas SPF",
+      "chapter_order": 14,
+      "summary": "OSPF پروتکل Link-State است: همسایه‌ها LSA رد و بدل می‌کنند، LSDB یکسان می‌سازند و با SPF بهترین مسیر را حساب می‌کنند. بدون FULL بودن همسایگی، مسیر جدید پایدار نخواهید داشت.",
+      "full_content": "# OSPF — از همسایگی تا جدول مسیر\n\n## چرا OSPF؟\nدر شبکه‌های سازمانی با چند روتر، مسیر static مقیاس‌پذیر نیست. OSPF به‌صورت خودکار تغییر توپولوژی را پخش می‌کند و مسیر را عوض می‌کند.\n\n## مفاهیم کلیدی\n| مفهوم | معنی |\n|--------|------|\n| Router ID | هویت روتر در OSPF |\n| Area | دامنه LSDB؛ Area 0 ستون فقرات است |\n| Neighbor | روتر مجاور که Hello رد و بدل می‌کند |\n| LSA | تبلیغ وضعیت لینک |\n| LSDB | پایگاه داده توپولوژی |\n| SPF | الگوریتم محاسبه کوتاه‌ترین مسیر |\n| Cost | معیار مسیر (معمولاً بر اساس پهنای باند) |\n\n## مراحل همسایگی (خلاصه)\nDown → Init → 2-Way → ExStart → Exchange → Loading → **Full**\n\nاگر روی لینک multi-access بمانید در 2-Way، ممکن است DR/BDR نقش داشته باشد و Full فقط با DR/BDR لازم باشد.\n\n## توپولوژی Lab\n```\nR1 (10.1.1.0/24 LAN) — 10.0.0.0/30 — R2 (10.2.2.0/24 LAN)\nArea 0\n```\n\n## پیکربندی نمونه\n```\n! R1\nrouter ospf 1\n router-id 1.1.1.1\n network 10.0.0.0 0.0.0.3 area 0\n network 10.1.1.0 0.0.0.255 area 0\n passive-interface GigabitEthernet0/1\n```\n\n```\n! R2\nrouter ospf 1\n router-id 2.2.2.2\n network 10.0.0.0 0.0.0.3 area 0\n network 10.2.2.0 0.0.0.255 area 0\n```\n\n## Verify اجباری\n```\nshow ip ospf neighbor\nshow ip ospf database\nshow ip route ospf\nshow ip protocols\n```\n\nخروجی سالم همسایگی: State = **FULL** و به‌روز شدن Dead Time.\n\n## چرا همسایه نمی‌شود؟\n1. network statement یا `ip ospf area` روی اینترفیس نیست\n2. subnet / mask دو طرف یکی نیست\n3. Hello/Dead timer متفاوت است\n4. Area ID فرق دارد\n5. Authentication ناهمسان است\n6. MTU mismatch (مخصوصاً در ExStart)\n\n## Cost و انتخاب مسیر\nاگر دو مسیر داری، cost کمتر برنده است. روی اینترفیس:\n```\ninterface Gi0/0\n ip ospf cost 10\n```\n\n## نکته Area\nAreaهای غیرصفر باید به Area 0 وصل شوند (قانون کلاسیک طراحی). برای شعبه‌های کوچک گاهی stub area استفاده می‌شود تا LSA خارجی کم شود.\n\n## تمرین ذهنی\nاگر لینک 10.0.0.0/30 قطع شود، LSDB عوض می‌شود، SPF دوباره اجرا می‌شود و اگر مسیر جایگزین نباشد، شبکه 10.2.2.0 از دید R1 حذف می‌شود.",
+      "commands": "show ip ospf neighbor\nshow ip ospf interface brief\nshow ip ospf database\nshow ip route ospf\ndebug ip ospf adj\n",
+      "examples": "Lab: دو روتر Area 0، LAN جدا، پینگ end-to-end، سپس shut لینک و مشاهده همگرایی.",
+      "notes": "اول FULL، بعد انتظار route. بدون همسایگی دنبال جدول مسیر نگرد.",
+      "learning_objectives": [
+        "مراحل همسایگی OSPF را بشناسد",
+        "پیکربندی Area 0 و Verify FULL",
+        "علت رایج بالا نیامدن neighbor را ایزوله کند"
+      ]
+    },
+    {
+      "title_fa": "[L3] BGP — eBGP، سیاست و Best Path",
+      "title_en": "BGP eBGP Policy Best Path",
+      "chapter_order": 14,
+      "summary": "BGP پروتکل سیاست‌محور بین ASهاست. برخلاف OSPF که کوتاه‌ترین مسیر را می‌خواهد، BGP با attributeهایی مثل Local Preference و AS-Path تصمیم می‌گیرد کدام مسیر «بهتر» است.",
+      "full_content": "# BGP پایه عملی برای لبه سازمان\n\n## چه زمانی BGP لازم است؟\n- اتصال به دو ISP (multi-homing)\n- تبادل مسیر با شرکت بالادستی/شریک\n- نیاز به کنترل دقیق ورودی/خروجی ترافیک\n\nداخل یک دیتاسنتر کوچک اغلب OSPF کافی است؛ BGP را برای لبه و سیاست بیاور.\n\n## مفاهیم\n| مفهوم | نقش |\n|--------|------|\n| AS Number | دامنه سیاست مسیریابی |\n| eBGP | بین دو AS |\n| iBGP | داخل یک AS |\n| NLRI / Prefix | شبکه‌ای که تبلیغ می‌شود |\n| attributes | معیارهای انتخاب مسیر |\n| prefix-list / route-map | فیلتر و دستکاری سیاست |\n\n## سناریوی دو ISP\n```\n        ISP-A (AS 65001)\n           |\n   Company AS 65000\n           |\n        ISP-B (AS 65002)\n```\nهدف: ترجیح خروجی از ISP-A؛ اگر قطع شد از ISP-B.\n\n## پیکربندی حداقل eBGP\n```\nrouter bgp 65000\n bgp log-neighbor-changes\n neighbor 203.0.113.1 remote-as 65001\n neighbor 198.51.100.1 remote-as 65002\n network 203.0.113.0 mask 255.255.255.0\n```\n\n## سیاست ساده خروج (Local Pref)\n```\nroute-map PREFER-ISPA permit 10\n set local-preference 200\n\nrouter bgp 65000\n neighbor 203.0.113.1 route-map PREFER-ISPA in\n```\n\n## Verify\n```\nshow ip bgp summary\nshow ip bgp\nshow ip bgp 0.0.0.0\nshow ip route bgp\n```\n\nدر `summary` باید State/PfxRcd عدد داشته باشد نه Active/Idle طولانی.\n\n## Best Path (خلاصه عملی)\nترتیب تصمیم‌گیری طولانی است؛ برای کار روزمره این‌ها را حفظ کن:\n1. Weight (سیسکو، محلی)\n2. Local Preference (بالاتر بهتر — ترجیح خروجی)\n3. Prefer locally originated\n4. AS-Path کوتاه‌تر\n5. Origin، MED، eBGP over iBGP، ...\n\n## تله‌ها\n- تبلیغ شبکه‌ای که در جدول نیست (network statement بدون route)\n- فیلتر نکردن مسیرهای وارداتی → جدول پر یا مسیرهای خطرناک\n- فراموش کردن `next-hop-self` در بعضی طراحی‌های iBGP\n\n## قانون طلایی\nقبل از production: دقیقاً بنویس کدام prefix از کدام همسایه پذیرفته می‌شود و کدام تبلیغ می‌شود.",
+      "commands": "show ip bgp summary\nshow ip bgp\nshow ip bgp neighbors\nshow ip route bgp\nshow route-map",
+      "examples": "Lab: یک روتر با دو همسایه eBGP (حتی شبیه‌سازی)، local-pref روی یکی، مشاهده تغییر best path.",
+      "notes": "BGP بدون prefix-list در اینترنت واقعی خطرناک است.",
+      "learning_objectives": [
+        "تفاوت OSPF و BGP را از نظر هدف بگوید",
+        "نشست eBGP را Verify کند",
+        "با Local Preference مسیر خروجی را ترجیح دهد"
+      ]
+    },
+    {
+      "title_fa": "[L2] NAT و PAT — ترجمه آدرس در لبه",
+      "title_en": "NAT PAT Overload",
+      "chapter_order": 12,
+      "summary": "NAT آدرس خصوصی داخل را به آدرس عمومی لبه ترجمه می‌کند. PAT (overload) چند میزبان داخلی را با یک IP عمومی و پورت‌های متفاوت به اینترنت می‌برد.",
+      "full_content": "# NAT / PAT عملی\n\n## مشکل\nآدرس‌های RFC1918 (مثل 10.0.0.0/8) در اینترنت قابل مسیریابی عمومی نیستند. برای خروج کاربران به اینترنت و گاهی انتشار یک سرور داخلی، ترجمه لازم است.\n\n## انواع پرکاربرد\n| نوع | کاربرد |\n|-----|--------|\n| Static NAT | یک IP داخلی ↔ یک IP عمومی (سرور) |\n| Dynamic NAT | استخر IP |\n| PAT / Overload | چند داخلی روی یک عمومی با پورت |\n\n## مثال PAT روی لبه\nداخل: `10.10.10.0/24`  \nبیرون: اینترفیس WAN با IP عمومی\n\n```\naccess-list 1 permit 10.10.10.0 0.0.0.255\n\nip nat inside source list 1 interface GigabitEthernet0/0 overload\n\ninterface GigabitEthernet0/1\n ip address 10.10.10.1 255.255.255.0\n ip nat inside\n\ninterface GigabitEthernet0/0\n ip address 203.0.113.10 255.255.255.252\n ip nat outside\n```\n\n## Verify\n```\nshow ip nat translations\nshow ip nat statistics\n```\n\nاز کلاینت داخلی `curl ifconfig.me` باید IP عمومی لبه را ببینید.\n\n## Static برای سرور\n```\nip nat inside source static 10.10.10.50 203.0.113.50\n```\nهمراه با ACL روی فایروال: فقط پورت لازم (مثلاً 443) از بیرون.\n\n## عیب‌یابی\n1. `inside/outside` روی اینترفیس‌ها درست است؟\n2. ACL ترافیک داخلی را permit می‌کند؟\n3. مسیر برگشت به لبه وجود دارد؟\n4. فایروال بعد از NAT پورت را بسته است؟\n\n## تله\nNAT مشکل طراحی آدرس‌دهی را «پنهان» می‌کند ولی جایگزین مسیریابی و امنیت درست نیست.",
+      "commands": "show ip nat translations\nshow ip nat statistics\nclear ip nat translation *\nshow running-config | include nat",
+      "examples": "Lab: کلاینت خصوصی به اینترنت آزمایشی؛ مشاهده ردیف translation؛ سپس static برای یک host.",
+      "notes": "همیشه after NAT را با before NAT در لاگ فایروال اشتباه نگیر.",
+      "learning_objectives": [
+        "تفاوت Static و PAT را بگوید",
+        "PAT overload را پیکربندی و Verify کند",
+        "علت ساخته نشدن translation را پیدا کند"
+      ]
+    },
+    {
+      "title_fa": "[L2] MikroTik Firewall Filter و NAT",
+      "title_en": "MikroTik Firewall Filter NAT",
+      "chapter_order": 20,
+      "summary": "در RouterOS ترتیب زنجیره و rule مهم‌تر از تعداد rule است. FastTrack اگر زود accept کند، queue و بعضی markها بی‌اثر می‌شوند. NAT masquerade را فقط روی خروجی اینترنت بگذار نه روی تونل.",
+      "full_content": "# MikroTik — فایروال و NAT واقعی\n\n## ساختار\n- `/ip firewall filter` — اجازه یا قطع\n- `/ip firewall nat` — ترجمه آدرس\n- `/ip firewall mangle` — علامت‌گذاری برای route/queue\n- `/ip firewall raw` — قبل از tracking (پیشرفته)\n\n## زنجیره‌های filter\n| chain | ترافیک |\n|-------|--------|\n| input | به خود روتر |\n| forward | عبور از روتر |\n| output | از خود روتر |\n\n## حداقل امن برای لبه\n1. accept established,related\n2. drop invalid\n3. accept ICMP محدود (اختیاری)\n4. accept مدیریت فقط از LAN\n5. drop بقیه input از WAN\n6. forward: LAN→WAN accept؛ WAN→LAN فقط DNAT لازم\n\n## NAT خروجی\n```\n/ip firewall nat\nadd chain=srcnat out-interface=pppoe-out1 action=masquerade comment="LAN to Internet"\n```\n\nاگر L2TP/IPsec به مرکز داری، این masquerade را طوری محدود کن که ترافیک به 10.10.0.0/16 مرکز masquerade نشود.\n\n## مثال filter\n```\n/ip firewall filter\nadd chain=input connection-state=established,related action=accept\nadd chain=input connection-state=invalid action=drop\nadd chain=input in-interface=bridge-lan action=accept\nadd chain=input in-interface=pppoe-out1 action=drop\n```\n\n## Verify\n```\n/ip firewall filter print stats\n/ip firewall nat print stats\n/ip firewall connection print\n/tool torch interface=pppoe-out1\n```\n\nاگر stats یک rule صفر است، ترافیک به آن نمی‌رسد (ترتیب یا match غلط).\n\n## FastTrack\nبرای سرعت خوب است، ولی:\n```\nadd chain=forward connection-state=established,related action=fasttrack-connection\n```\nرا قبل از ruleهایی نگذار که باید روی همان ترافیک mark/queue ببینی — یا استثنا تعریف کن.\n\n## سناریوی شعبه\nLAN 10.20.20.0/24 → اینترنت با masquerade → تونل به 10.10.0.0/16 مرکز بدون NAT.\n\n## تله‌ها\n- accept all روی input WAN\n- فراموش کردن drop در انتهای زنجیره\n- NAT روی تونل\n- MTU/MSS روی PPPoE",
+      "commands": "/ip firewall filter print stats without-paging\n/ip firewall nat print\n/ip route print detail\n/interface print\n/export compact",
+      "examples": "Lab: یک rule drop برای IP تست؛ مشاهده افزایش counters؛ سپس حذف rule.",
+      "notes": "اول stats و connection، بعد تغییر rule جدید.",
+      "learning_objectives": [
+        "تفاوت input و forward را بداند",
+        "masquerade محدود به اینترنت بسازد",
+        "با print stats اثربخشی rule را بسنجد"
+      ]
+    },
+    {
+      "title_fa": "[L2] DHCP — DORA و Relay",
+      "title_en": "DHCP DORA and Relay",
+      "chapter_order": 12,
+      "summary": "کلاینت بدون IP ثابت با DORA آدرس می‌گیرد. اگر سرور DHCP در VLAN دیگری باشد، روی گیت‌وی همان VLAN باید ip helper / DHCP relay فعال باشد وگرنه کلاینت در 169.254 می‌ماند.",
+      "full_content": "# DHCP از صفر تا Relay\n\n## DORA\n1. **Discover** — کلاینت broadcast می‌کند\n2. **Offer** — سرور پیشنهاد IP می‌دهد\n3. **Request** — کلاینت درخواست همان پیشنهاد\n4. **Ack** — تأیید و Lease\n\n## پارامترهای مهم Lease\n- IP + Mask\n- Gateway\n- DNS\n- مدت Lease\n\n## چرا 169.254.x.x؟\nیعنی کلاینت به سرور نرسیده: کابل، VLAN، helper، سرویس DHCP، یا ACL.\n\n## Relay\nسرور در VLAN 10 و کلاینت در VLAN 30:\nروی SVI VLAN30:\n```\nip helper-address 10.10.10.50\n```\n\n## Verify\nکلاینت: `ipconfig /renew`  \nسرور: لاگ lease  \nروتر: اطمینان از helper و ACL\n\n## امنیت\nDHCP Snooping روی سوئیچ: فقط پورت uplink به سرور trusted باشد تا DHCP جعلی نیاید.",
+      "commands": "show ip dhcp binding\nshow ip dhcp server statistics\nshow running-config | include helper",
+      "examples": "Lab: کلاینت بدون helper در VLAN جدا — باید fail شود؛ بعد helper — success.",
+      "notes": "اول لایه ۲ و VLAN، بعد DHCP.",
+      "learning_objectives": [
+        "مراحل DORA را شرح دهد",
+        "نیاز به Relay را تشخیص دهد",
+        "APIPA را به علت شبکه وصل کند"
+      ]
+    },
+    {
+      "title_fa": "[L2] DNS — Resolve از کلاینت تا Authoritative",
+      "title_en": "DNS Resolution Path",
+      "chapter_order": 12,
+      "summary": "اگر IP مستقیم کار می‌کند ولی نام نه، مشکل DNS است. مسیر: کلاینت → Resolver → (Cache) → Recursive به Root/TLD/Authoritative.",
+      "full_content": "# DNS عملی برای مهندس شبکه\n\n## نقش\nتبدیل نام به IP (و برعکس). اپلیکیشن‌ها به نام وابسته‌اند؛ پس DNS خراب = «اینترنت قطع است» در چشم کاربر.\n\n## مسیر پرسش\n1. کش مرورگر/OS\n2. Resolver محلی یا سازمانی\n3. اگر نداند: Recursive از Root به TLD به Authoritative\n4. پاسخ + TTL در کش\n\n## ابزار\n```\nnslookup example.com\ndig example.com A\ndig example.com A +trace\nResolve-DnsName example.com\n```\n\n## سناریوی دامنه Windows\nکلاینت Join‌شده باید DNS سرور دامنه را داشته باشد نه فقط 8.8.8.8؛ وگرنه GPO و لاگین آسیب می‌بیند.\n\n## عیب‌یابی\n| علامت | اقدام |\n|--------|--------|\n| نام fail، IP OK | DNS |\n| بعضی نام‌ها | zone یا forwarder |\n| داخلی fail خارجی OK | split DNS / zone داخلی |\n\n## امنیت\nDNS spoofing و cache poisoning؛ در محیط حساس DNSSEC و محدود کردن recursion روی سرور عمومی.",
+      "commands": "dig example.com A\ndig example.com +trace\nnslookup example.com 8.8.8.8\nResolve-DnsName example.com",
+      "examples": "Lab: DNS کلاینت را غلط کن؛ مشاهده شکست نام؛ برگرداندن و Verify.",
+      "notes": "همیشه نام را از IP جدا تست کن.",
+      "learning_objectives": [
+        "مسیر resolve را توضیح دهد",
+        "با dig/nslookup ایزوله کند",
+        "تفاوت مشکل DNS و مشکل لینک را بفهمد"
+      ]
+    },
+    {
+      "title_fa": "[L3] Site-to-Site VPN IPsec",
+      "title_en": "Site to Site IPsec VPN",
+      "chapter_order": 57,
+      "summary": "تونل IPsec دو سایت را روی اینترنت به‌صورت رمزشده وصل می‌کند. Phase1 کانال کنترل می‌سازد، Phase2 تونل داده. اگر Phase1 بالا باشد ولی پینگ بین LANها نه، معمولاً interesting traffic یا مسیریابی/ACL مشکل دارد.",
+      "full_content": "# VPN سایت‌به‌سایت IPsec\n\n## اجزا\n| فاز | نقش |\n|------|------|\n| IKE Phase 1 | توافق الگوریتم و احراز (PSK/Cert) — ISAKMP SA |\n| IKE Phase 2 | IPsec SA برای داده |\n| Interesting traffic | چه subnetهایی از تونل بروند |\n\n## سناریو\nSiteA: 10.1.0.0/24 پشت روتر A  \nSiteB: 10.2.0.0/24 پشت روتر B  \nهدف: پینگ از 10.1.0.10 به 10.2.0.10 از اینترنت عمومی عبور نکند مگر داخل تونل.\n\n## چک‌لیست دو طرف (باید جفت باشند)\n- IKEv1/v2\n- Encryption / Hash / DH group\n- PSK یا Certificate\n- PFS (اگر یک طرف on طرف دیگر off → Phase2 مشکل)\n- ACL/object interesting traffic آینه‌ای\n\n## Verify\n```\nshow crypto isakmp sa\nshow crypto ipsec sa\nshow crypto session\n```\n\nPhase1 سالم اغلب `QM_IDLE` (بسته به پلتفرم) دیده می‌شود.\n\n## عیب‌یابی ترتیبی\n1. دو WAN همدیگر را پینگ می‌کنند؟\n2. UDP 500 / 4500 (NAT-T) باز است؟\n3. Phase1 بالا می‌آید؟\n4. Phase2 SA ساخته می‌شود؟\n5. از LAN به LAN پینگ — اگر نه: route به تونل، NAT معکوس، ACL\n\n## تله NAT\nاگر یکی از طرف‌ها پشت NAT است، NAT-T لازم است. masquerade روی ترافیک تونل را قطع کن.",
+      "commands": "show crypto isakmp sa\nshow crypto ipsec sa\ndebug crypto isakmp\ndebug crypto ipsec",
+      "examples": "Lab: دو CSR/روتر با interesting traffic دو طرفه؛ پینگ LAN-LAN؛ سپس ACL را خراب و علامت را ببین.",
+      "notes": "Phase1≠داده. همیشه Phase2 و interesting traffic را جدا چک کن.",
+      "learning_objectives": [
+        "نقش Phase1 و Phase2 را بگوید",
+        "SA را Verify کند",
+        "پینگ‌نشدن LAN را از شکست IKE جدا کند"
+      ]
+    },
+    {
+      "title_fa": "[L2] TCP سه مرحله‌ای و عیب‌یابی لایه ۴",
+      "title_en": "TCP Three Way Handshake",
+      "chapter_order": 8,
+      "summary": "TCP با SYN، SYN-ACK، ACK اتصال می‌سازد. پینگ (ICMP) موفق و اپلیکیشن ناموفق یعنی اغلب پورت/فایروال/سرویس لایه ۴ درگیر است نه لزوماً کابل.",
+      "full_content": "# TCP Handshake و فکر لایه ۴\n\n## سه مرحله\n1. کلاینت → سرور: SYN\n2. سرور → کلاینت: SYN-ACK\n3. کلاینت → سرور: ACK\n\nبعد از آن داده + ACK جریان می‌یابد. پایان با FIN یا RST.\n\n## ابزار\n```\nTest-NetConnection 10.10.10.50 -Port 443\nnc -vz 10.10.10.50 443\ntcpdump -ni any host 10.10.10.50 and port 443\n```\n\n## الگوهای tcpdump\n| مشاهده | معنی محتمل |\n|---------|--------------|\n| فقط SYN تکرار | پورت بسته یا فیلتر یا سرویس مرده |\n| SYN-ACK می‌آید بعد RST | سرویس/آپلیکیشن |\n| handshake کامل بعد timeout | مشکل اپ یا policy بالاتر |\n\n## مثال واقعی\nپینگ سرور OK است ولی HTTPS نه. نتیجه‌گیری غلط: «شبکه خراب است».  \nنتیجه‌گیری درست: L3 تا host زنده است؛ پورت 443 یا certificate یا reverse proxy را بررسی کن.\n\n## Window و retransmission\nدر لینک‌های پرتأخیر یا پرPacket-loss، عملکرد TCP افت می‌کند؛ این با «قطع کامل» فرق دارد.",
+      "commands": "Test-NetConnection <ip> -Port 443\ntcpdump -ni any port 443\nss -lntu\nnetstat -an",
+      "examples": "Lab: سرویس را stop کن و فقط SYN ببین؛ start کن و handshake کامل.",
+      "notes": "ICMP≠TCP. همیشه پورت را جدا تست کن.",
+      "learning_objectives": [
+        "مراحل handshake را شرح دهد",
+        "با تست پورت مشکل L4 را ایزوله کند",
+        "تفاوت پینگ و دسترسی اپ را بداند"
+      ]
+    },
+    {
+      "title_fa": "[L2] فایروال Policy و Zone",
+      "title_en": "Firewall Policy and Zones",
+      "chapter_order": 22,
+      "summary": "فایروال مدرن بر اساس Zone و Policy تصمیم می‌گیرد نه فقط IP. بدون policy از Zone مبدأ به مقصد، ترافیک drop می‌شود حتی اگر route وجود داشته باشد.",
+      "full_content": "# فایروال مبتنی بر Policy\n\n## Zone\nگروه‌بندی رابط‌ها از نظر اعتماد: LAN (trust)، WAN (untrust)، DMZ.\n\n## Policy حداقل\n| از | به | سرویس | اقدام |\n|----|----|--------|--------|\n| LAN | WAN | any | allow + NAT |\n| WAN | DMZ | 443 | allow به VIP |\n| DMZ | LAN | any | deny + log |\n| WAN | LAN | any | deny |\n\n## ترتیب\nاز specific به general. یک allow کلی بالاتر می‌تواند deny پایین‌تر را بی‌اثر کند.\n\n## تشخیص\n- آیا session ساخته شد؟\n- کدام policy hit خورد؟\n- قبل یا بعد NAT چه IPهایی دیده می‌شوند؟\n\n## مثال فکری FortiGate/ASA/همه\nRoute فقط می‌گوید «از کدام اینترفیس بیرون برو»؛ Policy می‌گوید «اجازه داری یا نه».",
+      "commands": "show firewall policy\ndiagnose firewall session list\nshow access-list\nshow asp drop",
+      "examples": "Lab: policy را disable کن و قطعی را ببین؛ log deny را پیدا کن.",
+      "notes": "Route بدون policy در فایروال stateful کافی نیست.",
+      "learning_objectives": [
+        "نقش Zone و Policy را بگوید",
+        "جدول حداقل policy لبه را طراحی کند",
+        "با session/hitpolicy عیب‌یابی کند"
+      ]
+    }
+  ]
+}
