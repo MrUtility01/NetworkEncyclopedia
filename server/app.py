@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""سرور وب + API همگام‌سازی LAN — فهرست دروس عمومی؛ Sync با توکن."""
+"""سرور وب + API همگام‌سازی LAN — bind روی 0.0.0.0 برای دسترسی شبکه."""
 from __future__ import annotations
 
 import hashlib
@@ -74,11 +74,39 @@ DEFAULT_DEV_TOKEN = "09136555866"
 SYNC_TOKEN = os.environ.get("NETENC_TOKEN", DEFAULT_DEV_TOKEN)
 DEVICE_ID = os.environ.get("NETENC_DEVICE", socket.gethostname() or "windows-host")
 BIND_HOST = os.environ.get("NETENC_HOST", "0.0.0.0")
+BIND_PORT = int(os.environ.get("NETENC_PORT", "5050"))
 
 if SYNC_TOKEN == DEFAULT_DEV_TOKEN:
     print("WARNING: using default NETENC_TOKEN — set env NETENC_TOKEN for production")
 
 _db = None
+
+
+def get_lan_ips():
+    """IPهای واقعی LAN (نه فقط 127.0.0.1)."""
+    ips = []
+    # روش قابل اعتماد: UDP connect بدون ارسال
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(0.3)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        if ip and not ip.startswith("127."):
+            ips.append(ip)
+    except Exception:
+        pass
+    try:
+        hostname = socket.gethostname()
+        for info in socket.getaddrinfo(hostname, None, socket.AF_INET):
+            ip = info[4][0]
+            if ip and not ip.startswith("127.") and ip not in ips:
+                ips.append(ip)
+    except Exception:
+        pass
+    if not ips:
+        ips = ["127.0.0.1"]
+    return ips
 
 
 def db() -> WebDB:
@@ -127,6 +155,22 @@ def index():
     return render_template("index.html")
 
 
+@app.get("/api/lan")
+def api_lan():
+    """بدون توکن — برای نمایش IP به کلاینت‌های شبکه محلی."""
+    ips = get_lan_ips()
+    port = BIND_PORT
+    return jsonify({
+        "ok": True,
+        "bind_host": BIND_HOST,
+        "port": port,
+        "lan_ip": ips[0],
+        "lan_ips": ips,
+        "urls": [f"http://{ip}:{port}" for ip in ips],
+        "hint_fa": "اگر از سیستم دیگر باز نشد: فایروال ویندوز پورت 5050 را باز کنید و NETENC_HOST=0.0.0.0 باشد.",
+    })
+
+
 @app.get("/api/health")
 def health():
     st = {}
@@ -134,11 +178,16 @@ def health():
         st = db().stats()
     except Exception as e:
         st = {"error": str(e)}
+    ips = get_lan_ips()
     return jsonify({
         "ok": True,
         "device": DEVICE_ID,
         "schema_version": SCHEMA_VERSION,
         "sync_protocol": "v1-aligned",
+        "bind_host": BIND_HOST,
+        "port": BIND_PORT,
+        "lan_ip": ips[0],
+        "lan_ips": ips,
         "token_required_for_sync": bool(SYNC_TOKEN),
         "default_token_in_use": SYNC_TOKEN == DEFAULT_DEV_TOKEN,
         "modules": {
@@ -231,7 +280,7 @@ def apply_packs():
     try:
         from core.pack_loader import apply_packs_to_db
         result = apply_packs_to_db(Path(db().path), overwrite=True)
-        db().set_meta("packs_applied", "v4")
+        db().set_meta("packs_applied", "v5")
         return jsonify(result)
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
@@ -247,7 +296,7 @@ def reseed():
         from core.pack_loader import apply_packs_to_db
         packs = apply_packs_to_db(Path(db().path), overwrite=True)
         result["packs"] = packs
-        db().set_meta("packs_applied", "v4")
+        db().set_meta("packs_applied", "v5")
     except Exception as e:
         result["packs_error"] = str(e)
     return jsonify(result)
@@ -263,16 +312,14 @@ def sync_hello():
         st = db().stats()
     except Exception:
         pass
-    lan = ""
-    try:
-        lan = socket.gethostbyname(socket.gethostname())
-    except Exception:
-        pass
+    ips = get_lan_ips()
     return jsonify({
         "ok": True,
         "schema_version": SCHEMA_VERSION,
         "device_id": DEVICE_ID,
-        "lan_ip": lan,
+        "lan_ip": ips[0],
+        "lan_ips": ips,
+        "port": BIND_PORT,
         "stats": st,
         "protocol": {
             "hello": "GET /api/sync/hello",
@@ -350,16 +397,16 @@ def sync_push():
 
 def main():
     host = BIND_HOST
-    port = int(os.environ.get("NETENC_PORT", "5050"))
+    port = BIND_PORT
     print("init db / rich seed if needed...")
     d = db()
     try:
-        if d.get_meta("packs_applied") != "v4":
+        if d.get_meta("packs_applied") != "v5":
             from core.pack_loader import apply_packs_to_db
             print("applying REAL JSON pack content (strict topic match)...")
             res = apply_packs_to_db(Path(d.path), overwrite=True)
             print("pack apply:", res.get("updated"), "updated /", res.get("matched"), "matched")
-            d.set_meta("packs_applied", "v4")
+            d.set_meta("packs_applied", "v5")
     except Exception as e:
         print("pack apply skipped:", e)
     if register_study_routes:
@@ -369,7 +416,11 @@ def main():
         except Exception as e:
             _MODULE_STATUS["study_error"] = str(e)
             print("study routes", e)
+    ips = get_lan_ips()
     print(f"NetEnc listening on http://{host}:{port}")
+    for ip in ips:
+        print(f"  LAN URL: http://{ip}:{port}")
+    print("  If other PCs cannot open: allow TCP 5050 in Windows Firewall (see docs/LAN_ACCESS_FA.md)")
     app.run(host=host, port=port, debug=False, threaded=True)
 
 

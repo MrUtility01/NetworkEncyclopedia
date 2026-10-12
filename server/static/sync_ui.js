@@ -1,22 +1,21 @@
-/* LAN IP + Sync status bar */
+/* LAN IP + Sync status bar — IP از /api/lan بدون توکن */
 async function loadLanAndSync() {
   const lanEl = document.getElementById("lanIp");
   const hintEl = document.getElementById("androidHint");
   const statusEl = document.getElementById("syncStatus");
   if (!lanEl) return;
   try {
-    const r = await fetch("/api/sync/hello");
-    const hello = await r.json();
-    const ip = hello.lan_ip || "127.0.0.1";
+    const r = await fetch("/api/lan");
+    const data = await r.json();
+    const ip = data.lan_ip || (data.lan_ips && data.lan_ips[0]) || "127.0.0.1";
+    const port = data.port || 5050;
     lanEl.textContent = ip;
-    if (hintEl) hintEl.textContent = "http://" + ip + ":5050";
+    if (hintEl) hintEl.textContent = "http://" + ip + ":" + port;
     if (statusEl) {
-      const s = hello.stats || {};
-      statusEl.textContent =
-        "دستگاه: " + (hello.device_id || "—") +
-        " · فصل " + (s.chapters || 0) +
-        " · درس " + (s.lessons || 0) +
-        " · schema " + (hello.schema_version || 1);
+      const extra = (data.lan_ips && data.lan_ips.length > 1)
+        ? " · سایر: " + data.lan_ips.slice(1).join(", ")
+        : "";
+      statusEl.textContent = "پورت " + port + " · bind " + (data.bind_host || "0.0.0.0") + extra;
     }
   } catch (e) {
     lanEl.textContent = "خطا";
@@ -26,13 +25,13 @@ async function loadLanAndSync() {
 
 document.getElementById("btnCopyIp")?.addEventListener("click", async () => {
   const ip = document.getElementById("lanIp")?.textContent || "";
-  const url = "http://" + ip + ":5050";
+  const hint = document.getElementById("androidHint")?.textContent || ("http://" + ip + ":5050");
   try {
-    await navigator.clipboard.writeText(url);
+    await navigator.clipboard.writeText(hint);
     const st = document.getElementById("syncStatus");
-    if (st) st.textContent = "کپی شد: " + url;
+    if (st) st.textContent = "کپی شد: " + hint;
   } catch {
-    prompt("آدرس را کپی کنید:", url);
+    prompt("آدرس را کپی کنید:", hint);
   }
 });
 
@@ -40,12 +39,13 @@ document.getElementById("btnSyncStatus")?.addEventListener("click", async () => 
   const statusEl = document.getElementById("syncStatus");
   if (statusEl) statusEl.textContent = "در حال بررسی…";
   try {
-    const r = await fetch("/api/sync/manifest");
-    const m = await r.json();
-    const n = (m.items || []).length;
+    const h = await fetch("/api/health").then((r) => r.json());
+    const s = h.stats || {};
     statusEl.textContent =
-      "manifest: " + n + " رکورد · schema " + (m.schema_version || 1) +
-      " · " + (m.generated_at || "");
+      "سلامت OK · فصل " + (s.chapters || 0) +
+      " · درس " + (s.lessons || 0) +
+      " · محتوا " + (s.with_content || 0) +
+      " · LAN " + (h.lan_ip || "—");
   } catch (e) {
     if (statusEl) statusEl.textContent = "خطا: " + (e.message || e);
   }

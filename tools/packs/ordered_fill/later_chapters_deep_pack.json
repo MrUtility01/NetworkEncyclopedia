@@ -1,0 +1,117 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "غنی‌سازی فصل‌های بعدی: BGP، STP پیشرفته، EtherChannel، HSRP، QoS، Wireless، Security، Linux",
+  "lessons": [
+    {
+      "title_fa": "[L3] BGP — eBGP و Local Preference",
+      "title_en": "BGP eBGP Local Preference",
+      "chapter_order": 14,
+      "summary": "فقط BGP لبه: نشست eBGP، دریافت پیشوند، ترجیح خروجی با Local Preference.",
+      "full_content": "# BGP eBGP — محدوده این درس\n\nاین درس OSPF و VLAN را پوشش نمی‌دهد. تمرکز: همسایه eBGP و سیاست خروجی.\n\n## سناریو\nشرکت AS 65000 به ISP-A (AS 65001) و ISP-B (AS 65002). ترجیح خروج از ISP-A.\n\n```\nrouter bgp 65000\n bgp log-neighbor-changes\n neighbor 203.0.113.1 remote-as 65001\n neighbor 198.51.100.1 remote-as 65002\n!\nroute-map PREFER-A permit 10\n set local-preference 200\nneighbor 203.0.113.1 route-map PREFER-A in\n```\n\nVerify: `show ip bgp summary` باید PfxRcd داشته باشد؛ `show ip bgp` مسیر با LocPrf 200 را best نشان دهد.\n",
+      "commands": "show ip bgp summary\nshow ip bgp\nshow ip bgp neighbors\nshow ip bgp neighbors 203.0.113.1 routes\nshow ip bgp 0.0.0.0\nshow ip route bgp\nshow route-map PREFER-A\nshow running-config | section router bgp",
+      "examples": "Lab:\n1) دو همسایه eBGP\n2) summary را ببین\n3) local-pref روی A\n4) best path را مقایسه کن\n5) همسایه A را shut کن → مسیر از B",
+      "notes": "بدون prefix-list در اینترنت واقعی خطرناک است.",
+      "learning_objectives": ["eBGP session", "Local Preference", "Verify best path"]
+    },
+    {
+      "title_fa": "[L2] STP — Root، PortFast و BPDU Guard",
+      "title_en": "STP Root PortFast BPDU Guard",
+      "chapter_order": 11,
+      "summary": "فقط Spanning-Tree: انتخاب Root، پورت blocking، PortFast و BPDU Guard روی access.",
+      "full_content": "# STP — محدوده\n\nبدون STP، لینک افزونه = حلقه و broadcast storm.\n\n```\nspanning-tree mode rapid-pvst\nspanning-tree vlan 10 root primary\ninterface range Fa0/1-24\n spanning-tree portfast\n spanning-tree bpduguard enable\n```\n\nVerify: `show spanning-tree vlan 10` و `show spanning-tree blockedports`.\n",
+      "commands": "show spanning-tree\nshow spanning-tree vlan 10\nshow spanning-tree root\nshow spanning-tree blockedports\nshow spanning-tree interface Fa0/1\nshow spanning-tree summary\nshow running-config | include spanning-tree",
+      "examples": "Lab: دو لینک موازی؛ یک blocking؛ PortFast روی access؛ وصل سوئیچ غیرمجاز → err-disable با BPDU Guard.",
+      "notes": "PortFast فقط کلاینت access.",
+      "learning_objectives": ["Root", "Blocking", "BPDU Guard"]
+    },
+    {
+      "title_fa": "[L2] EtherChannel LACP",
+      "title_en": "EtherChannel LACP",
+      "chapter_order": 11,
+      "summary": "چند لینک فیزیکی یک Port-Channel منطقی.\n",
+      "full_content": "# EtherChannel\n\n```\ninterface range Gi0/1-2\n channel-group 1 mode active\ninterface Port-channel1\n switchport mode trunk\n switchport trunk allowed vlan 10,20\n```\nدو سر باید LACP سازگار باشند (active/active یا active/passive).\n",
+      "commands": "show etherchannel summary\nshow etherchannel port-channel\nshow interfaces Port-channel1\nshow interfaces Gi0/1 etherchannel\nshow spanning-tree vlan 10",
+      "examples": "Lab: دو کابل؛ Po1 up؛ یک کابل را بکش — ترافیک روی عضو دیگر.",
+      "notes": "تنظیم trunk روی Po نه فقط member.",
+      "learning_objectives": ["LACP", "failover لینک"]
+    },
+    {
+      "title_fa": "[L2] HSRP دروازه افزونه",
+      "title_en": "HSRP Gateway Redundancy",
+      "chapter_order": 14,
+      "summary": "VIP مشترک برای gateway کلاینت‌ها؛ Active/Standby.\n",
+      "full_content": "# HSRP\n\nکلاینت GW = VIP نه IP فیزیکی یک روتر.\n\n```\ninterface Vlan10\n ip address 10.10.10.2 255.255.255.0\n standby 1 ip 10.10.10.1\n standby 1 priority 110\n standby 1 preempt\n standby 1 track GigabitEthernet0/0 20\n```\n",
+      "commands": "show standby\nshow standby brief\nshow standby vlan 10\nshow running-config | include standby\nping 10.10.10.1",
+      "examples": "Lab: دو روتر؛ Active را خاموش کن؛ VIP روی Standby بماند؛ کلاینت پینگ GW را از دست ندهد یا سریع برگردد.",
+      "notes": "priority و preempt را آگاهانه بچین.",
+      "learning_objectives": ["VIP", "failover"]
+    },
+    {
+      "title_fa": "[L2] Wireless — زنجیره Association تا Gateway",
+      "title_en": "Wireless Association to Gateway",
+      "chapter_order": 30,
+      "summary": "فقط وایرلس: RF → Associate → Auth → DHCP → GW.\n",
+      "full_content": "# Wireless عیب‌یابی لایه‌ای\n\n| علامت | لایه همین درس |\n|--------|----------------|\n| SSID نیست | RF/AP |\n| وصل بدون IP | DHCP/VLAN SSID |\n| IP دارد GW نه | Gateway/ACL |\n\nSSID سازمانی را به VLAN مشخص map کن؛ Guest جدا.\n",
+      "commands": "show ap summary\nshow client summary\nshow client detail <mac>\nshow wlan summary\nshow interface vlan 40\nping 10.40.40.1",
+      "examples": "Lab: کلاینت Associate؛ ipconfig؛ ping GW؛ SSID را به VLAN اشتباه بده و علامت را ببین.",
+      "notes": "RF را با DNS قاطی نکن.",
+      "learning_objectives": ["زنجیره WiFi", "ایزوله لایه"]
+    },
+    {
+      "title_fa": "[L3] Port-Security و DHCP Snooping",
+      "title_en": "Port Security DHCP Snooping",
+      "chapter_order": 11,
+      "summary": "سخت‌سازی access: محدود MAC و DHCP trusted.\n",
+      "full_content": "# Access Hardening\n\n```\ninterface Fa0/10\n switchport mode access\n switchport port-security\n switchport port-security maximum 2\n switchport port-security violation restrict\n!\nip dhcp snooping\nip dhcp snooping vlan 10,20\ninterface Gi0/1\n ip dhcp snooping trust\n```\n",
+      "commands": "show port-security\nshow port-security interface Fa0/10\nshow ip dhcp snooping\nshow ip dhcp snooping binding\nshow ip dhcp snooping statistics",
+      "examples": "Lab: excess MAC؛ DHCP جعلی روی access بدون trust.\n",
+      "notes": "uplink بدون trust = DHCP واقعی هم می‌میرد.",
+      "learning_objectives": ["port-security", "snooping trust"]
+    },
+    {
+      "title_fa": "[L2] QoS پایه روی لبه WAN",
+      "title_en": "Basic WAN Edge QoS",
+      "chapter_order": 18,
+      "summary": "Classify و اولویت Voice؛ بدون خفه کردن کل لینک.\n",
+      "full_content": "# QoS مفهومی لبه\n\nClassify → Mark → Queue.\nVoice: EF/priority محدود.\nداده حجیم: best-effort یا CBWFQ.\nعلامت‌گذاری دو سمت لینک WAN یکسان باشد.\n",
+      "commands": "show policy-map\nshow policy-map interface\nshow mls qos\nshow interface Gi0/0\nshow running-config | section policy-map",
+      "examples": "Lab مفهومی: لینک اشباع با/بدون priority برای جریان شبیه‌سازی voice.\n",
+      "notes": "priority بی‌حد = قحطی برای بقیه.",
+      "learning_objectives": ["classify/queue", "خطر over-priority"]
+    },
+    {
+      "title_fa": "[L2] Linux — ip، ss و tcpdump",
+      "title_en": "Linux ip ss tcpdump",
+      "chapter_order": 40,
+      "summary": "ابزار شبکه لینوکس برای Verify لایه ۳/۴.\n",
+      "full_content": "# Linux Networking\n\n```\nip -br a\nip route\nss -lntu\ntcpdump -ni eth0 icmp\ntcpdump -ni eth0 port 443\n```\n",
+      "commands": "ip -br a\nip -br l\nip route\nip neigh\nss -lntu\nss -ant\ntcpdump -ni any icmp\ntcpdump -ni any port 22\nping -c 4 8.8.8.8\ntraceroute -n 8.8.8.8",
+      "examples": "Lab: ssh را tcpdump کن؛ پورت listen را با ss ببین.\n",
+      "notes": "ss جایگزین netstat است.",
+      "learning_objectives": ["ip/ss", "tcpdump پایه"]
+    },
+    {
+      "title_fa": "[L3] فایروال — Policy از LAN به WAN",
+      "title_en": "Firewall LAN to WAN Policy",
+      "chapter_order": 22,
+      "summary": "فقط یک policy لبه: LAN→WAN allow+NAT و deny برگشتی.\n",
+      "full_content": "# Policy لبه\n\nLAN → WAN : allow + NAT\nWAN → LAN : deny (مگر DNAT صریح)\n\nRoute بدون policy در فایروال stateful کافی نیست.\n",
+      "commands": "show firewall policy\ndiagnose firewall session list\nget router info routing-table all\nshow access-list\nshow asp drop",
+      "examples": "Lab: policy را disable کن؛ session قطع شود؛ دوباره enable.\n",
+      "notes": "hit count و session را بخوان.",
+      "learning_objectives": ["policy لبه", "session"]
+    },
+    {
+      "title_fa": "[L3] امنیت — بخش‌بندی Guest و مدیریت",
+      "title_en": "Security Guest and Mgmt Segmentation",
+      "chapter_order": 65,
+      "summary": "Guest فقط اینترنت؛ مدیریت تجهیزات فقط از VLAN مدیریت.\n",
+      "full_content": "# بخش‌بندی\n\n| منبع | مقصد | اقدام |\n|------|------|--------|\n| Guest | Internet | allow |\n| Guest | LAN | deny |\n| MgmtPC | NetworkDevices | allow SSH/HTTPS |\n| User | NetworkDevices | deny |\n\nAAA با fallback local تا قفل نشوی.\n",
+      "commands": "show aaa servers\nshow authentication sessions\nshow ip access-lists\nshow logging | include DENY\nshow running-config | include aaa",
+      "examples": "Lab: از Guest به LAN باید fail و log شود.\n",
+      "notes": "قبل از قطع local روی AAA، تست کن.",
+      "learning_objectives": ["segmentation", "deny+log"]
+    }
+  ]
+}
