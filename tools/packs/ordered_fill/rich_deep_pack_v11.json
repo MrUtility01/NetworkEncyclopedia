@@ -1,0 +1,118 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "ادامه غنی و عمیق — هر درس فقط موضوع خودش با عمق کتابی",
+  "lessons": [
+    {
+      "title_fa": "[L2] STP کامل — Root، همگرایی، PortFast و BPDU Guard",
+      "title_en": "STP Complete Root Convergence PortFast BPDU Guard",
+      "chapter_order": 11,
+      "summary": "از انتخاب Root تا جلوگیری از حلقه و امن‌سازی پورت access؛ فقط Spanning Tree.",
+      "full_content": "# Spanning Tree — محتوای عمیق\n\n## چرا STP؟\nدر توپولوژی با لینک افزونه، بدون STP فریم‌ها حلقه می‌زنند، MAC table بی‌ثبات می‌شود و broadcast storm شبکه را می‌خواباند.\n\n## مفاهیم\n| نقش | معنی |\n|------|------|\n| Root Bridge | ریشه درخت |\n| Root Port | بهترین مسیر به Root روی هر non-root |\n| Designated Port | پورت forwarding روی هر سگمنت |\n| Alternate/Blocking | پورت مسدود برای شکستن حلقه |\n| BPDU | پیام کنترل STP |\n\n## انتخاب Root\nکمترین Bridge ID برنده است (Priority + MAC). برای کنترل:\n```\nspanning-tree mode rapid-pvst\nspanning-tree vlan 10 root primary\nspanning-tree vlan 20 root secondary\n```\n\n## PortFast + BPDU Guard (فقط access کلاینت)\n```\ninterface range Fa0/1-24\n spanning-tree portfast\n spanning-tree bpduguard enable\n```\nاگر روی آن پورت BPDU بیاید → err-disable (جلوگیری از سوئیچ غیرمجاز).\n\n## RSTP در برابر STP کلاسیک\nRSTP همگرایی سریع‌تر دارد؛ در شبکه‌های امروزی پیش‌فرض منطقی است.\n\n## RCA\n| علامت | بررسی |\n|--------|--------|\n| لینک up ولی ترافیک نه | blocking؟ `show spanning-tree` |\n| loop / storm | آیا STP خاموش است؟ |\n| err-disable | BPDU Guard |\n| root اشتباه | priority دو سر |\n\n## طراحی کوتاه\n- Root را روی هسته مشخص کن\n- Uplinkها را نه PortFast\n- Access کلاینت: PortFast + BPDU Guard\n",
+      "commands": "show spanning-tree\nshow spanning-tree vlan 10\nshow spanning-tree root\nshow spanning-tree blockedports\nshow spanning-tree interface Fa0/1\nshow spanning-tree summary\nshow interfaces status err-disabled\nshow running-config | include spanning-tree\nspanning-tree vlan 10 root primary",
+      "examples": "Lab عمیق:\n1) دو سوئیچ با دو لینک موازی → یک لینک blocking\n2) root primary روی سوئیچ هسته\n3) PortFast روی access\n4) سوئیچ کوچک غیرمجاز به access → err-disable\n5) لینک root را قطع کن و زمان همگرایی را ببین\n6) Rollback",
+      "notes": "PortFast روی uplink یا بین سوئیچ‌ها خطرناک است.\n",
+      "learning_objectives": ["Root و Port نقش‌ها", "RSTP", "BPDU Guard", "RCA blocking"]
+    },
+    {
+      "title_fa": "[L2] HSRP و VRRP — دروازه افزونه کامل",
+      "title_en": "HSRP VRRP Complete Gateway Redundancy",
+      "chapter_order": 14,
+      "summary": "VIP، Active/Standby، preempt، track و تفاوت HSRP با VRRP.",
+      "full_content": "# دروازه افزونه — کامل\n\n## مشکل\nاگر فقط یک روتر gateway باشد، با خاموش شدنش کل subnet قطع می‌شود.\n\n## ایده\nکلاینت به یک **VIP** پیش‌فرض می‌فرستد. دو (یا چند) روتر روی آن VIP توافق می‌کنند.\n\n## HSRP نمونه\n```\ninterface Vlan10\n ip address 10.10.10.2 255.255.255.0\n standby 1 ip 10.10.10.1\n standby 1 priority 110\n standby 1 preempt\n standby 1 track GigabitEthernet0/0 20\n```\nروتر دوم priority کمتر (مثلاً 100) و همان VIP.\n\n## VRRP نمونه\n```\ninterface Vlan10\n ip address 10.10.10.2 255.255.255.0\n vrrp 1 ip 10.10.10.1\n vrrp 1 priority 120\n vrrp 1 preempt\n```\n\n## Track\nاگر uplink WAN بمیرد، priority کم می‌شود تا دیگری Active شود.\n\n## RCA\n| علامت | علت محتمل |\n|--------|-------------|
+| VIP پینگ نمی‌شود | هر دو down یا ACL |\n| split-brain | مشکل L2 بین روترها |\n| failover کند | timer / preempt |\n\n## نکته طراحی\nکلاینت GW = VIP نه IP فیزیکی. اسناد را با VIP بنویس.\n",
+      "commands": "show standby\nshow standby brief\nshow standby vlan 10\nshow vrrp\nshow vrrp brief\nshow running-config | include standby\nshow running-config | include vrrp\nping 10.10.10.1\nshow track",
+      "examples": "Lab:\n1) دو روتر HSRP\n2) از کلاینت ping VIP\n3) Active را خاموش کن\n4) VIP باید روی Standby بماند\n5) track را تست کن (shut uplink)\n6) همین سناریو با VRRP اگر تجهیزات پشتیبانی می‌کنند",
+      "notes": "group/VRID و VIP دو طرف باید یکی باشد.\n",
+      "learning_objectives": ["VIP", "preempt", "track", "failover واقعی"]
+    },
+    {
+      "title_fa": "[L3] Redistribution عمیق و جلوگیری از حلقه",
+      "title_en": "Deep Redistribution Loop Prevention",
+      "chapter_order": 14,
+      "summary": "توزیع مسیر بین پروتکل‌ها با route-map، tag و فیلتر؛ تمرکز روی ایمنی.",
+      "full_content": "# Redistribution — عمیق\n\n## خطر\nبدون کنترل: مسیرهای برگشتی، suboptimal routing، یا حلقه.\n\n## اصول طلایی\n1. فقط prefix لازم\n2. tag مبدأ\n3. در جهت برگشت tag را deny کن\n4. متریک را صریح set کن\n5. در Lab اول یک prefix\n\n## مثال static → OSPF\n```\nip prefix-list PL-STATIC permit 10.50.0.0/16\nroute-map STATIC-TO-OSPF permit 10\n match ip address prefix-list PL-STATIC\n set tag 100\n set metric 5000\nrouter ospf 1\n redistribute static subnets route-map STATIC-TO-OSPF\n```\n\n## جلوگیری از بازگشت\n```\nroute-map BLOCK-TAG deny 10\n match tag 100\nroute-map BLOCK-TAG permit 20\n```\n\n## BGP ↔ OSPF\nدر لبه سازمانی معمولاً فقط default یا خلاصه خاص را redistribution کن نه کل جدول اینترنت.\n\n## Verify\n`show ip route` کد E2/E1، tag، و next-hop را بخوان.\n",
+      "commands": "show ip protocols\nshow ip route\nshow ip route ospf\nshow ip route static\nshow ip route bgp\nshow route-map\nshow ip prefix-list\nshow running-config | section router ospf\nshow running-config | section route-map",
+      "examples": "Lab:\n1) یک static به OSPF با tag\n2) در جدول به‌صورت external ببین\n3) بدون route-map باز redistribute کن و تفاوت را حس کن\n4) با tag محدود کن\n5) مسیر برگشتی را با policy ببند",
+      "notes": "redistribution دوطرفه بدون طراحی = بمب ساعتی.\n",
+      "learning_objectives": ["route-map", "tag", "متریک", "ضدحلقه"]
+    },
+    {
+      "title_fa": "[L3] FortiGate عمیق — Policy، NAT، Session و Flow Debug",
+      "title_en": "FortiGate Deep Policy NAT Session Flow",
+      "chapter_order": 22,
+      "summary": "منطق کامل تصمیم‌گیری فایروال فورتی‌گیت از route تا policy hit و session.",
+      "full_content": "# FortiGate — عمق عملی\n\n## جریان تصمیم (ساده شده)\n1. Ingress interface / zone\n2. Route lookup (کجا برود)\n3. Policy match (آیا اجازه است؟)\n4. NAT در صورت نیاز\n5. Session ساخته می‌شود\n6. Egress\n\nRoute بدون policy = ترافیک رد نمی‌شود.\n\n## Policy لبه حداقل\n| از | به | سرویس | NAT |\n|----|----|--------|-----|\n| LAN | WAN | ALL | enable |\n| WAN | VIP-Web | HTTPS | — |\n| WAN | LAN | ALL | deny |\n\n## VIP / DNAT\nIP عمومی → سرور داخلی؛ policy از WAN به VIP با سرویس محدود.\n\n## Flow Debug\n```\ndiagnose debug flow filter addr 10.10.10.50\ndiagnose debug flow show function-name enable\ndiagnose debug enable\ndiagnose debug flow trace start 100\n```\nبعد ترافیک را تولید کن و ببین کجا drop می‌شود.\n\n## Session\n```\ndiagnose firewall session list\n```\nاگر session نیست: policy/route/interface.\nاگر session هست ولی اپ fail: بالاتر از فایروال (سرور/گواهی).\n",
+      "commands": "get system status\nget router info routing-table all\nshow firewall policy\nshow firewall vip\ndiagnose firewall session list\ndiagnose firewall session clear\ndiagnose debug flow filter clear\ndiagnose debug flow filter addr 10.10.10.50\ndiagnose debug flow trace start 50\ndiagnose debug enable\ndiagnose debug disable\nexecute ping 8.8.8.8",
+      "examples": "Lab:\n1) policy LAN→WAN را ببند → اینترنت قطع\n2) session را ببین\n3) برگردان\n4) VIP فقط 443\n5) flow debug برای یک کلاینت\n6) از روی خروجی بگو کجا drop شد",
+      "notes": "ترتیب policy از خاص به عام؛ hit count را بخوان.\n",
+      "learning_objectives": ["policy vs route", "session", "flow debug", "VIP"]
+    },
+    {
+      "title_fa": "[L2] QoS عمیق لبه WAN — Classify تا Queue",
+      "title_en": "Deep WAN Edge QoS Classify Queue",
+      "chapter_order": 18,
+      "summary": "از علامت‌گذاری تا صف اولویت؛ تمرکز روی Voice و جلوگیری از قحطی داده.",
+      "full_content": "# QoS لبه — عمیق\n\n## زنجیره\n1. **Classify** ترافیک را بشناس (ACL/NBAR/DSCP)\n2. **Mark** DSCP/CoS\n3. **Queue** اولویت‌بندی روی لینک شلوغ\n4. **Police/Shape** سقف نرخ\n\n## کلاس‌های عملی\n| کلاس | مثال | رفتار |\n|------|------|--------|\n| Voice | RTP | LLQ/priority محدود |\n| Business | ERP/HTTPS مهم | CBWFQ |\n| Bulk | Backup | باقی‌مانده |\n\n## اصل مهم\nPriority بی‌حد = داده مهم گرسنه می‌ماند. همیشه سقف برای LLQ بگذار.\n\n## علامت‌گذاری یکسان\nدو سر لینک WAN باید DSCP را یکسان بفهمند؛ وسط مسیر trust/rewrite را بدان.\n\n## Verify\n`show policy-map interface` شمارنده‌های drop/queue را ببین.\n",
+      "commands": "show policy-map\nshow policy-map interface\nshow mls qos\nshow interfaces Gi0/0\nshow running-config | section policy-map\nshow running-config | section class-map",
+      "examples": "Lab مفهومی:\n1) لینک را با ترافیک bulk اشباع کن\n2) بدون QoS کیفیت voice را حس کن\n3) priority محدود برای voice\n4) شمارنده‌ها را مقایسه کن",
+      "notes": "QoS روی لینک خالی معجزه نمی‌کند؛ روی congestion معنی دارد.\n",
+      "learning_objectives": ["classify/mark/queue", "LLQ با سقف", "خواندن policy-map"]
+    },
+    {
+      "title_fa": "[L2] AAA و 802.1X — هویت و دسترسی کامل",
+      "title_en": "AAA 802.1X Identity Access Complete",
+      "chapter_order": 65,
+      "summary": "RADIUS، fallback محلی، و کنترل دسترسی پورت با 802.1X.",
+      "full_content": "# AAA و 802.1X — عمیق\n\n## AAA\nAuthentication / Authorization / Accounting\n\n```\naaa new-model\naaa authentication login default group radius local\nradius server RS1\n address ipv4 10.10.10.50 auth-port 1812 acct-port 1813\n key StrongSecret\nusername admin privilege 15 secret LocalBackup\n```\n\n**قانون:** قبل از حذف local، RADIUS را از یک session دیگر تست کن.\n\n## 802.1X\nSupplicant (کلاینت) → Authenticator (سوئیچ) → Server (RADIUS)\n\nتا موفق نشود، پورت در حالت محدود است (مگر guest VLAN).\n\n## RCA\n| علامت | بررسی |\n|--------|--------|\n| لاگین SSH با user مرکزی fail | RADIUS/key/reachability |\n| local هم fail | method-list |\n| کلاینت 802.1X وصل نمی‌شود | cert/EAP/port config |\n\n## طراحی\nمدیریت تجهیزات فقط از VLAN Mgmt + AAA.\n",
+      "commands": "show aaa servers\nshow radius server-group all\nshow authentication sessions\nshow dot1x all\nshow running-config | include aaa\nshow running-config | include radius\nshow running-config | include dot1x\ndebug radius\nundebug all",
+      "examples": "Lab AAA:\n1) RADIUS OK → لاگین مرکزی\n2) RADIUS را قطع کن → local کار کند\nLab 802.1X:\n1) پورت access\n2) بدون اعتبار fail\n3) با اعتبار authorize",
+      "notes": "fail-open در access حساس را آگاهانه انتخاب کن.\n",
+      "learning_objectives": ["RADIUS+local", "802.1X نقش‌ها", "جلوگیری از قفل ادمین"]
+    },
+    {
+      "title_fa": "[L2] Linux شبکه عمیق — ip، ss، tcpdump، nftables",
+      "title_en": "Linux Networking Deep ip ss tcpdump nftables",
+      "chapter_order": 40,
+      "summary": "جعبه ابزار کامل مهندس شبکه روی لینوکس برای Verify و RCA.",
+      "full_content": "# Linux Networking — عمیق\n\n## آدرس و لینک\n```\nip -br a\nip -br l\nip route\nip neigh\n```\n\n## سوکت و پورت\n```\nss -lntu\nss -ant\n```\nجایگزین مدرن netstat.\n\n## tcpdump\n```\ntcpdump -ni eth0 icmp\ntcpdump -ni any port 443\ntcpdump -ni any 'tcp[tcpflags] & (tcp-syn) != 0'\n```\n\n## فایروال\nnftables/iptables را از route جدا ببین. ممکن است route باشد ولی packet filter شود.\n\n## Policy routing\n```\nip rule list\nip route show table 100\n```\n\n## الگوی RCA روی سرور\n1) لینک up؟\n2) IP/GW؟\n3) ping؟\n4) ss listen؟\n5) tcpdump به پکت می‌رسد؟\n6) nft drop؟\n",
+      "commands": "ip -br a\nip -br l\nip route\nip neigh\nip rule list\nss -lntu\nss -ant\ntcpdump -ni any icmp\ntcpdump -ni any port 22\nping -c 4 8.8.8.8\ntraceroute -n 8.8.8.8\nnft list ruleset\nsudo iptables -L -n -v",
+      "examples": "Lab:\n1) سرویس روی 443\n2) ss -lntu\n3) tcpdump هنگام curl\n4) با nft/iptables پورت را ببند و علامت را ببین\n5) rule را برگردان",
+      "notes": "ss و tcpdump را قبل از بازنویسی کل فایروال مسلط شو.\n",
+      "learning_objectives": ["ip/ss", "tcpdump", "جدا filter از route"]
+    },
+    {
+      "title_fa": "[L2] ویندوز شبکه عمیق — از کلاینت تا سرور",
+      "title_en": "Windows Networking Deep Client to Server",
+      "chapter_order": 35,
+      "summary": "PowerShell، مسیر، DNS دامنه، فایروال میزبان و تست پورت.",
+      "full_content": "# ویندوز شبکه — عمیق\n\n## وضعیت پایه\n```\nGet-NetIPConfiguration\nGet-NetRoute\nGet-DnsClientServerAddress\n```\n\n## تست\n```\nTest-NetConnection 10.10.10.10 -Port 445\nTest-NetConnection 8.8.8.8 -TraceRoute\nResolve-DnsName corp.local\n```\n\n## DNS دامنه\nکلاینت Join‌شده باید DNS سرور دامنه را داشته باشد. فقط 8.8.8.8 = لاگین/GPO آسیب.\n\n## فایروال میزبان\nگاهی شبکه سالم است ولی Windows Firewall پورت را می‌بندد.\n\n## سرور فایل/وب\nپورت 445/443 را جدا از «پینگ» تست کن.\n\n## جمع‌آوری از چند میزبان\n```powershell\n$h=@('10.10.10.10','10.10.10.11')\nforeach($i in $h){ Test-NetConnection $i -Port 443 | Select ComputerName,TcpTestSucceeded }\n```\n",
+      "commands": "ipconfig /all\nroute print\nGet-NetIPConfiguration\nGet-NetRoute\nGet-NetAdapter\nGet-DnsClientServerAddress\nResolve-DnsName corp.local\nTest-NetConnection 10.10.10.10 -Port 445\nTest-NetConnection 10.10.10.10 -Port 443\nGet-NetTCPConnection -State Listen\nGet-NetFirewallProfile\nnetsh advfirewall show allprofiles",
+      "examples": "Lab:\n1) DNS را غلط کن → نام fail\n2) IP مستقیم OK\n3) فایروال 445 را ببند → share fail\n4) باز کن و Verify\n5) اسکریپت حلقه روی دو سرور",
+      "notes": "مشکل host را از مشکل شبکه با شواهد جدا کن.\n",
+      "learning_objectives": ["PowerShell شبکه", "DNS AD", "فایروال میزبان"]
+    },
+    {
+      "title_fa": "[L3] VRF و جداسازی مسیریابی — عمیق",
+      "title_en": "VRF Deep Routing Separation",
+      "chapter_order": 14,
+      "summary": "چند جدول مسیر روی یک روتر؛ هم‌پوشانی آدرس بدون تداخل.",
+      "full_content": "# VRF — عمیق\n\n## ایده\nهر VRF یک جدول مسیر جدا است. Tenant A و B می‌توانند 10.0.0.0/8 یکسان داشته باشند بدون تداخل.\n\n## پیکربندی پایه\n```\nip vrf CUST-A\n rd 65000:10\nip vrf CUST-B\n rd 65000:20\ninterface Gi0/1\n ip vrf forwarding CUST-A\n ip address 10.10.10.1 255.255.255.0\ninterface Gi0/2\n ip vrf forwarding CUST-B\n ip address 10.10.10.1 255.255.255.0\n```\n\nهشدار: با `ip vrf forwarding` آدرس اینترفیس پاک می‌شود.\n\n## مسیر\n```\nip route vrf CUST-A 0.0.0.0 0.0.0.0 10.10.10.254\n```\n\n## Leak عمدی\nفقط با طراحی (import/export route-target یا static leak). پیش‌فرض: جدا.\n\n## کاربرد\nمشتریان روی یک PE، محیط prod/dev جدا، مدیریت جدا از داده.\n",
+      "commands": "show ip vrf\nshow ip vrf interfaces\nshow ip route vrf CUST-A\nshow ip route vrf CUST-B\nshow ip cef vrf CUST-A\nping vrf CUST-A 10.10.10.50\nping vrf CUST-B 10.10.10.50\nshow running-config | section vrf",
+      "examples": "Lab:\n1) دو VRF با IP هم‌پوشان\n2) ping داخل هر VRF OK\n3) بین VRF بدون leak fail\n4) static leak کنترل‌شده (اختیاری پیشرفته)",
+      "notes": "بدون VRF، هم‌پوشانی آدرس = فاجعه.\n",
+      "learning_objectives": ["جدول جدا", "ping vrf", "کاربرد multi-tenant"]
+    },
+    {
+      "title_fa": "[L2] Backup، Change و Rollback حرفه‌ای",
+      "title_en": "Professional Backup Change Rollback",
+      "chapter_order": 5,
+      "summary": "دیسیپلین تغییر: backup، پنجره، verify، rollback آزمایش‌شده.",
+      "full_content": "# Change Discipline — کامل\n\n## قبل از هر change\n1. Backup running-config\n2. یادداشت تغییر\n3. معیار موفقیت (Verify)\n4. Rollback آماده\n5. مسیر ارتباطی جایگزین (out-of-band اگر شد)\n\n## دستورات\n```\ncopy running-config tftp://10.10.10.20/r1-pre.cfg\ncopy running-config flash:pre-change.cfg\nshow archive\n```\n\n## بعد از change\n- Verify محلی\n- Verify end-to-end\n- مانیتور ۳۰–۶۰ دقیقه\n\n## Rollback\n```\nconfigure replace flash:pre-change.cfg force\n```\nیا کپی دستی از TFTP.\n\n## ضدالگو\nتغییر بدون backup، تغییر همزمان روی ۳ تجهیز، عدم تست restore.\n",
+      "commands": "copy running-config startup-config\ncopy running-config flash:pre-change.cfg\ndir flash:\nmore flash:pre-change.cfg\nshow running-config\nshow startup-config\nshow archive\nconfigure replace flash:pre-change.cfg force\ncopy tftp://10.10.10.20/r1-pre.cfg running-config",
+      "examples": "Lab:\n1) backup بگیر\n2) یک ACL اشتباه اعمال کن\n3) سرویس بشکند\n4) با replace/restore برگرد\n5) Verify",
+      "notes": "restore را ماهانه یک‌بار در Lab تمرین کن.\n",
+      "learning_objectives": ["backup", "معیار Verify", "rollback واقعی"]
+    }
+  ]
+}
