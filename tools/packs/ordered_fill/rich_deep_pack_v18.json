@@ -1,0 +1,117 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "ادامه v18 — غنی و عمیق + آماده‌سازی بیلد اندروید/ویندوز",
+  "lessons": [
+    {
+      "title_fa": "[L3] VXLAN Bridging عمیق — از VNI تا BUM",
+      "title_en": "VXLAN Bridging Deep VNI to BUM",
+      "chapter_order": 16,
+      "summary": "کپسوله L2 روی IP، VNI، VTEP و ترافیک BUM در overlay.",
+      "full_content": "# VXLAN Bridging — عمیق\n\n## اجزا\n| جزء | نقش |\n|------|-----|\n| VNI | شناسه شبکه مجازی (شبیه VLAN گسترده‌تر) |\n| VTEP | نقطه کپسوله‌سازی |\n| Underlay | شبکه IP بین VTEPها |\n| BUM | Broadcast/Unknown/Multicast |\n\n## جریان\nفریم L2 وارد VTEP می‌شود → هدر VXLAN+UDP+IP → underlay → VTEP مقصد → فریم اصلی.\n\n## BUM\nسه مدل رایج: multicast underlay، head-end replication، یا کنترل‌پلن EVPN برای کاهش flood.\n\n## پیش‌نیاز\nMTU underlay باید جا برای سربار VXLAN بگذارد (حداقل حدود ۵۰ بایت بیشتر).\n\n## RCA\n| علامت | بررسی |\n|--------|--------|\n| هیچ تونلی | underlay / route به VTEP |\n| unicast OK BUM نه | replication/multicast |\n| fragment | MTU |\n",
+      "commands": "show nve peers\nshow nve vni\nshow vxlan\nshow mac address-table\nshow ip route\nping <remote-vtep>\nshow interface | include MTU",
+      "examples": "Lab:\n1) دو VTEP\n2) VNI مشترک\n3) MAC دو طرف\n4) MTU را کم کن و علامت را ببین\n5) underlay را قطع کن",
+      "notes": "اول underlay و MTU؛ بعد overlay.\n",
+      "learning_objectives": ["VNI/VTEP", "BUM", "MTU"]
+    },
+    {
+      "title_fa": "[L3] EVPN Multi-Site — اتصال چند fabric",
+      "title_en": "EVPN Multi Site Fabric Interconnect",
+      "chapter_order": 16,
+      "summary": "اتصال چند دیتاسنتر/pod با حفظ مرز و مقیاس کنترل‌پلن.",
+      "full_content": "# EVPN Multi-Site — عمیق\n\n## ایده\nهر سایت fabric خودش را دارد؛ border gatewayها مسیرها/MAC را بین سایت‌ها با کنترل تبلیغات تبادل می‌کنند.\n\n## مزیت\n- blast radius محدود\n- مقیاس بهتر از یک fabric تخت بزرگ\n- سیاست بین‌سایتی متمرکزتر\n\n## نقش Border\nBGW مسیرهای EVPN را import/export می‌کند و از نشستن کامل همه leafهای سایت A در سایت B جلوگیری می‌کند.\n\n## طراحی\nunderlay بین سایت‌ها، loopback BGW، و سیاست VNI/VLAN کدام‌ها extend شوند.\n",
+      "commands": "show bgp l2vpn evpn summary\nshow bgp l2vpn evpn\nshow nve peers\nshow mac address-table\nshow ip route",
+      "examples": "تمرین طراحی:\n1) دو site با BGW\n2) فقط VNIهای لازم بین سایت\n3) قطع لینک inter-site و اثر بر east-west\n4) لیست تصمیم: چه چیزی local-only بماند",
+      "notes": "همه VLANها را multi-site نکن.\n",
+      "learning_objectives": ["BGW", "مرز سایت", "کاهش blast radius"]
+    },
+    {
+      "title_fa": "[L2] همگام‌سازی زمان دقیق — PTP و SyncE",
+      "title_en": "Precision Time PTP SyncE",
+      "chapter_order": 5,
+      "summary": "فراتر از NTP برای محیطهای حساس به زمان (تلکام، مالی، صنعتی).",
+      "full_content": "# PTP / SyncE — عمیق\n\n## NTP کجا کافی است؟\nلاگ و اکثر اپ‌های سازمانی. برای timestamp زیر میکرو/نانو ثانیه کافی نیست.\n\n## PTP (IEEE 1588)\nهمگام‌سازی دقیق با hardware timestamping در صورت پشتیبانی.\n\n## SyncE\nهمگام‌سازی فرکانس از لایه فیزیکی اترنت.\n\n## طراحی\nGrandmaster → boundary/ordinary clock روی مسیر؛ از hopهای غیرشفاف پرهیز کن.\n\n## RCA\noffset زیاد: بار CPU، سوئیچ غیر PTP-aware، مسیر نامتقارن.\n",
+      "commands": "show ptp\nshow ptp clock\nshow ptp parent\nshow ptp port\nshow clock\nshow ntp status",
+      "examples": "Lab مفهومی:\n1) مقایسه NTP offset با نیاز اپ\n2) مسیر PTP را روی کاغذ بکش\n3) یک سوئیچ غیرآگاه را در مسیر بگذار و اثر را بحث کن",
+      "notes": "PTP روی شبکه شلوغ بدون QoS/طراحی درست ناپایدار می‌شود.\n",
+      "learning_objectives": ["NTP vs PTP", "SyncE", "Grandmaster"]
+    },
+    {
+      "title_fa": "[L2] Secure Boot و اعتماد زنجیره راه‌اندازی",
+      "title_en": "Secure Boot Trust Chain Startup",
+      "chapter_order": 65,
+      "summary": "اطمینان از اینکه فقط نرم‌افزار امضاشده بالا می‌آید.",
+      "full_content": "# Secure Boot — عمیق\n\n## ایده\nسخت‌افزار/bootloader فقط تصویر امضاشده با کلید معتبر را اجرا می‌کند.\n\n## در تجهیزات شبکه\nبسیاری از OSهای شبکه قابلیت signed image و validation هنگام boot دارند.\n\n## زنجیره\nکلید سازنده → bootloader → OS image → گاهی packages.\n\n## عملیات\n- قبل از ارتقا، سازگاری کلید/مجوز را بخوان\n- تصویر را از منبع رسمی بگیر\n- hash/signature را Verify کن\n\n## RCA\nدستگاه بعد از ارتقا بالا نمی‌آید: تصویر نامعتبر، کلید، یا مسیر boot اشتباه.\n",
+      "commands": "show software authenticity\nshow version\nshow boot\nverify /md5 flash:image.bin\nshow license",
+      "examples": "Lab:\n1) hash تصویر را با منبع رسمی مقایسه کن\n2) فرآیند ارتقا را با rollback plan بنویس\n3) سناریوی boot failure و از OOB بازیابی",
+      "notes": "Secure Boot جایگزین پچ‌کردن آسیب‌پذیری نمی‌شود.\n",
+      "learning_objectives": ["زنجیره اعتماد", "verify image", "rollback"]
+    },
+    {
+      "title_fa": "[L2] SBOM و امنیت زنجیره تأمین نرم‌افزار شبکه",
+      "title_en": "SBOM Network Software Supply Chain",
+      "chapter_order": 65,
+      "summary": "دانستن چه اجزایی داخل firmware/ابزارهاست برای واکنش به CVE.",
+      "full_content": "# SBOM / Supply Chain — عمیق\n\n## SBOM چیست؟\nSoftware Bill of Materials — فهرست اجزا و نسخه‌های داخل محصول.\n\n## چرا برای شبکه؟\nوقتی CVE روی کتابخانه مشترک اعلام می‌شود، باید بدانی کدام OS/ابزار تحت تأثیر است.\n\n## عمل\n1. منبع رسمی تصویر\n2. checksum\n3. ثبت نسخه در inventory\n4. پیگیری advisory سازنده\n5. پنجره پچ\n\n## ضدالگو\nدانلود firmware از فروم و لینک ناشناس.\n",
+      "commands": "show version\nshow inventory\nshow software\n# ثبت در CMDB:\n# device, version, hash, date",
+      "examples": "تمرین:\n1) جدول ۵ دستگاه با نسخه OS\n2) یک CVE فرضی روی OpenSSL\n3) کدام دستگاه‌ها را باید بررسی کنی\n4) برنامه پچ ۷ روزه",
+      "notes": "بدون inventory نسخه، supply-chain response نداری.\n",
+      "learning_objectives": ["SBOM ایده", "verify منبع", "پاسخ CVE"]
+    },
+    {
+      "title_fa": "[L2] Canary Deployment برای تغییر شبکه",
+      "title_en": "Canary Deployment Network Changes",
+      "chapter_order": 51,
+      "summary": "اعمال تغییر اول روی بخش کوچک، سنجش، سپس گسترش.",
+      "full_content": "# Canary در شبکه — عمیق\n\n## ایده\nبه‌جای apply روی همه شعبه/همه leafها، اول ۱–۵٪ یا یک سایت آزمایشی.\n\n## مراحل\n1. معیار موفقیت (KPI)\n2. گروه canary\n3. apply\n4. مشاهده (متریک/تیکت)\n5. go / rollback\n6. موج بعدی\n\n## مثال\nACL جدید روی یک leaf → ۳۰ دقیقه مانیتور → سپس pod → سپس همه.\n\n## ضدالگو\ncanary روی ترافیک غیرنماینده (فقط lab داخلی) و نتیجه را به production تعمیم دادن.\n",
+      "commands": "ansible-playbook change.yml --limit canary\nshow logging\nshow interfaces\nshow ip route\nping\ntraceroute",
+      "examples": "Lab:\n1) تغییر policy روی یک دستگاه\n2) KPI: loss=0، CPU نرمال، لاگ بدون error جدید\n3) rollback سریع را تمرین کن\n4) سپس روی گروه دوم",
+      "notes": "بدون معیار از پیش‌نوشته، canary فقط «حس» است.\n",
+      "learning_objectives": ["گروه canary", "KPI", "موجی apply"]
+    },
+    {
+      "title_fa": "[L2] Chaos Engineering کنترل‌شده در شبکه",
+      "title_en": "Controlled Chaos Engineering for Networks",
+      "chapter_order": 5,
+      "summary": "شکست عمدی در محیط امن برای یافتن نقاط ضعف قبل از تولید واقعی.",
+      "full_content": "# Chaos شبکه — عمیق\n\n## ایده\nفرضیه‌ات درباره افزونگی را با آزمایش رد یا تأیید کن.\n\n## مثال آزمایش\n| آزمایش | فرضیه |\n|---------|--------|\n| قطع یک uplink | ترافیک زیر ۳۰ ثانیه برمی‌گردد |\n| خاموش کردن Active HSRP | VIP زنده می‌ماند |\n| قطع DNS اولیه | ثانویه پاسخ می‌دهد |\n\n## قواعد ایمنی\n- فقط با مجوز و پنجره\n- محیط staging یا محدوده کوچک\n- rollback آماده\n- مشاهده‌گر جدا\n\n## خروجی\nrunbook و طراحی ضعیف کشف‌شده، نه «خرابکاری».\n",
+      "commands": "show standby\nshow ip route\nshow bgp summary\nshow interfaces\n# اقدام آزمایشی کنترل‌شده:\n# shutdown uplink\n# no shutdown",
+      "examples": "Lab:\n1) فرضیه بنویس\n2) یک خرابی را القا کن\n3) زمان بازیابی را اندازه بگیر\n4) با هدف SLA مقایسه کن\n5) سند نتیجه",
+      "notes": "Chaos بدون مشاهده‌پذیری فقط قطعی تصادفی است.\n",
+      "learning_objectives": ["فرضیه", "آزمایش امن", "اندازه‌گیری بازیابی"]
+    },
+    {
+      "title_fa": "[L2] GitOps برای شبکه — مطلوب در Git",
+      "title_en": "GitOps for Network Desired State in Git",
+      "chapter_order": 51,
+      "summary": "وضعیت مطلوب کانفیگ در مخزن؛ همگام‌سازی خودکار یا با تأیید.",
+      "full_content": "# GitOps شبکه — عمیق\n\n## اصل\nGit منبع حقیقت است. دستگاه باید به سمت حالت تعریف‌شده در repo همگرا شود.\n\n## جریان\n1. PR برای تغییر\n2. بررسی خودکار (lint/check)\n3. merge\n4. apply کنترل‌شده\n5. drift detection\n\n## drift\nاگر کسی دستی روی دستگاه change داد، سیستم باید diff را نشان دهد.\n\n## محدودیت\nبعضی دستگاه‌های قدیمی API ضعیف دارند؛ از read-only شروع کن.\n",
+      "commands": "git pull\ngit diff\nansible-playbook site.yml --check\nansible-playbook site.yml --limit leaf-01\n# مقایسه running با repo",
+      "examples": "Lab:\n1) کانفیگ مطلوب در Git\n2) change دستی روی دستگاه\n3) --check drift را نشان دهد\n4) بازگردانی از Git",
+      "notes": "GitOps بدون کنترل دسترسی repo خطرناک است.\n",
+      "learning_objectives": ["desired state", "drift", "PR-based change"]
+    },
+    {
+      "title_fa": "[L2] SLO/SLI برای خدمات شبکه",
+      "title_en": "Network SLO SLI Service Objectives",
+      "chapter_order": 25,
+      "summary": "تعریف شاخص و هدف قابل‌اندازه‌گیری به‌جای «شبکه خوب باشد».",
+      "full_content": "# SLO / SLI شبکه — عمیق\n\n## واژه‌ها\n| واژه | معنی |\n|------|------|\n| SLI | شاخص قابل‌اندازه (مثلاً % موفقیت DNS) |\n| SLO | هدف (مثلاً ۹۹.۹٪ در ۳۰ روز) |\n| Error budget | بودجه خطا قبل از توقف change |\n\n## مثال SLI شبکه\n- در دسترس بودن VPN\n- نرخ موفقیت resolve DNS\n- latency p95 تا DC\n- درصد لینک‌های core بدون error\n\n## استفاده\nاگر error budget تمام شد، change غیراضطراری را freeze کن.\n\n## ضدالگو\nSLO غیرواقعی ۹۹.۹۹٪ بدون داده و ابزار.\n",
+      "commands": "# داده از NMS/telemetry:\nshow interfaces\nshow ip sla statistics\ndig\ncurl -w \"%{http_code} %{time_total}\\n\" -o /dev/null -s https://app.local",
+      "examples": "تمرین:\n1) برای VPN یک SLI بنویس\n2) SLO ماهانه\n3) بگو با ۲ قطعی ۳۰ دقیقه‌ای بودجه چقدر مصرف می‌شود",
+      "notes": "SLO بدون اندازه‌گیری فقط شعار است.\n",
+      "learning_objectives": ["SLI vs SLO", "error budget", "مثال شبکه"]
+    },
+    {
+      "title_fa": "[L2] Postmortem بدون سرزنش — یادگیری از حادثه",
+      "title_en": "Blameless Postmortem Network Incidents",
+      "chapter_order": 5,
+      "summary": "بعد از قطعی: حقیقت، زمان‌خط، اقدام اصلاحی پایدار.",
+      "full_content": "# Postmortem — عمیق\n\n## ساختار\n1. خلاصه\n2. تأثیر (کاربر، مدت، دامنه)\n3. زمان‌خط\n4. علت ریشه‌ای (۵ چرا)\n5. چه کار کرد\n6. چه باید بهتر شود\n7. اقدام‌ها با مالک و تاریخ\n\n## blameless\nتمرکز روی سیستم و فرآیند، نه تحقیر فرد. گزارش صادقانه فقط وقتی امن است.\n\n## خروجی شبکه\nمانیتور جدید، runbook، تغییر طراحی، تمرین failover.\n\n## ضدالگو\nسند طولانی بدون اقدام، یا اقدام بدون مالک.\n",
+      "commands": "show logging\nshow archive\ngit log --since=\"yesterday\"\n# جمع‌آوری شواهد برای زمان‌خط",
+      "examples": "تمرین:\n1) یک قطعی فرضی DNS\n2) زمان‌خط ۱۵ دقیقه‌ای\n3) سه اقدام اصلاحی با مالک\n4) یک متریک برای جلوگیری از تکرار",
+      "notes": "Postmortem بدون follow-up فقط بایگانی است.\n",
+      "learning_objectives": ["زمان‌خط", "علت ریشه‌ای", "اقدام دارای مالک"]
+    }
+  ]
+}
