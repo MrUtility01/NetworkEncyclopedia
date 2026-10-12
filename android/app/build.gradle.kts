@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp") version "1.9.22-1.0.17"
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -12,8 +12,8 @@ android {
         applicationId = "com.netenc.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "2.0.0-network-engineer"
+        versionCode = 5
+        versionName = "2.1.0-network-engineer"
     }
 
     buildTypes {
