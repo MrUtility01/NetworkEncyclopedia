@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""بارگذاری محتوای واقعی از JSON پک‌ها روی جدول lessons."""
+"""بارگذاری پک — فقط وقتی عنوان درس و پک واقعاً هم‌موضوع باشند."""
 from __future__ import annotations
 
 import json
@@ -7,9 +7,15 @@ import re
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 ROOT = Path(__file__).resolve().parents[2]
+
+_STOP = {
+    "با", "برای", "از", "و", "در", "به", "که", "این", "آن", "یک",
+    "the", "and", "for", "with", "from", "into", "lesson", "درس",
+    "آشنایی", "مقدماتی", "ادمین", "مهندس", "خبره", "پیاده‌سازی", "مبانی",
+}
 
 
 def _as_text(v: Any) -> str:
@@ -22,8 +28,19 @@ def _as_text(v: Any) -> str:
     return str(v)
 
 
+def _norm_title(title: str) -> str:
+    t = re.sub(r"^\[L[0-4]\]\s*", "", title or "", flags=re.I)
+    t = re.sub(r"\s*[—\-]\s*(آشنایی|مقدماتی|ادمین|مهندس|خبره|پیاده‌سازی|مبانی).*$", "", t, flags=re.I)
+    t = re.sub(r"[^\w\u0600-\u06FF\s]", " ", t)
+    t = re.sub(r"\s+", " ", t).strip().lower()
+    return t
+
+
+def _tokens(title: str) -> List[str]:
+    return [w for w in _norm_title(title).split() if len(w) >= 3 and w not in _STOP]
+
+
 def _lesson_fields(raw: Dict[str, Any]) -> Optional[Dict[str, str]]:
-    """استاندارد کردن فیلدهای یک رکورد درس از پک‌های مختلف."""
     title = (raw.get("title_fa") or raw.get("title") or raw.get("name") or "").strip()
     full = (
         raw.get("full_content")
@@ -58,27 +75,26 @@ def load_lessons_from_file(path: Path) -> List[Dict[str, str]]:
 
     out: List[Dict[str, str]] = []
 
+    def add(item: dict):
+        f = _lesson_fields(item)
+        if f:
+            out.append(f)
+
     if isinstance(data, list):
         for item in data:
             if isinstance(item, dict):
-                f = _lesson_fields(item)
-                if f:
-                    out.append(f)
+                add(item)
         return out
 
     if not isinstance(data, dict):
         return out
 
-    # curriculum pack with lessons array
     if isinstance(data.get("lessons"), list):
         for item in data["lessons"]:
             if isinstance(item, dict):
-                f = _lesson_fields(item)
-                if f:
-                    out.append(f)
+                add(item)
 
-    # blueprint ENGINEER_JOKAR
-    curriculum = (data.get("curriculum") or {})
+    curriculum = data.get("curriculum") or {}
     if isinstance(curriculum, dict):
         for ch in curriculum.get("chapters") or []:
             for col in ch.get("collections") or []:
@@ -88,47 +104,11 @@ def load_lessons_from_file(path: Path) -> List[Dict[str, str]]:
                             continue
                         merged = dict(sub)
                         if not merged.get("title_fa"):
-                            merged["title_fa"] = les.get("title_fa") or ch.get("title_fa")
-                        f = _lesson_fields(merged)
-                        if f:
-                            out.append(f)
+                            merged["title_fa"] = les.get("title_fa") or ""
+                        add(merged)
 
-    # commands encyclopedia style: categories -> commands (not full lessons)
-    if data.get("vendor") or data.get("commands") or data.get("categories"):
-        # build synthetic lessons from command groups if long enough
-        cats = data.get("categories") or data.get("sections") or []
-        if isinstance(cats, list):
-            for cat in cats:
-                if not isinstance(cat, dict):
-                    continue
-                cmds = cat.get("commands") or cat.get("items") or []
-                if not cmds:
-                    continue
-                lines = [f"# {cat.get('title_fa') or cat.get('name') or 'دستورات'}\n"]
-                for c in cmds[:80]:
-                    if isinstance(c, dict):
-                        lines.append(f"## {c.get('name') or c.get('command') or ''}\n")
-                        lines.append(f"```\n{c.get('command') or c.get('syntax') or ''}\n```\n")
-                        if c.get("description"):
-                            lines.append(str(c["description"]) + "\n")
-                        if c.get("example"):
-                            lines.append(f"مثال:\n```\n{c['example']}\n```\n")
-                    else:
-                        lines.append(str(c))
-                body = "\n".join(lines)
-                if len(body) > 300:
-                    out.append(
-                        {
-                            "title_fa": cat.get("title_fa") or cat.get("name") or data.get("vendor") or "commands",
-                            "summary": (cat.get("description") or body[:180]).strip(),
-                            "full_content": body,
-                            "commands": body,
-                            "examples": "",
-                            "notes": "منبع: commands encyclopedia pack",
-                            "learning_objectives": "",
-                        }
-                    )
-
+    # commands encyclopedia: فقط اگر عنوان دسته مشخص باشد — نه پاشیدن روی همه درس‌ها
+    # این نوع پک‌ها را فقط وقتی title دقیق دارند استفاده می‌کنیم (از بالا در lessons)
     return out
 
 
@@ -145,47 +125,89 @@ def find_pack_files() -> List[Path]:
         for p in ROOT.glob(pat):
             if not p.is_file() or p.stat().st_size < 500:
                 continue
-            # skip schema-only tiny files
             key = str(p.resolve())
             if key in seen:
                 continue
             if p.name.upper().startswith("README"):
                 continue
+            # فایل‌های فقط دستورات خام بدون lessons را رد نکن اگر lessons دارند
             seen.add(key)
             found.append(p)
     return sorted(found)
 
 
+def _score(pack_title: str, db_title: str) -> float:
+    """امتیاز شباهت عنوان — پایین = قاطی شدن ممنوع."""
+    a = _norm_title(pack_title)
+    b = _norm_title(db_title)
+    if not a or not b:
+        return 0.0
+    if a == b:
+        return 1.0
+    if a in b or b in a:
+        # subsumption فقط اگر طول معقول
+        shorter, longer = (a, b) if len(a) <= len(b) else (b, a)
+        if len(shorter) >= 6:
+            return 0.92
+    ta, tb = set(_tokens(pack_title)), set(_tokens(db_title))
+    if not ta or not tb:
+        return 0.0
+    inter = ta & tb
+    if not inter:
+        return 0.0
+    # حداقل یک توکن تخصصی مشترک با طول >=4
+    strong = {t for t in inter if len(t) >= 4}
+    if not strong:
+        return 0.0
+    jacc = len(inter) / len(ta | tb)
+    cover = len(inter) / max(len(ta), 1)
+    return max(jacc, cover * 0.85)
+
+
 def match_lesson_id(conn: sqlite3.Connection, title: str) -> Optional[int]:
+    """فقط match سخت‌گیرانه — از match شل تک‌کلمه‌ای خبری نیست."""
     title = (title or "").strip()
     if not title:
         return None
-    bare = re.sub(r"^\[L[0-4]\]\s*", "", title)
-    bare = re.sub(r"\s*[—\-]\s*(آشنایی|مقدماتی|ادمین|مهندس|خبره).*$", "", bare).strip()
-    # prefer longest meaningful token match
-    if len(bare) >= 4:
-        row = conn.execute(
-            "SELECT id, title_fa FROM lessons WHERE title_fa LIKE ? ORDER BY length(full_content) ASC LIMIT 5",
-            (f"%{bare}%",
-            ),
-        ).fetchall()
-        if row:
-            return int(row[0][0] if not isinstance(row[0], sqlite3.Row) else row[0]["id"])
-    # token fallback: significant words
-    tokens = [t for t in re.split(r"\s+", bare) if len(t) >= 4][:3]
-    for tok in tokens:
-        row = conn.execute(
-            "SELECT id FROM lessons WHERE title_fa LIKE ? LIMIT 1",
-            (f"%{tok}%",
-            ),
-        ).fetchone()
-        if row:
-            return int(row[0] if not isinstance(row, sqlite3.Row) else row["id"])
+    bare = _norm_title(title)
+    if len(bare) < 4:
+        return None
+
+    # 1) exact / contains روی عنوان نرمال
+    rows = conn.execute(
+        "SELECT id, title_fa FROM lessons WHERE title_fa LIKE ? LIMIT 30",
+        (f"%{bare[:80]}%",
+        ),
+    ).fetchall()
+
+    # 2) اگر خالی، کاندیدا با توکن‌های قوی
+    if not rows:
+        strong_toks = [t for t in _tokens(title) if len(t) >= 4][:4]
+        if not strong_toks:
+            return None
+        # AND-like: همه توکن‌های قوی باید در عنوان باشند
+        q = "SELECT id, title_fa FROM lessons WHERE " + " AND ".join(
+            ["title_fa LIKE ?"] * len(strong_toks)
+        ) + " LIMIT 40"
+        rows = conn.execute(q, [f"%{t}%" for t in strong_toks]).fetchall()
+
+    best_id = None
+    best_score = 0.0
+    for r in rows:
+        rid = int(r[0] if not isinstance(r, sqlite3.Row) else r["id"])
+        rtitle = r[1] if not isinstance(r, sqlite3.Row) else r["title_fa"]
+        sc = _score(title, rtitle or "")
+        if sc > best_score:
+            best_score = sc
+            best_id = rid
+
+    # آستانه سخت: زیر 0.55 یعنی موضوع احتمالاً قاطی است
+    if best_score >= 0.55:
+        return best_id
     return None
 
 
 def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
-    """محتوای واقعی پک‌ها را روی درس‌های موجود می‌نویسد."""
     db_path = Path(db_path)
     if not db_path.is_file():
         return {"ok": False, "error": f"db not found: {db_path}"}
@@ -194,7 +216,7 @@ def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
     now = datetime.now(timezone.utc).isoformat()
-    matched = missing = updated = 0
+    matched = missing = updated = skipped_weak = 0
     details = []
 
     for pack in packs:
@@ -204,6 +226,12 @@ def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
             lid = match_lesson_id(conn, les["title_fa"])
             if lid is None:
                 x += 1
+                continue
+            # تأیید نهایی: عنوان DB باید با موضوع پک هم‌پوشانی داشته باشد
+            row = conn.execute("SELECT title_fa FROM lessons WHERE id=?", (lid,)).fetchone()
+            db_title = row["title_fa"] if row else ""
+            if _score(les["title_fa"], db_title) < 0.55:
+                skipped_weak += 1
                 continue
             m += 1
             if not overwrite:
@@ -236,7 +264,15 @@ def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
         matched += m
         missing += x
         updated += u
-        details.append({"pack": pack.name, "lessons": len(lessons), "matched": m, "missing": x, "updated": u})
+        details.append(
+            {
+                "pack": pack.name,
+                "lessons": len(lessons),
+                "matched": m,
+                "missing": x,
+                "updated": u,
+            }
+        )
         print(f"  pack {pack.name}: lessons={len(lessons)} matched={m} updated={u} missing={x}")
 
     conn.close()
@@ -246,5 +282,6 @@ def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
         "matched": matched,
         "updated": updated,
         "missing": missing,
+        "skipped_weak": skipped_weak,
         "details": details,
     }

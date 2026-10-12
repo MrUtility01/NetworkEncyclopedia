@@ -1,61 +1,40 @@
 # -*- coding: utf-8 -*-
-"""موتور محتوای عمیق — اینفوگرافیک + مثال + عمق تخصصی vendor."""
+"""محتوای درس — فقط حول همان موضوع عنوان؛ بدون قاطی کردن مطالب بی‌ربط."""
 from __future__ import annotations
 import re
 from typing import Any, Dict, List, Tuple
 from core.rich_data import BANKS, COMMON, ERRORS, SCENARIO_HOOKS
 
 _LEVEL_FA = {
-    "L0": "آشنایی / تصویر ذهنی",
-    "L1": "Junior — مشاهده و Lab ساده",
-    "L2": "Administrator — پیکربندی + Verify + Rollback",
-    "L3": "Engineer / Senior — طراحی و RCA",
-    "L4": "Architect — سازمانی، چندسایت، Change Control",
+    "L0": "آشنایی",
+    "L1": "مقدماتی",
+    "L2": "ادمین",
+    "L3": "مهندس",
+    "L4": "معمار",
 }
 
 _CATS: List[Tuple[str, List[str]]] = [
     ("vlan", ["vlan", "trunk", "access", "802.1q", "native vlan", "svi"]),
-    ("stp", ["stp", "spanning", "rstp", "bpdu", "root bridge", "portfast", "loop"]),
-    ("ospf", ["ospf", "area", "lsa", "neighbor", "dr", "bdr", "cost"]),
-    ("bgp", ["bgp", "prefix-list", "route-map", "as number", "ebgp", "ibgp", "peering"]),
-    ("acl", ["acl", "access-list", "extended", "standard", "named acl"]),
-    ("nat", ["nat", "pat", "overload", "static nat", "port forward"]),
-    ("vpn", ["vpn", "ipsec", "ike", "tunnel", "phase1", "phase2", "ssl vpn"]),
-    ("dhcp", ["dhcp", "scope", "lease", "relay", "helper", "dora", "reservation"]),
-    ("dns", ["dns", "resolver", "zone", "forwarder", "dnssec", "split-horizon"]),
-    ("wireless", ["wifi", "wireless", "ssid", "wpa", "wlc", "roaming", "ap"]),
+    ("stp", ["stp", "spanning", "rstp", "bpdu", "root bridge", "portfast"]),
+    ("ospf", ["ospf", "area", "lsa", "neighbor", "dr", "bdr"]),
+    ("bgp", ["bgp", "prefix-list", "route-map", "as number", "ebgp", "ibgp"]),
+    ("acl", ["acl", "access-list", "extended", "standard"]),
+    ("nat", ["nat", "pat", "overload", "static nat"]),
+    ("vpn", ["vpn", "ipsec", "ike", "tunnel", "phase1", "phase2"]),
+    ("dhcp", ["dhcp", "scope", "lease", "relay", "helper", "dora"]),
+    ("dns", ["dns", "resolver", "zone", "forwarder"]),
+    ("wireless", ["wifi", "wireless", "ssid", "wpa", "wlc", "roaming", "ap", "وایرلس"]),
     ("firewall", ["firewall", "fortigate", "asa", "policy", "zone"]),
-    ("ha", ["hsrp", "vrrp", "glbp", "failover", "active-standby"]),
-    ("qos", ["qos", "dscp", "policing", "shaping", "priority"]),
-    ("linux", ["linux", "iptables", "nftables", "systemd", "journalctl", "ss "]),
-    ("windows", ["windows", "powershell", "gpo", "active directory", "kerberos"]),
-    ("storage", ["raid", "nvme", "ssd", "san", "iscsi", "latency", "iops"]),
-    ("virtualization", ["vmware", "esxi", "kubernetes", "docker", "pod", "hypervisor"]),
-    ("security", ["aaa", "radius", "tacacs", "tls", "snmp", "802.1x", "port security"]),
-    ("tcpip", ["tcp", "udp", "icmp", "handshake", "window", "retransmission", "arp", "ip ", "ipv4", "ipv6"]),
-    ("mpls", ["mpls", "ldp", "label", "vrf", "l3vpn", "pe ", "ce "]),
-    ("multicast", ["multicast", "pim", "igmp", "ssm", "rendezvous"]),
-    ("vxlan", ["vxlan", "vni", "vtep", "evpn", "overlay", "underlay"]),
-    ("sql", ["sql", "postgres", "mysql", "elasticsearch"]),
-    ("python", ["python", "paramiko", "netmiko", "ansible", "automation"]),
+    ("ha", ["hsrp", "vrrp", "glbp", "failover"]),
+    ("qos", ["qos", "dscp", "policing", "shaping"]),
+    ("tcpip", ["tcp", "udp", "icmp", "handshake", "arp", "ipv4", "ipv6", "subnet"]),
+    ("mpls", ["mpls", "ldp", "label", "vrf", "l3vpn"]),
+    ("security", ["aaa", "radius", "tacacs", "802.1x", "port security"]),
+    ("linux", ["linux", "iptables", "nftables", "systemd"]),
+    ("windows", ["powershell", "gpo", "active directory"]),
+    ("python", ["python", "paramiko", "netmiko", "ansible"]),
+    ("mikrotik", ["mikrotik", "routeros", "winbox", "pppoe", "queue tree"]),
 ]
-
-_ANALOGY = {
-    "vlan": "مثل جدا کردن طبقات یک برج با کلیدهای مختلف — هر VLAN یک طبقه امنیتی/پخش است.",
-    "stp": "مثل نگهبان تقاطع که یکی از جاده‌های موازی را می‌بندد تا تصادف حلقه‌ای نشود.",
-    "ospf": "مثل نقشه مترو که هر ایستگاه همسایه‌ها را اعلام می‌کند و کوتاه‌ترین مسیر محاسبه می‌شود.",
-    "bgp": "مثل توافق بین کشورهای همسایه برای عبور بار — سیاست مهم‌تر از کوتاهی مسیر است.",
-    "acl": "مثل نگهبانی درب که لیست مجاز/غیرمجاز را چک می‌کند قبل از ورود.",
-    "nat": "مثل شماره داخلی شرکت که با یک خط شهری به بیرون حرف می‌زند.",
-    "vpn": "مثل لوله زرهی بین دو ساختمان روی خیابان عمومی.",
-    "dhcp": "مثل باجه اجاره آدرس موقت در ورودی پارکینگ.",
-    "dns": "مثل دفترچه تلفن اینترنت — اسم را به شماره (IP) تبدیل می‌کند.",
-    "wireless": "مثل بی‌سیم اداره پست: ثبت‌نام در باجه (AP) بعد تحویل به جاده سیمی.",
-    "firewall": "مثل گمرک مرزی با سیاست واردات/صادرات و بازرسی بسته‌ها.",
-    "tcpip": "مثل ارسال مرسوله با کد رهگیری (TCP) یا کارت پستال بدون رسید (UDP).",
-    "ha": "مثل دو خلبان — اگر یکی از کار بیفتد دیگری کنترل را می‌گیرد.",
-    "qos": "مثل خط ویژه آمبولانس در ترافیک — ترافیک حیاتی اول می‌رود.",
-}
 
 
 def _level(title: str) -> str:
@@ -81,96 +60,195 @@ def _fmt(pairs):
     return "\n".join(f"```\n{cmd}\n```\n→ {desc}\n" for cmd, desc in pairs)
 
 
-def _story(topic: str, cat: str) -> str:
-    hooks = SCENARIO_HOOKS.get(cat) if isinstance(SCENARIO_HOOKS, dict) else None
-    if hooks:
-        try:
-            return hooks[0].format(topic=topic)
-        except Exception:
-            return hooks[0]
-    stories = {
-        "vlan": f"بدون جداسازی «{topic}» broadcast و ترافیک حساس قاطی می‌شود.",
-        "ospf": f"لینک اصلی قطع شده؛ «{topic}» باید backup را سریع جایگزین کند.",
-        "bgp": f"بدون سیاست درست «{topic}» ترافیک از لینک گران می‌رود یا blackhole می‌گیرید.",
-        "nat": f"اشتباه در «{topic}» یا همه را باز می‌کند یا سرویس timeout می‌دهد.",
-        "wireless": f"«{topic}» را از RF تا DHCP و gateway جدا ایزوله کنید.",
-        "tcpip": f"پینگ OK و اپ نه — بدون فهم «{topic}» بین L3/L4 گیر می‌کنید.",
-    }
-    return stories.get(cat, f"سرویس «{topic}» ناپایدار است — از لایه ۱ تا ۷ با شواهد ایزوله کنید.")
-
-
-def _arch_table(cat: str) -> str:
-    tables = {
-        "vlan": "| جزء | نقش |\n|-----|-----|\n| Access | یک VLAN |\n| Trunk | 802.1Q |\n| SVI | gateway L3 |",
-        "ospf": "| جزء | نقش |\n|-----|-----|\n| Area 0 | Backbone |\n| LSA | توپولوژی |\n| Cost | معیار |",
-        "bgp": "| جزء | نقش |\n|-----|-----|\n| AS | سیاست |\n| eBGP/iBGP | بین/داخل |\n| Route-map | فیلتر |",
-        "nat": "| جزء | نقش |\n|-----|-----|\n| Inside/Outside | مرز |\n| PAT | چندبهیک |",
-        "dhcp": "| جزء | نقش |\n|-----|-----|\n| DORA | اجاره IP |\n| Relay | بین VLAN |",
-        "dns": "| جزء | نقش |\n|-----|-----|\n| Resolver | پرسش |\n| Auth | zone |",
-        "vpn": "| جزء | نقش |\n|-----|-----|\n| Phase1/2 | IKE/IPsec |",
-        "firewall": "| جزء | نقش |\n|-----|-----|\n| Zone/Policy | کنترل |",
-        "wireless": "| جزء | نقش |\n|-----|-----|\n| AP/WLC | دسترسی |",
-        "tcpip": "| جزء | نقش |\n|-----|-----|\n| IP/TCP/ARP | پشته |",
-    }
-    return tables.get(cat, "| جزء | نقش |\n|-----|-----|\n| Control/Data | تصمیم/عبور |")
-
-
-def _frame_steps(cat: str) -> str:
-    steps = {
-        "vlan": "1 Access 2 VLAN 3 Tag 4 Forward 5 L3",
-        "ospf": "1 Hello 2 LSA 3 SPF 4 Route",
-        "bgp": "1 TCP179 2 UPDATE 3 Bestpath 4 RIB",
-        "nat": "1 Match 2 Rewrite 3 WAN 4 Reverse",
-        "dhcp": "1 Discover 2 Offer 3 Request 4 Ack",
-        "dns": "1 Query 2 Recursive 3 Answer",
-        "vpn": "1 IKE1 2 IKE2 3 Encrypt",
-        "wireless": "1 Assoc 2 Auth 3 DHCP 4 GW",
-        "tcpip": "1 App 2 L4 3 IP 4 MAC 5 Phy",
-        "stp": "1 Root 2 Block 3 BPDU",
-    }
-    return steps.get(cat, "1 Backup 2 Change 3 Verify 4 Rollback").replace(" ", "\n")
-
-
-def _lab_concrete(topic: str, cat: str, level: str) -> str:
-    base = f"# Lab — {topic}\n\n1. Baseline\n2. Backup\n3. Change «{topic}»\n4. Verify\n5. Failure + RCA\n6. Rollback\n"
-    if level in ("L3", "L4"):
-        base += f"\n## {level}\nChange window + Runbook\n"
-    return base
-
-
-def _rca_table(cat: str) -> str:
-    rows = ERRORS.get(cat, [
-        ("قطع", "فیزیکی/GW", "show interface"),
-        ("ناقص", "VLAN/ACL", "مقایسه کلاینت"),
-        ("کند", "duplex/DNS", "counters"),
-    ])
-    lines = ["| علامت | علت | دستور |", "|--------|------|--------|"]
-    for a, b, c in rows[:6]:
-        lines.append(f"| {a} | {b} | `{c}` |")
+def _topic_commands(topic: str, cat: str) -> str:
+    """فقط دستورات مرتبط با همین موضوع/دسته — نه بانک کلی قاطی."""
+    bank = BANKS.get(cat) or []
+    # حداکثر ۸ دستور تخصصی دسته
+    specialized = bank[:8] if bank else []
+    lines = [f"# دستورات مرتبط با «{topic}»\n"]
+    if specialized:
+        lines.append(_fmt(specialized))
+    else:
+        # حداقل‌های عمومی فقط اگر دسته ناشناخته است — کوتاه و برچسب‌خورده
+        lines.append(_fmt([
+            ("show running-config | include " + topic.split()[0][:20], f"جستجو در کانفیگ برای {topic}"),
+            ("show logging | last 50", "رویدادهای اخیر"),
+        ]))
+    lines.append("\n## Backup قبل از تغییر مربوط به این درس\n")
+    lines.append(_fmt([
+        ("show running-config | redirect flash:pre-change.cfg", "بک‌آپ"),
+        ("copy running-config startup-config", "ذخیره بعد از Verify موفق"),
+    ]))
     return "\n".join(lines)
 
 
-def _security_block(cat: str, level: str) -> str:
-    common = "- AAA/SSH\n- Backup\n- Mgmt جدا\n"
-    extra = {
-        "vlan": "- Native غیرپیش‌فرض",
-        "stp": "- BPDU Guard",
-        "dhcp": "- Snooping",
-        "wireless": "- WPA2/3",
-        "firewall": "- Default deny",
-        "vpn": "- PFS",
+def _focused_story(topic: str, cat: str) -> str:
+    return (
+        f"این درس فقط دربارهٔ «{topic}» است. "
+        f"هدف: بفهمی این موضوع دقیقاً چه مشکلی را حل می‌کند، چطور پیکربندی/مشاهده می‌شود، "
+        f"و وقتی خراب است با چه شواهدی تشخیصش می‌دهی — نه مخلوط کردن با مباحث دیگر.\n\n"
+        f"اگر در عمل با «{topic}» روبه‌رو شدی، اول همان را ایزوله کن؛ همزمان VLAN و BGP و WiFi را عوض نکن."
+    )
+
+
+def _focused_example(topic: str, cat: str) -> str:
+    """مثال عددی که صریحاً نام موضوع درس را دارد."""
+    try:
+        from core.infographics import worked_example
+
+        ex = worked_example(cat, topic)
+        # فقط اگر مثال به دسته مربوط است نگه دار
+        if ex and topic.split()[0][:4].lower() in ex.lower() or cat != "general":
+            return f"### مثال متمرکز روی «{topic}»\n\n{ex}"
+    except Exception:
+        pass
+    return f"""### مثال متمرکز روی «{topic}»
+
+1. وضعیت قبل را ثبت کن (دستور show مرتبط با {topic}).
+2. فقط یک تغییر مربوط به «{topic}» اعمال کن.
+3. Verify همان موضوع (نه کل شبکه).
+4. اگر fail شد فقط همان مسیر «{topic}» را RCA کن.
+5. Rollback همان تغییر.
+"""
+
+
+def _focused_lab(topic: str, cat: str, level: str) -> str:
+    return f"""# Lab فقط برای «{topic}»
+
+## محدوده
+در این Lab حق داری فقط مؤلفه‌های مرتبط با «{topic}» را تغییر بدهی.
+
+## مراحل
+1. Baseline مربوط به {topic}
+2. Backup
+3. یک تغییر حداقلی روی {topic}
+4. Verify همان موضوع
+5. Failure تزریقی فقط روی {topic}
+6. Rollback
+
+## معیار قبولی
+بتوانی با یک جمله بگویی: «مشکل از {topic} هست / نیست» و شاهد داشته باشی.
+"""
+
+
+def _maybe_info(topic: str, cat: str) -> str:
+    """اینفوگرافیک فقط اگر با کلیدواژه موضوع جور باشد."""
+    try:
+        from core.infographics import graphics_for_category, _BUILDERS
+
+        # نگاشت سخت: فقط اگر topic صریحاً به نمودار اشاره دارد
+        topic_l = topic.lower()
+        wanted = []
+        rules = [
+            (["vlan", "trunk"], ["vlan", "switch"]),
+            (["stp", "spanning"], ["stp"]),
+            (["ospf"], ["ospf", "router"]),
+            (["bgp"], ["bgp", "router"]),
+            (["nat", "pat"], ["nat"]),
+            (["dhcp"], ["dhcp"]),
+            (["dns"], ["dns"]),
+            (["vpn", "ipsec"], ["vpn"]),
+            (["wifi", "wireless", "وایرلس", "ssid"], ["wifi"]),
+            (["tcp", "handshake"], ["tcp"]),
+            (["arp"], ["arp"]),
+            (["firewall", "policy", "zone"], ["firewall"]),
+            (["hsrp", "vrrp"], ["ha"]),
+            (["qos"], ["qos"]),
+            (["osi", "encapsulation"], ["osi"]),
+            (["مسیر پکت", "packet"], ["packet"]),
+        ]
+        for keys, graphs in rules:
+            if any(k in topic_l for k in keys):
+                wanted.extend(graphs)
+        if not wanted:
+            return ""  # هیچ اینفوگرافیک عمومی قاطی نکن
+        # unique preserve order
+        seen = set()
+        parts = []
+        for g in wanted:
+            if g in seen:
+                continue
+            seen.add(g)
+            fn = _BUILDERS.get(g)
+            if fn:
+                parts.append(fn())
+        if not parts:
+            return ""
+        return (
+            "\n\n## اینفوگرافیک مرتبط با همین درس\n\n"
+            + "\n\n".join(parts)
+            + "\n"
+        )
+    except Exception:
+        return ""
+
+
+def _maybe_specialty(title_fa: str, title_en: str, topic: str, level: str) -> Dict[str, str]:
+    """عمق vendor فقط اگر عنوان درس صریحاً همان vendor/domain باشد."""
+    blob = f"{title_fa} {title_en} {topic}".lower()
+    # کلیدهای سخت — نه هر ACL به security
+    hard = {
+        "mikrotik": ["mikrotik", "routeros", "winbox"],
+        "fortigate": ["fortigate", "fortinet", "fortios"],
+        "cisco_l3": ["cisco ios", "ios-xe", "eigrp"],  # فقط اگر صریح
+        "wireless": ["wlc", "capwap", "وایرلس", "wireless", "wifi"],
+        "automation": ["ansible", "netmiko", "paramiko", "napalm"],
+        "voip": ["issabel", "asterisk", "sip ", "voip"],
     }
-    return common + extra.get(cat, "")
+    # OSPF/BGP depth از specialized cisco فقط اگر عنوان Cisco دارد
+    try:
+        from core.specialized_depth import specialized_block, detect_specialty
+
+        sp = detect_specialty(title_fa, title_en)
+        if not sp:
+            return {"extra_full": "", "extra_commands": "", "extra_lab": "", "extra_notes": ""}
+        keys = hard.get(sp)
+        if keys and not any(k in blob for k in keys):
+            # specialty تشخیص داده شده ولی عنوان درس صریح نیست → نچسبان
+            if sp in ("cisco_l3", "security"):
+                return {"extra_full": "", "extra_commands": "", "extra_lab": "", "extra_notes": ""}
+        return specialized_block(title_fa, title_en, level)
+    except Exception:
+        return {"extra_full": "", "extra_commands": "", "extra_lab": "", "extra_notes": ""}
 
 
-def _level_guidance(level: str) -> str:
-    return {
-        "L0": "نمودار و مفهوم",
-        "L1": "Lab + show",
-        "L2": "Config + Verify + Rollback",
-        "L3": "طراحی و RCA",
-        "L4": "معماری و Change Control",
-    }.get(level, "")
+def _arch_for(topic: str, cat: str) -> str:
+    from core.deep_fallback import _arch_table  # not available - inline minimal
+    tables = {
+        "vlan": "Access / Trunk / Native / SVI — فقط مفاهیم VLAN",
+        "ospf": "Area / Neighbor / LSA / Cost — فقط OSPF",
+        "bgp": "AS / eBGP / prefix-list / route-map — فقط BGP",
+        "nat": "Inside / Outside / PAT — فقط NAT",
+        "dhcp": "DORA / Scope / Relay — فقط DHCP",
+        "dns": "Resolver / Zone / TTL — فقط DNS",
+        "vpn": "Phase1 / Phase2 / interesting traffic — فقط VPN",
+        "firewall": "Zone / Policy / Session — فقط فایروال",
+        "wireless": "SSID / AP / Auth / DHCP — فقط وایرلس",
+        "tcpip": "IP / TCP|UDP / ARP — فقط پشته",
+        "mikrotik": "filter / nat / mangle / route — فقط RouterOS",
+        "stp": "Root / RP / DP / Blocking — فقط STP",
+    }
+    base = tables.get(cat, f"اجزای مستقیم «{topic}» را در این بخش نگه دار؛ مبحث موازی ننویس.")
+    return f"**تمرکز:** {topic}\n\n{base}"
+
+
+def _steps_for(topic: str, cat: str) -> str:
+    steps = {
+        "vlan": "پورت access → VLAN → trunk tag → forward همان VLAN",
+        "ospf": "Hello → adjacency → LSA → SPF → route",
+        "bgp": "TCP 179 → OPEN → UPDATE → best path",
+        "nat": "match → translate → forward → reverse",
+        "dhcp": "Discover → Offer → Request → Ack",
+        "dns": "query → cache/recursive → answer",
+        "vpn": "IKE1 → IKE2 → encrypt data",
+        "stp": "elect root → block loop → re-converge",
+        "wireless": "associate → auth → DHCP → GW",
+        "tcpip": "L4 → IP → MAC → wire",
+        "mikrotik": "in-interface → filter/mangle → route → nat → out",
+        "firewall": "ingress → policy → session → egress",
+    }
+    s = steps.get(cat, f"مشاهده → تغییر حداقلی «{topic}» → Verify → Rollback")
+    return f"جریان مخصوص «{topic}»:\n{s}"
 
 
 def build_deep_fallback(
@@ -180,131 +258,79 @@ def build_deep_fallback(
     topic = _topic(title_fa)
     cat = _cat(topic)
     level_fa = _LEVEL_FA.get(level, level)
-    bank = BANKS.get(cat, BANKS.get("general", COMMON))
-    story = _story(topic, cat)
-    analogy = _ANALOGY.get(cat, f"«{topic}» حلقه‌ای از زنجیره سرویس است.")
 
-    try:
-        from core.infographics import markdown_block, worked_example
-
-        info = markdown_block(cat)
-        example = worked_example(cat, topic)
-    except Exception:
-        info = ""
-        example = ""
-
-    try:
-        from core.specialized_depth import specialized_block
-
-        spec = specialized_block(title_fa, title_en, level)
-    except Exception:
-        spec = {"extra_full": "", "extra_commands": "", "extra_lab": "", "extra_notes": ""}
-
-    summary = (
-        f"«{topic}» ({level_fa}) — اینفوگرافیک + مثال عددی"
-        + (" + عمق تخصصی vendor" if spec.get("extra_full") else "")
-        + "."
-    )
-
-    commands = "\n".join(
-        [
-            f"# دستورات — {topic} | {level} | {cat}",
-            "",
-            "## Verify پایه",
-            _fmt(COMMON[:6]),
-            f"## تخصصی ({cat})",
-            _fmt(bank[:14] if len(bank) > 14 else bank),
-            "## Backup",
-            _fmt(
-                [
-                    ("show running-config | redirect flash:pre-change.cfg", "بک‌آپ"),
-                    ("copy running-config startup-config", "ذخیره"),
-                ]
-            ),
-        ]
-    )
-
+    info = _maybe_info(topic, cat)
+    example = _focused_example(topic, cat)
+    spec = _maybe_specialty(title_fa, title_en, topic, level)
     spec_full = (spec.get("extra_full") or "").strip()
+    # اگر specialty به موضوع نمی‌خورد، خالی بماند (از قبل فیلتر شده)
+
+    summary = f"درس «{topic}» — فقط همین موضوع؛ مثال و دستور و Lab متمرکز. سطح {level_fa}."
+
     full = f"""# {topic}
 
 **سطح:** {level} — {level_fa}  
-**EN:** {title_en or topic}  
-**دسته:** {cat}
+**EN:** {title_en or topic}
+
+> محدوده این درس: **فقط «{topic}»**. مباحث دیگر را اینجا مخلوط نکن.
 
 ---
 
-## چرا این موضوع؟
+## چرا «{topic}»؟
 
-{story}
-
----
-
-## تشبیه
-
-{analogy}
+{_focused_story(topic, cat)}
 
 ---
 
-## معماری
+## اجزا و معماری مربوط به همین موضوع
 
-{_arch_table(cat)}
+{_arch_for(topic, cat)}
 
 ---
 
-## جریان گام‌به‌گام
+## جریان عملی «{topic}»
 
-{_frame_steps(cat)}
+{_steps_for(topic, cat)}
 {info}
-## مثال حل‌شده (با اعداد واقعی)
+---
+
+## مثال حل‌شده مخصوص «{topic}»
 
 {example}
 
 ---
 
-## سطح تو ({level})
+## عیب‌یابی فقط برای «{topic}»
 
-{_level_guidance(level)}
-
----
-
-## امنیت
-
-{_security_block(cat, level)}
+وقتی علامت دیدی بپرس:
+1. آیا شواهد مستقیماً به «{topic}» اشاره دارد؟
+2. کدام دستور Verify مخصوص همین موضوع را اجرا کردم؟
+3. آیا همزمان چیز دیگری را عوض کردم؟ (نباید)
 
 ---
 
-## RCA
+## چک‌لیست
 
-{_rca_table(cat)}
-
-Symptom → Scope → Evidence → Hypothesis → Test → Fix → Verify → Document
-
----
-
-## چک‌لیست Production
-
-- [ ] Backup + Rollback
-- [ ] دامنه تغییر
-- [ ] Verify محلی و End-to-End
-- [ ] مانیتور بعد از change
+- [ ] تغییر فقط روی «{topic}»
+- [ ] Backup
+- [ ] Verify مرتبط
+- [ ] Rollback آماده‌است
 
 {spec_full}
 
 ---
 
-## جمع‌بندی
+## جمع‌بندی یک‌خطی
 
-1. Verify اول برای «{topic}»
-2. نقطه شکست رایج دسته {cat}
-3. مسیر Rollback
+«{topic}» را وقتی بلدی که بتوانی بدون دست‌زدن به بقیهٔ شبکه، آن را Verify و در صورت نیاز Rollback کنی.
 """
 
     return {
         "summary": summary,
         "full_content": full,
-        "commands": commands + ("\n" + (spec.get("extra_commands") or "")),
-        "examples": (_lab_concrete(topic, cat, level) + "\n\n" + (example or "") + "\n\n" + (spec.get("extra_lab") or "")),
-        "notes": f"## RCA — {topic}\n\n{_rca_table(cat)}\n\n{_level_guidance(level)}\n\n" + (spec.get("extra_notes") or ""),
+        "commands": _topic_commands(topic, cat) + ("\n" + (spec.get("extra_commands") or "")),
+        "examples": _focused_lab(topic, cat, level) + "\n\n" + example + ("\n\n" + (spec.get("extra_lab") or "")),
+        "notes": f"## فقط «{topic}»\n\nVerify و RCA را به همین موضوع محدود کن.\n" + (spec.get("extra_notes") or ""),
         "level": level,
         "topic": topic,
         "category": cat,
