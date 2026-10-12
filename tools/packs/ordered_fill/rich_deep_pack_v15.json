@@ -1,0 +1,117 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "ادامه v15 — غنی و عمیق، هر درس فقط موضوع خودش",
+  "lessons": [
+    {
+      "title_fa": "[L3] IS-IS پایه تا عملی — برای هسته و Service Provider",
+      "title_en": "IS-IS Fundamentals to Practical Core",
+      "chapter_order": 14,
+      "summary": "همسایگی Level-1/2، NET، متریک و مقایسه کوتاه با OSPF.",
+      "full_content": "# IS-IS — عمیق\n\n## جایگاه\nIGP قوی در هسته‌های SP و برخی دیتاسنترها؛ روی CLNS/ISO برای کنترل‌پلن، با پشتیبانی IPv4/IPv6.\n\n## مفاهیم\n| مفهوم | معنی |\n|--------|------|\n| NET | آدرس Network Entity سیستم |\n| Level-1 | داخل Area |\n| Level-2 | بین Area / backbone |\n| LSP | تبلیغ توپولوژی |\n\n## تفاوت کلیدی با OSPF\n- IS-IS روی لایه ۲.۵/CLNS است نه IP-only\n- طراحی Area متفاوت\n- در مقیاس بزرگ SP بسیار رایج\n\n## پیکربندی مفهومی\n```\nrouter isis CORE\n net 49.0001.0000.0000.0001.00\n is-type level-2-only\n metric-style wide\ninterface Gi0/0\n ip router isis CORE\n isis metric 10\n```\n\n## Verify\n```\nshow isis neighbors\nshow isis database\nshow isis topology\nshow ip route isis\n```\n\n## RCA\nNeighbor نمی‌آید: NET، level، لینک، احراز، MTU.\n",
+      "commands": "show isis neighbors\nshow isis neighbors detail\nshow isis database\nshow isis topology\nshow isis interface\nshow ip route isis\nshow clns neighbors\nshow running-config | section router isis",
+      "examples": "Lab:\n1) دو روتر Level-2\n2) neighbor up\n3) database و route\n4) metric را عوض کن\n5) level را ناهمسان کن → fail",
+      "notes": "NET باید یکتا باشد؛ اشتباه رایج کپی یکسان NET.\n",
+      "learning_objectives": ["NET", "Level-1/2", "Verify", "مقایسه با OSPF"]
+    },
+    {
+      "title_fa": "[L3] Segment Routing — ایده و کاربرد هسته",
+      "title_en": "Segment Routing Core Idea and Use",
+      "chapter_order": 16,
+      "summary": "مسیریابی با برچسب/سگمنت، کاهش وابستگی به LDP سنتی.",
+      "full_content": "# Segment Routing — عمیق\n\n## ایده\nمسیر را با لیست سگمنت (SID) توصیف می‌کنی؛ هر سگمنت یک دستور «از این گره/لینک برو» است.\n\n## انواع رایج\n| نوع | معنی |\n|------|------|\n| Prefix-SID | شناسه گره/پیشوند |\n| Adj-SID | شناسه لینک همسایه |\n| SR-MPLS | حمل روی برچسب MPLS |\n| SRv6 | سگمنت روی IPv6 |\n\n## مزیت\n- کنترل مسیر (TE) ساده‌تر\n- کمتر وابسته به LDP\n- هم‌خوانی خوب با SDN/کنترل‌گر\n\n## پیش‌نیاز\nIGP (IS-IS/OSPF) با SR extensions و underlay سالم.\n\n## Verify\n```\nshow isis segment-routing\nshow mpls forwarding-table\nshow segment-routing\n```\n",
+      "commands": "show isis segment-routing\nshow isis database verbose\nshow mpls forwarding-table\nshow ip route\nshow running-config | include segment-routing",
+      "examples": "Lab مفهومی:\n1) IGP هسته را بالا بیاور\n2) SR را enable کن\n3) Prefix-SID را ببین\n4) مسیر را با show verify کن",
+      "notes": "اول IGP پایدار؛ بعد SR.\n",
+      "learning_objectives": ["SID", "SR-MPLS در برابر SRv6", "نقش IGP"]
+    },
+    {
+      "title_fa": "[L2] MACsec — رمزنگاری لینک لایه ۲",
+      "title_en": "MACsec Link Layer Encryption",
+      "chapter_order": 65,
+      "summary": "حفاظت hop-by-hop روی لینک؛ تفاوت با IPsec.",
+      "full_content": "# MACsec — عمیق\n\n## چیست\nIEEE 802.1AE — رمزنگاری و یکپارچگی فریم روی لینک فیزیکی/منطقی بین دو دستگاه.\n\n## در برابر IPsec\n| | MACsec | IPsec |\n|--|--------|-------|\n| لایه | L2 | L3 |\n| محدوده | معمولاً لینک به لینک | end-to-end / تونل |\n| کاربرد | دیتاسنتر، بین سوئیچ‌ها | WAN، remote |\n\n## پیش‌نیاز\nپشتیبانی سخت‌افزاری/نرم‌افزاری دو طرف، کلید (static یا MKA).\n\n## Verify\nوضعیت session، آمار encrypt/decrypt، خطاهای integrity.\n\n## طراحی\nبرای لینک‌های حساس داخل سالن/بین رک؛ جایگزین VPN اینترنت نیست.\n",
+      "commands": "show macsec summary\nshow macsec interface Gi1/0/1\nshow authentication sessions\nshow running-config | include macsec|mka",
+      "examples": "Lab (اگر سخت‌افزار پشتیبانی می‌کند):\n1) MACsec روی لینک بین دو سوئیچ\n2) session up\n3) ترافیک را بررسی کن\n4) کلید را خراب کن → fail",
+      "notes": "بدون پشتیبانی سخت‌افزاری، انتظار performance بالا نداشته باش.\n",
+      "learning_objectives": ["جایگاه L2", "تفاوت با IPsec", "MKA/کلید"]
+    },
+    {
+      "title_fa": "[L2] معماری Spine-Leaf دیتاسنتر",
+      "title_en": "Spine Leaf Data Center Architecture",
+      "chapter_order": 16,
+      "summary": "توپولوژی مدرن DC، east-west، ECMP و مقیاس.",
+      "full_content": "# Spine-Leaf — عمیق\n\n## چرا\nتوپولوژی سه‌لایه کلاسیک برای ترافیک شرقی-غربی VM/کانتینر بهینه نیست.\n\n## قواعد\n- هر Leaf به همه Spineها\n- Leafها به هم مستقیم وصل نمی‌شوند\n- Spineها معمولاً به endpoint وصل نمی‌شوند\n\n## مزیت\nتأخیر پیش‌بینی‌پذیر، ECMP، مقیاس افقی با افزودن leaf/spine.\n\n## Underlay و Overlay\nUnderlay: IP/BGP یا OSPF\nOverlay: VXLAN/EVPN برای L2 کشیده و multi-tenant\n\n## طراحی ظرفیت\noversubscription نسبت uplink leaf به downlink سرور را حساب کن.\n",
+      "commands": "show ip route\nshow bgp summary\nshow nve peers\nshow interfaces status\nshow ecmp",
+      "examples": "تمرین طراحی:\n1) ۲۰ سرور روی هر leaf\n2) ۲ spine\n3) پهنای باند downlink و uplink را بنویس\n4) نقطه شکست single spine را تحلیل کن",
+      "notes": "بدون ECMP سالم، از مزیت spine-leaf کم می‌شود.\n",
+      "learning_objectives": ["قواعد اتصال", "east-west", "oversubscription"]
+    },
+    {
+      "title_fa": "[L2] Observability شبکه — Metrics، Logs، Traces",
+      "title_en": "Network Observability Metrics Logs Traces",
+      "chapter_order": 25,
+      "summary": "از مانیتورینگ ساده تا مشاهده‌پذیری برای RCA سریع.",
+      "full_content": "# Observability — عمیق\n\n## سه ستون\n| ستون | مثال شبکه |\n|------|-----------|\n| Metrics | CPU، interface error، latency |\n| Logs | Syslog، AAA، firewall |\n| Traces | مسیر درخواست در سیستم‌های توزیع‌شده |\n\n## برای مهندس شبکه\n- SNMP/Telemetry streaming\n- Syslog متمرکز\n- NetFlow/IPFIX\n- Synthetic probe (ping/HTTP از نقاط مختلف)\n\n## طلایی\nآلارم باید actionable باشد. صدها آلارم بی‌اقدام = نادیده گرفتن حادثه واقعی.\n\n## RCA با Observability\nزمان رویداد را هم‌تراز کن (NTP) و از metric به log برو.\n",
+      "commands": "show logging\nshow interface counters errors\nshow processes cpu\nsnmpwalk -v2c -c RO 10.10.10.1 ifInErrors\nping -c 50 10.10.10.1\ncurl -w \"%{time_total}\\n\" -o /dev/null -s https://app.local",
+      "examples": "Lab:\n1) baseline latency به یک سرویس\n2) لینک را اشباع کن\n3) metric و log را همزمان ببین\n4) یک داشبورد ذهنی (سه عدد طلایی) تعریف کن",
+      "notes": "بدون NTP، correlate کردن log و metric سخت می‌شود.\n",
+      "learning_objectives": ["سه ستون", "آلارم actionable", "correlate"]
+    },
+    {
+      "title_fa": "[L2] Capacity Planning شبکه",
+      "title_en": "Network Capacity Planning",
+      "chapter_order": 25,
+      "summary": "اندازه‌گیری استفاده، پیش‌بینی رشد و تصمیم ارتقا.",
+      "full_content": "# Capacity Planning — عمیق\n\n## سوال‌ها\n1. حالا چقدر استفاده می‌کنیم؟\n2. رشد ۶–۱۲ ماه چیست؟\n3. سقف امن کجاست (مثلاً ۷۰٪)؟\n4. نقطه ارتقا چه زمانی است؟\n\n## داده لازم\n- utilization اینترفیس (۹۵th percentile بهتر از میانگین خام)\n- تعداد session/تونل\n- CPU کنترل‌پلن\n- فضای TCAM/ACL در صورت نیاز\n\n## روش ساده\nbaseline یک ماه → روند → سناریو رشد (مثلاً +۳۰٪ کاربر) → تصمیم.\n\n## ضدالگو\nارتقا فقط بعد از saturation کامل؛ یا خرید بیش‌ازحد بدون داده.\n",
+      "commands": "show interfaces Gi0/0\nshow interfaces Gi0/0 | include rate\nshow processes cpu history\nshow ip nat statistics\nshow session\n# از NMS: graph 95th percentile",
+      "examples": "تمرین:\n1) یک لینک WAN را یک هفته اندازه بگیر\n2) 95th را حساب کن\n3) با رشد ۲۰٪ ببین کی به ۷۰٪ می‌رسی\n4) پیشنهاد ارتقا یا QoS بنویس",
+      "notes": "پیک لحظه‌ای را با ظرفیت پایدار اشتباه نگیر.\n",
+      "learning_objectives": ["baseline", "95th percentile", "آستانه ارتقا"]
+    },
+    {
+      "title_fa": "[L2] Disaster Recovery شبکه و تداوم سرویس",
+      "title_en": "Network Disaster Recovery Continuity",
+      "chapter_order": 5,
+      "summary": "RTO/RPO، سایت پشتیبان، DNS failover و تمرین بازیابی.",
+      "full_content": "# DR شبکه — عمیق\n\n## واژه‌ها\n| واژه | معنی |\n|------|------|\n| RTO | حداکثر زمان قابل‌قبول قطعی |\n| RPO | حداکثر داده قابل‌قبول از‌دست‌رفته |\n| Warm/Cold/Hot site | سطح آمادگی سایت دوم |\n\n## اجزای شبکه DR\n- لینک به سایت دوم\n- همگام‌سازی کانفیگ و DNS\n- مسیر ترافیک در failover\n- runbook تمرین‌شده\n\n## DNS در DR\nTTL پایین برای رکوردهای حیاتی؛ یا مکانیزم health-based.\n\n## تمرین\nسال حداقل یک‌بار failover آزمایشی با معیار Verify.\n\n## ضدالگو\nbackup فقط روی همان سایت؛ یا DR بدون تست.\n",
+      "commands": "show ip route\nshow bgp summary\nshow crypto session\ndig app.company.com\ncurl -I https://app.company.com\nshow running-config",
+      "examples": "Tabletop:\n1) سایت اصلی را از دست بده\n2) DNS/route را به سایت DR ببر\n3) زمان رسیدن به سرویس را اندازه بگیر\n4) با RTO هدف مقایسه کن",
+      "notes": "DR بدون تمرین = فرضیه.\n",
+      "learning_objectives": ["RTO/RPO", "failover DNS", "تمرین دوره‌ای"]
+    },
+    {
+      "title_fa": "[L2] Compliance و لاگ شبکه‌ای — پاسخ به حسابرسی",
+      "title_en": "Network Compliance Logging Audit Ready",
+      "chapter_order": 65,
+      "summary": "نگه‌داری شواهد، جداسازی وظایف و آماده‌سازی برای ممیزی.",
+      "full_content": "# Compliance شبکه — عمیق\n\n## درخواست ممیز\n- چه کسی به چه دستگاهی دسترسی داشت؟\n- تغییرات کانفیگ چه زمانی و توسط چه کسی؟\n- لاگ‌ها کجا و چند وقت نگه‌داری می‌شوند؟\n\n## حداقل کنترل‌ها\n1. AAA با accounting\n2. Syslog متمرکز + retention\n3. backup کانفیگ نسخه‌دار\n4. دسترسی Mgmt جدا\n5. زمان یکسان (NTP)\n\n## جداسازی وظایف\nکسی که change می‌دهد با کسی که approve می‌کند یکی نباشد (در حد عملی سازمان).\n\n## خروجی آماده\nگزارش دسترسی، نمونه لاگ، سیاست رمز و لیست دارایی.\n",
+      "commands": "show archive\nshow logging\nshow users\nshow aaa servers\nshow running-config\nshow clock\nshow ntp status",
+      "examples": "تمرین:\n1) یک change را با نام کاربر در لاگ پیدا کن\n2) backup قبل/بعد را مقایسه کن\n3) یک صفحه «پاسخ به ممیز» بنویس",
+      "notes": "لاگ بدون retention و حفاظت از تغییر، برای ممیزی ضعیف است.\n",
+      "learning_objectives": ["AAA accounting", "retention", "شواهد change"]
+    },
+    {
+      "title_fa": "[L2] eBPF و مشاهده‌پذیری مدرن لینوکس",
+      "title_en": "eBPF Modern Linux Observability",
+      "chapter_order": 40,
+      "summary": "دیدن ترافیک و رویدادها در کرنل بدون دستکاری سنگین اپ.",
+      "full_content": "# eBPF — عمیق برای شبکه\n\n## ایده\nبرنامه‌های کوچک در کرنل برای trace، فیلتر و متریک با هزینه کم.\n\n## کاربرد شبکه\n- دیدن dropها\n- latency\n- اتصال‌های مشکوک\n- جایگزین/مکمل tcpdump در مقیاس\n\n## ابزارها\nbpftrace، bcc، Cilium/Hubble در محیط کانتینر.\n\n## محدودیت\nنیاز به کرنل مناسب و مجوز؛ روی همه تجهیزات شبکه سنتی نیست — تمرکز روی سرور/لینوکس.\n\n## مسیر یادگیری\nاول tcpdump/ss → بعد یک ابزار bcc → بعد مفاهیم map/program.\n",
+      "commands": "uname -r\nss -lntu\ntcpdump -ni any port 443\nbpftrace -e 'tracepoint:syscalls:sys_enter_connect { @[comm] = count(); }'\n# در صورت نصب bcc:\ntcpconnect-bpfcc",
+      "examples": "Lab لینوکس:\n1) یک سرویس روی 8080\n2) با ss و tcpdump ببین\n3) (اگر محیط اجازه داد) bpftrace برای connect\n4) نتیجه را با log اپ مقایسه کن",
+      "notes": "eBPF جادو نیست؛ هنوز باید سوال درست بپرسی.\n",
+      "learning_objectives": ["جایگاه eBPF", "مکمل tcpdump", "محدوده سرور"]
+    },
+    {
+      "title_fa": "[L2] مدیریت لایسنس و چرخه عمر تجهیزات شبکه",
+      "title_en": "Network Device Lifecycle License Management",
+      "chapter_order": 5,
+      "summary": "از خرید تا خروج از سرویس: پشتیبانی، لایسنس، تعویض.",
+      "full_content": "# Lifecycle و لایسنس — عمیق\n\n## فازها\n1. نیازسنجی و طراحی\n2. خرید و لایسنس\n3. نصب و baseline\n4. بهره‌برداری و پچ\n5. EOS/EOL و مهاجرت\n\n## لایسنس\nویژگی‌های پیشرفته (BGP کامل، رمز، SD-WAN) ممکن است به لایسنس وابسته باشد. قبل از go-live Verify کن.\n\n## EOS / EOL\nتاریخ پایان پشتیبانی را رصد کن؛ ریسک امنیتی روی نرم‌افزار بدون پچ.\n\n## موجودی\nCMDB ساده: سریال، مکان، نسخه OS، تاریخ پشتیبانی.\n\n## ضدالگو\nتجهیز حیاتی بدون قرارداد پشتیبانی؛ یا ارتقای نسخه بدون release note.\n",
+      "commands": "show version\nshow license\nshow license usage\nshow inventory\nshow tech-support | redirect flash:tech.txt",
+      "examples": "تمرین:\n1) جدول موجودی ۵ دستگاه\n2) نسخه OS و تاریخ پشتیبانی فرضی\n3) یکی را EOS فرض کن و برنامه مهاجرت ۳ ماهه بنویس",
+      "notes": "قبل از تمدید لایسنس، واقعاً از feature استفاده می‌کنید؟\n",
+      "learning_objectives": ["EOS/EOL", "inventory", "license verify"]
+    }
+  ]
+}
