@@ -1,0 +1,117 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "ادامه v12 — غنی و عمیق، هر درس فقط موضوع خودش",
+  "lessons": [
+    {
+      "title_fa": "[L3] DMVPN عملی — از mGRE تا NHRP و Verify",
+      "title_en": "DMVPN Practical mGRE NHRP Verify",
+      "chapter_order": 14,
+      "summary": "مسیر یادگیری و پیکربندی پایه Hub-and-Spoke با تمرکز روی NHRP و عیب‌یابی.",
+      "full_content": "# DMVPN عملی — عمیق\n\n## نقش‌ها\n| نقش | کار |\n|------|-----|\n| Hub | مرکز؛ Spokeها به آن register می‌کنند |\n| Spoke | شعبه؛ تونل به Hub |\n| NHRP | نگاشت آدرس تونل به NBMA واقعی |\n| mGRE | GRE چندنقطه‌ای روی یک اینترفیس |\n\n## فاز یادگیری (اجباری)\n1. Site-to-Site IPsec ساده\n2. GRE نقطه‌به‌نقطه\n3. mGRE + NHRP\n4. مسیریابی (OSPF/EIGRP/BGP) روی تونل\n5. Spoke-to-Spoke مستقیم (فاز بالاتر)\n\n## مفاهیم کلیدی\n- **NBMA address**: IP واقعی روی اینترنت/WAN\n- **Tunnel address**: IP منطقی روی Tunnel0\n- Hub معمولاً `ip nhrp map multicast dynamic` دارد\n\n## Verify ضروری\n```\nshow dmvpn\nshow ip nhrp\nshow ip nhrp nhs\nshow crypto session\nshow interface tunnel0\nshow ip route\n```\n\n## RCA\n| علامت | لایه |\n|--------|------|\n| Tunnel down | Underlay / IPsec |\n| NHRP incomplete | NHS / map / ACL UDP |\n| Overlay up ولی LAN نه | Routing روی تونل |\n\n## نکته\nقبل از کانفیگ کامل، underlay (پینگ Hub↔Spoke روی WAN) باید سالم باشد.\n",
+      "commands": "show dmvpn\nshow dmvpn detail\nshow ip nhrp\nshow ip nhrp nhs\nshow ip nhrp traffic\nshow crypto session\nshow crypto isakmp sa\nshow crypto ipsec sa\nshow interface tunnel0\nshow ip interface brief\nshow ip route\nping <hub-tunnel-ip>\nping <spoke-lan> source <local-lan>",
+      "examples": "Lab مرحله‌ای:\n1) دو Spoke فقط به Hub\n2) show dmvpn → spoke registered\n3) پینگ LAN از طریق Hub\n4) underlay را قطع کن → اثر روی NHRP\n5) برگردان و دوباره register",
+      "notes": "همه چیز را یک‌جا از صفر ننویس؛ فازبندی کن.\n",
+      "learning_objectives": ["نقش Hub/Spoke", "NHRP", "Verify dmvpn", "جدا underlay/overlay"]
+    },
+    {
+      "title_fa": "[L2] Ansible شبکه — Inventory تا Playbook امن",
+      "title_en": "Ansible Network Inventory to Safe Playbook",
+      "chapter_order": 51,
+      "summary": "اتوماسیون خواندنی اول: inventory، connection، backup با check mode.",
+      "full_content": "# Ansible برای شبکه — عمیق\n\n## اصول\n1. اول **read-only** (show)\n2. بعد change با `--check`\n3. همیشه backup قبل از write\n4. رمز در Git نباشد (vault/env)\n\n## Inventory نمونه\n```ini\n[routers]\nr1 ansible_host=10.10.10.1\nr2 ansible_host=10.10.10.2\n\n[routers:vars]\nansible_network_os=ios\nansible_user=admin\nansible_password=Secret\nansible_connection=network_cli\n```\n\n## Playbook backup (فقط show)\n```yaml\n- name: Backup show version\n  hosts: routers\n  gather_facts: no\n  tasks:\n    - name: show version\n      cisco.ios.ios_command:\n        commands: show version\n      register: out\n    - name: save\n      copy:\n        content: \"{{ out.stdout[0] }}\"\n        dest: \"./backup/{{ inventory_hostname }}.txt\"\n```\n\n## اجرا\n```\nansible-playbook -i inventory backup.yml --check\nansible-playbook -i inventory backup.yml\n```\n\n## RCA\n| خطا | بررسی |\n|------|--------|\n| unreachable | IP/SSH/credential |\n| timeout | latency/enable |\n| auth fail | user/pass/AAA |\n",
+      "commands": "ansible --version\nansible routers -i inventory -m ping\nansible routers -i inventory -m cisco.ios.ios_command -a \"commands='show ip int brief'\"\nansible-playbook -i inventory backup.yml --check\nansible-playbook -i inventory backup.yml\nansible-vault encrypt group_vars/all.yml",
+      "examples": "Lab:\n1) inventory دو دستگاه\n2) ansible ping\n3) playbook فقط show\n4) خروجی را در فایل ذخیره کن\n5) عمداً پسورد را خراب کن و خطا را بخوان",
+      "notes": "change روی production بدون dry-run و backup ممنوع.\n",
+      "learning_objectives": ["inventory", "ios_command", "check mode", "vault"]
+    },
+    {
+      "title_fa": "[L2] Netmiko و NAPALM — اسکریپت عملی شبکه",
+      "title_en": "Netmiko NAPALM Practical Network Scripts",
+      "chapter_order": 51,
+      "summary": "پایتون برای show/backup و مقایسه وضعیت چند دستگاه.",
+      "full_content": "# Netmiko / NAPALM — عمیق\n\n## Netmiko — اتصال مستقیم\n```python\nfrom netmiko import ConnectHandler\ndevice = {\n    'device_type': 'cisco_ios',\n    'host': '10.10.10.1',\n    'username': 'admin',\n    'password': 'Secret',\n}\nconn = ConnectHandler(**device)\nprint(conn.send_command('show ip interface brief'))\nconn.disconnect()\n```\n\nبرای change: `send_config_set` + ذخیره running؛ همیشه backup اول.\n\n## NAPALM — abstraction\n```python\nfrom napalm import get_network_driver\ndriver = get_network_driver('ios')\ndevice = driver('10.10.10.1', 'admin', 'Secret')\ndevice.open()\nprint(device.get_facts())\nprint(device.get_interfaces_ip())\ndevice.close()\n```\n\n## الگوی حرفه‌ای\n- لیست دستگاه از CSV/YAML\n- try/except برای هر host\n- timeout مشخص\n- لاگ و خروجی جدا\n\n## امنیت\nرمز را hardcode نکن؛ از env یا فایل خارج از Git بخوان.\n",
+      "commands": "python -c \"import netmiko; print(netmiko.__version__)\"\npython -c \"import napalm; print(napalm.__version__)\"\npython backup_show.py\npython multi_host_show.py",
+      "examples": "Lab:\n1) اسکریپت show version برای ۳ سوئیچ\n2) خروجی در فایل جدا\n3) یکی را unreachable کن و exception را handle کن\n4) (اختیاری) NAPALM get_facts",
+      "notes": "اسکریپت بدون exception handling در شب عملی خطرناک است.\n",
+      "learning_objectives": ["ConnectHandler", "send_command", "NAPALM facts", "حلقه چند host"]
+    },
+    {
+      "title_fa": "[L2] SSL-VPN و دسترسی از راه دور امن",
+      "title_en": "SSL-VPN Secure Remote Access",
+      "chapter_order": 57,
+      "summary": "مقایسه با IPsec، split-tunnel، گروه‌های دسترسی و عیب‌یابی اتصال کاربر.",
+      "full_content": "# SSL-VPN — عمیق\n\n## در برابر IPsec site-to-site\n| | SSL-VPN | IPsec S2S |\n|--|---------|-----------|\n| کاربر موبایل/لپ‌تاپ | عالی | معمولاً نه |\n| شعبه ثابت | ممکن | عالی |\n| پورت رایج | 443 | 500/4500 |\n\n## طراحی دسترسی\n- گروه Finance فقط به VLAN مالی\n- گروه IT به Mgmt\n- Guest VPN فقط اینترنت داخلی محدود\n\n## Split-Tunnel\nفقط مسیرهای سازمانی از تونل بروند؛ بقیه اینترنت مستقیم کاربر.\nمزیت: بار کمتر روی مرکز.\nریسک: اگر endpoint آلوده باشد، کنترل کمتر.\n\n## RCA کاربر\n1. اینترنت کاربر OK؟\n2. به portal می‌رسد؟\n3. Auth (LDAP/RADIUS/local)؟\n4. IP pool تمام شده؟\n5. Policy بعد از VPN؟\n\n## سخت‌گیری\nMFA، certificate، محدودیت زمان session، قطع deviceهای قدیمی.\n",
+      "commands": "get vpn ssl monitor\ndiagnose vpn ssl list\ndiagnose debug application sslvpn -1\ndiagnose debug enable\n# بسته به فروشنده\nshow vpn-sessiondb\nshow crypto session",
+      "examples": "Lab مفهومی:\n1) کاربر به portal وصل شود\n2) فقط به یک subnet دسترسی داشته باشد\n3) به subnet ممنوع fail شود\n4) pool را پر کن و علامت را ببین",
+      "notes": "VPN بدون policy بعد از تونل = همه یا هیچ.\n",
+      "learning_objectives": ["split-tunnel", "گروه دسترسی", "RCA اتصال کاربر"]
+    },
+    {
+      "title_fa": "[L2] امنیت وایرلس — Rogue AP و WPA3",
+      "title_en": "Wireless Security Rogue AP WPA3",
+      "chapter_order": 30,
+      "summary": "تهدیدات لایه وایرلس، تشخیص Rogue و انتخاب رمزنگاری مناسب.",
+      "full_content": "# امنیت وایرلس — عمیق\n\n## تهدیدها\n| تهدید | توضیح |\n|--------|--------|\n| Rogue AP | نقطه دسترسی غیرمجاز در سازمان |\n| Evil Twin | SSID جعلی شبیه CORP |\n| PSK ضعیف | نفوذ به کل VLAN همان SSID |\n| Open Guest | سوءاستفاده و pivot |\n\n## WPA2 / WPA3\n- WPA2-PSK: هنوز رایج؛ پسورد قوی لازم\n- WPA3-SAE: مقاوم‌تر در برابر offline attack\n- Enterprise (802.1X): برای سازمان بزرگ اجباری‌تر\n\n## کنترل\n- SSID مدیریت‌شده فقط از کنترلر\n- تشخیص Rogue روی APهای رسمی\n- جدا VLAN Guest\n- پورت سوئیچ به AP: فقط trunk لازم\n\n## RCA\nکلاینت به SSID اشتباه وصل شده؟ سیگنال ضعیف؟ DHCP از VLAN غلط؟\n",
+      "commands": "show ap summary\nshow client summary\nshow rogue ap summary\nshow wlan summary\nshow wireless client summary",
+      "examples": "Lab:\n1) SSID CORP با PSK قوی\n2) Guest جدا\n3) لیست کلاینت‌ها را ببین\n4) (اگر کنترلر دارد) rogue summary را بررسی کن",
+      "notes": "PSK را در کانال عمومی و تیکت باز ننویس.\n",
+      "learning_objectives": ["Rogue", "WPA3 vs WPA2", "جدا Guest"]
+    },
+    {
+      "title_fa": "[L2] Syslog و SNMP — دید عملیاتی کامل",
+      "title_en": "Syslog SNMP Operational Visibility Complete",
+      "chapter_order": 25,
+      "summary": "لاگ متمرکز و مانیتورینگ؛ از تنظیم تا آلارم link-down.",
+      "full_content": "# Syslog + SNMP — عمیق\n\n## Syslog\n```\nlogging host 10.10.10.100\nlogging trap informational\nlogging source-interface Loopback0\nservice timestamps log datetime msec\n```\nبدون NTP، ترتیب زمانی لاگ‌ها بی‌معنی می‌شود.\n\n## SNMP\n- v2c با community پیچیده (حداقل)\n- v3 با user/auth/priv (ترجیح)\n- فقط read برای NMS؛ write را محدود کن\n\n## چه چیزی را مانیتور کن\n- link down/up\n- CPU/Memory\n- BGP/OSPF neighbor down\n- session VPN drop\n\n## RCA\nآلارم می‌آید ولی واقعی نیست → threshold.\nواقعی است ولی نمی‌آید → trap/ACL به NMS.\n",
+      "commands": "show logging\nshow snmp\nshow snmp community\nshow snmp user\nsnmpwalk -v2c -c RO_NET 10.10.10.1 system\nsnmpwalk -v2c -c RO_NET 10.10.10.1 ifDescr\nshow clock\nshow ntp status",
+      "examples": "Lab:\n1) logging host را تنظیم کن\n2) اینترفیس را shut/no shut کن\n3) لاگ را در سرور ببین\n4) snmpwalk برای ifDescr\n5) community غلط → timeout",
+      "notes": "SNMP write باز روی اینترنت = خطر جدی.\n",
+      "learning_objectives": ["logging host", "SNMP read", "همراهی NTP"]
+    },
+    {
+      "title_fa": "[L2] NTP سازمانی — زمان یکسان برای همه",
+      "title_en": "Enterprise NTP Consistent Time",
+      "chapter_order": 5,
+      "summary": "چرا زمان مهم است و چگونه سلسله‌مراتب NTP را درست بچینی.",
+      "full_content": "# NTP — عمیق\n\n## چرا\n- همبستگی لاگ‌ها\n- گواهی TLS\n- Kerberos/AD\n- زمان‌بندی backup و scheduler\n\n## طراحی\n| لایه | منبع |\n|------|------|\n| هسته | ۲–۳ سرور NTP داخلی یا ISP |\n| توزیع | روتر/سوئیچ هسته |\n| لبه | از هسته |\n\n## نمونه\n```\nntp server 10.10.10.50\nntp update-calendar\nclock timezone Tehran 3 30\n```\n\n## Verify\n`show ntp status` → synchronized.\n`show ntp associations`\n\n## RCA\nunsynchronized → ACL UDP 123، reachability، stratum.\n",
+      "commands": "show clock\nshow ntp status\nshow ntp associations\nshow running-config | include ntp\nntp server 10.10.10.50\nclock set 12:00:00 12 Oct 2026",
+      "examples": "Lab:\n1) قبل از NTP ساعت‌ها را دستی متفاوت کن\n2) NTP را فعال کن\n3) status را ببین\n4) لاگ دو دستگاه را مقایسه کن",
+      "notes": "تغییر بزرگ ساعت می‌تواند session و cert را تحت تأثیر بگذارد.\n",
+      "learning_objectives": ["سلسله‌مراتب NTP", "synchronized", "اثر روی لاگ"]
+    },
+    {
+      "title_fa": "[L2] Issabel/Asterisk — ترانک SIP و عیب‌یابی صدا",
+      "title_en": "Issabel Asterisk SIP Trunk Voice Troubleshooting",
+      "chapter_order": 45,
+      "summary": "مسیر تماس، ثبت trunk، یک‌طرفه بودن صدا و RTP.",
+      "full_content": "# VoIP Issabel — عمیق\n\n## اجزا\n| جزء | نقش |\n|------|-----|\n| Extension | داخلی |\n| Trunk | اتصال به اپراتور/سانترال |\n| Inbound Route | ورود تماس |\n| Outbound Route | خروج با الگو شماره |\n| RTP | جریان رسانه |\n\n## یک‌طرفه بودن صدا\nاغلب NAT یا فایروال RTP است نه «خود سیگنالینگ SIP».\n\n## CLI مفید\n```\nsip show peers\nsip show registry\ncore show channels\nrtp set debug on\n```\n\n## چک‌لیست\n1. Trunk Registered؟\n2. الگو Outbound درست؟\n3. پورت SIP/RTP روی فایروال؟\n4. کدک دو طرف سازگار؟\n5. NAT settings؟\n",
+      "commands": "sip show peers\nsip show registry\npjsip show endpoints\ncore show channels\ncore show calls\nrtp set debug on\nrtp set debug off\nasterisk -rvvv",
+      "examples": "Lab:\n1) داخلی به داخلی\n2) از trunk بیرون\n3) در CLI کانال را ببین\n4) فایروال RTP را محدود کن و یک‌طرفه را شبیه‌سازی کن\n5) برگردان",
+      "notes": "سیگنالینگ OK ≠ رسانه OK.\n",
+      "learning_objectives": ["trunk", "route", "RTP یک‌طرفه"]
+    },
+    {
+      "title_fa": "[L3] MPLS و L3VPN — آشنایی عملی عمیق",
+      "title_en": "MPLS L3VPN Practical Deep Intro",
+      "chapter_order": 16,
+      "summary": "برچسب، VRF روی PE، و تفاوت با VRF-Lite.",
+      "full_content": "# MPLS / L3VPN — عمیق مفهومی-عملی\n\n## لایه‌ها\n1. **Underlay IGP** (OSPF/IS-IS) بین روترهای هسته\n2. **LDP/Label** توزیع برچسب\n3. **VRF روی PE** برای هر مشتری\n4. **MP-BGP** حمل مسیرهای VPN\n\n## VRF-Lite در برابر MPLS L3VPN\n| | VRF-Lite | MPLS L3VPN |\n|--|----------|------------|\n| هسته | بدون label | label switching |\n| مقیاس چندسایت | محدود | عالی |\n| پیچیدگی | کمتر | بیشتر |\n\n## مسیر یادگیری\nاول VRF-Lite روی یک روتر → بعد IGP هسته → بعد label → بعد VPN.\n\n## Verify\n```\nshow mpls ldp neighbor\nshow mpls forwarding-table\nshow ip vrf\nshow bgp vpnv4 unicast summary\n```\n",
+      "commands": "show mpls ldp neighbor\nshow mpls ldp bindings\nshow mpls forwarding-table\nshow mpls interface\nshow ip vrf\nshow ip route vrf CUST-A\nshow bgp vpnv4 unicast summary\nshow running-config | section mpls",
+      "examples": "Lab مسیر:\n1) دو VRF روی PE لبه بدون MPLS\n2) (پیشرفته) LDP بین دو روتر هسته\n3) label را در forwarding-table ببین",
+      "notes": "بدون IGP سالم، MPLS بالا نمی‌آید.\n",
+      "learning_objectives": ["نقش PE/P", "VRF vs L3VPN", "LDP پایه"]
+    },
+    {
+      "title_fa": "[L2] امنیت مدیریت — Hardening دسترسی به تجهیزات",
+      "title_en": "Management Plane Hardening Network Devices",
+      "chapter_order": 65,
+      "summary": "SSH فقط، ACL روی VTY، غیرفعال سرویس‌های خطرناک، banner و لاگ.",
+      "full_content": "# Hardening مدیریت — عمیق\n\n## حداقل‌ها\n1. فقط SSH (`transport input ssh`)\n2. `access-class` روی VTY از VLAN Mgmt\n3. AAA با fallback local\n4. غیرفعال HTTP بی‌رمز / سرویس‌های غیرضروری\n5. NTP + Syslog\n6. Banner هشدار\n\n## نمونه VTY\n```\naccess-list 50 permit 10.255.255.0 0.0.0.255\naccess-list 50 deny any log\nline vty 0 4\n access-class 50 in\n transport input ssh\n login local\n exec-timeout 10 0\n```\n\n## ضدالگو\n- Telnet باز\n- SNMP write با community ساده\n- مدیریت از اینترنت بدون VPN\n\n## تست\nاز IP غیرمجاز SSH باید fail و log شود.\nاز Mgmt باید OK.\n",
+      "commands": "show line vty 0 4\nshow access-lists 50\nshow ip ssh\nshow users\nshow running-config | section line vty\nshow running-config | include username\nshow snmp community\nshow ip http server status",
+      "examples": "Lab:\n1) فقط SSH\n2) ACL فقط Mgmt\n3) از IP کاربر عادی fail\n4) از Mgmt OK\n5) exec-timeout را تنظیم کن",
+      "notes": "قبل از access-class سخت، session فعلی را از دست نده.\n",
+      "learning_objectives": ["SSH only", "VTY ACL", "کاهش سطح حمله"]
+    }
+  ]
+}
