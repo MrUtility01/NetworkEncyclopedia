@@ -1,0 +1,117 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "ادامه پر کردن ترتیبی",
+  "lessons": [
+    {
+      "title_fa": "[L3] OSPF Multi-Area و LSA",
+      "title_en": "OSPF Multi-Area",
+      "chapter_order": 14,
+      "summary": "Area 0 ستون فقرات است؛ Areaهای دیگر به آن وصل می‌شوند.",
+      "full_content": "# OSPF Multi-Area\n\nArea1 و Area2 به Area0 وصل می‌شوند. ABR بین areaها خلاصه مسیر رد و بدل می‌کند.\n\n```\nrouter ospf 1\n network 10.1.0.0 0.0.0.255 area 0\n network 10.2.0.0 0.0.0.255 area 1\n```\n\nVerify:\n```\nshow ip ospf border-routers\nshow ip ospf database\nshow ip route ospf\n```\n\nطراحی: از areaهای زیاد بدون نیاز پرهیز کن؛ پیچیدگی LSDB را بالا می‌برد.\n",
+      "commands": "show ip ospf border-routers\nshow ip ospf database\nshow ip route ospf",
+      "examples": "Lab: R1 در area0، R2 در area1، ABR مشترک؛ مسیر LANها را ببین.",
+      "notes": "Area غیرصفر بدون اتصال به area0 طراحی کلاسیک را می‌شکند.",
+      "learning_objectives": ["نقش ABR را بگوید", "multi-area را Verify کند"]
+    },
+    {
+      "title_fa": "[L3] Redistribution کنترل‌شده",
+      "title_en": "Controlled Redistribution",
+      "chapter_order": 14,
+      "summary": "توزیع متقابل مسیر بدون tag و route-map می‌تواند حلقه بسازد.",
+      "full_content": "# Redistribution\n\nوقتی OSPF و BGP یا static را به هم redistribute می‌کنی:\n- فقط prefixهای لازم\n- tag برای جلوگیری از بازگشت\n- route-map اجباری\n\n```\nroute-map BGP-TO-OSPF permit 10\n match ip address prefix-list FROM-BGP\n set tag 65000\n\nrouter ospf 1\n redistribute bgp 65000 subnets route-map BGP-TO-OSPF\n```\n\nدر production بدون طراحی ننویس.\n",
+      "commands": "show ip route\nshow route-map\nshow ip protocols",
+      "examples": "Lab: یک static را به OSPF با tag؛ ببین در جدول با کد E2 می‌آید.",
+      "notes": "اول یک prefix، بعد گسترش.",
+      "learning_objectives": ["خطر redistribution را بداند", "با route-map فیلتر کند"]
+    },
+    {
+      "title_fa": "[L2] EtherChannel / LAG",
+      "title_en": "EtherChannel LAG",
+      "chapter_order": 11,
+      "summary": "چند لینک فیزیکی یک کانال منطقی برای پهنا و افزونگی.",
+      "full_content": "# EtherChannel\n\n```\ninterface range Gi0/1-2\n channel-group 1 mode active\ninterface Port-channel1\n switchport mode trunk\n switchport trunk allowed vlan 10,20\n```\n\nVerify: `show etherchannel summary` — هر دو پورت باید در Po1 باشند.\n\nدو سر باید mode سازگار (LACP active/active یا active/passive) داشته باشند.\n",
+      "commands": "show etherchannel summary\nshow interfaces port-channel1",
+      "examples": "Lab: دو کابل بین دو سوئیچ؛ یک Po؛ قطع یک کابل بدون قطعی کامل.",
+      "notes": "تنظیمات trunk روی Po نه فقط member.",
+      "learning_objectives": ["Po بسازد", "خرابی یک لینک را تست کند"]
+    },
+    {
+      "title_fa": "[L2] HSRP / VRRP دروازه افزونه",
+      "title_en": "HSRP VRRP",
+      "chapter_order": 14,
+      "summary": "VIP مشترک؛ Active می‌میرد Standby بالا می‌آید.",
+      "full_content": "# HSRP\n\n```\ninterface Vlan10\n ip address 10.10.10.2 255.255.255.0\n standby 1 ip 10.10.10.1\n standby 1 priority 110\n standby 1 preempt\n```\n\nکلاینت gateway = 10.10.10.1 (VIP).\nVerify: `show standby brief`\n",
+      "commands": "show standby\nshow standby brief",
+      "examples": "Lab: دو روتر؛ Active را خاموش کن؛ VIP روی Standby بماند.",
+      "notes": "preempt را آگاهانه تنظیم کن.",
+      "learning_objectives": ["VIP را پیکربندی کند", "failover را تست کند"]
+    },
+    {
+      "title_fa": "[L2] Port Security",
+      "title_en": "Port Security",
+      "chapter_order": 11,
+      "summary": "محدود کردن MAC روی پورت access.",
+      "full_content": "# Port Security\n\n```\ninterface Fa0/10\n switchport mode access\n switchport port-security\n switchport port-security maximum 2\n switchport port-security violation restrict\n```\n\nVerify: `show port-security interface Fa0/10`\n",
+      "commands": "show port-security\nshow port-security interface Fa0/10",
+      "examples": "Lab: excess MAC و مشاهده violation.",
+      "notes": "روی trunk با احتیاط.",
+      "learning_objectives": ["port-security اعمال کند"]
+    },
+    {
+      "title_fa": "[L2] DHCP Snooping",
+      "title_en": "DHCP Snooping",
+      "chapter_order": 11,
+      "summary": "فقط پورت trusted به سرور DHCP اعتماد دارد.",
+      "full_content": "# DHCP Snooping\n\n```\nip dhcp snooping\nip dhcp snooping vlan 10,20\ninterface Gi0/1\n ip dhcp snooping trust\n```\n\nپورت access کلاینت untrusted می‌ماند.\n",
+      "commands": "show ip dhcp snooping\nshow ip dhcp snooping binding",
+      "examples": "Lab: DHCP جعلی روی access؛ نباید offer بگیرد.",
+      "notes": "بدون trust روی uplink، DHCP واقعی هم می‌میرد.",
+      "learning_objectives": ["snooping را درست trust کند"]
+    },
+    {
+      "title_fa": "[L2] QoS پایه — Voice اول",
+      "title_en": "Basic QoS Voice",
+      "chapter_order": 18,
+      "summary": "Classify و Queue؛ Voice اولویت دارد ولی کل لینک را نبلع.",
+      "full_content": "# QoS پایه\n\nمراحل: Classify → Mark → Queue → Police/Shape\n\nVoice را EF/priority بده؛ داده حجیم best-effort.\nروی هر دو سمت لینک WAN marking یکسان باشد.\n",
+      "commands": "show policy-map interface\nshow mls qos",
+      "examples": "Lab مفهومی: با/بدون priority در لینک اشباع.",
+      "notes": "priority بیش از حد = قحطی برای بقیه.",
+      "learning_objectives": ["زنجیره QoS را بگوید"]
+    },
+    {
+      "title_fa": "[L3] FortiGate Policy واقعی",
+      "title_en": "FortiGate Policy",
+      "chapter_order": 22,
+      "summary": "Policy از zone/interface؛ session برای RCA.",
+      "full_content": "# FortiGate Policy\n\nLAN→WAN allow + NAT.\nWAN→DMZ فقط HTTPS به VIP.\n\n```\ndiagnose firewall session list\ndiagnose debug flow filter addr 10.10.10.50\ndiagnose debug flow trace start 50\n```\n",
+      "commands": "diagnose firewall session list\nget router info routing-table all",
+      "examples": "Lab: policy را disable و flow را بخوان.",
+      "notes": "بدون policy hit ترافیک نمی‌گذرد.",
+      "learning_objectives": ["session و policy را وصل کند"]
+    },
+    {
+      "title_fa": "[L2] Linux شبکه پایه",
+      "title_en": "Linux Networking Basics",
+      "chapter_order": 40,
+      "summary": "ip، ss، tcpdump ابزار اصلی.",
+      "full_content": "# Linux Networking\n\n```\nip -br a\nip route\nss -lntu\ntcpdump -ni eth0 icmp\n```\n\nفایروال: `nftables` / `iptables` را جدا از route ببین.\n",
+      "commands": "ip -br a\nip route\nss -lntu\ntcpdump -ni any port 22",
+      "examples": "Lab: ssh را tcpdump کن.",
+      "notes": "ss جایگزین مدرن netstat است.",
+      "learning_objectives": ["با ip و ss وضعیت را بخواند"]
+    },
+    {
+      "title_fa": "[L3] DMVPN مفهومی",
+      "title_en": "DMVPN Concept",
+      "chapter_order": 14,
+      "summary": "هاب و اسپوک با تونل پویا برای چندشعبه.",
+      "full_content": "# DMVPN مفهوم\n\nHub مرکزی؛ Spokeها با NHRP. قبل از پیاده‌سازی پیچیده، IPsec و مسیریابی را مسلط شو.\n",
+      "commands": "show dmvpn\nshow ip nhrp",
+      "examples": "مطالعه توپولوژی hub-and-spoke.",
+      "notes": "فازبندی یادگیری: اول site-to-site ساده.",
+      "learning_objectives": ["نقش hub/spoke را بگوید"]
+    }
+  ]
+}
