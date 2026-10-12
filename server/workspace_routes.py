@@ -62,19 +62,19 @@ LOGIN_PAGE = """
 <meta name=viewport content="width=device-width,initial-scale=1">
 <title>ورود فضای کاری</title>
 <style>
-body{font-family:Tahoma,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;min-height:100vh;align-items:center;justify-content:center}
-form{background:#1e293b;padding:24px;border-radius:12px;width:min(360px,92vw)}
-input,button{width:100%;padding:10px;margin:8px 0;box-sizing:border-box;font-size:15px;border-radius:8px;border:0}
-button{background:#0ea5e9;color:#fff;font-weight:bold}
-.err{color:#fca5a5;font-size:13px}
+body{font-family:Tahoma,sans-serif;background:#f4f6f9;color:#0f172a;display:flex;min-height:100vh;align-items:center;justify-content:center}
+form{background:#fff;padding:24px;border-radius:12px;width:min(360px,92vw);border:1px solid #e2e8f0;box-shadow:0 8px 30px rgba(15,23,42,.08)}
+input,button{width:100%;padding:10px;margin:8px 0;box-sizing:border-box;font-size:15px;border-radius:8px;border:1px solid #e2e8f0}
+button{background:#2563eb;color:#fff;font-weight:bold;border:0}
+.err{color:#dc2626;font-size:13px}
 </style></head><body>
 <form method=post action="/workspace/login">
 <h2>فضای کاری — نیاز به توکن</h2>
-<p style="color:#94a3b8;font-size:13px">همان NETENC_TOKEN سرور / توکن Sync اندروید</p>
+<p style="color:#64748b;font-size:13px">همان NETENC_TOKEN سرور / توکن Sync اندروید</p>
 <input type=password name=token placeholder="توکن" required autofocus>
 {% if error %}<p class=err>{{ error }}</p>{% endif %}
 <button type=submit>ورود</button>
-<p style="font-size:12px;color:#64748b"><a href="/" style="color:#38bdf8">بازگشت</a></p>
+<p style="font-size:12px;color:#64748b"><a href="/" style="color:#2563eb">خانه — بازگشت به صفحه اصلی</a></p>
 </form>
 </body></html>
 """
@@ -84,11 +84,11 @@ PAGE = """
 <meta name=viewport content="width=device-width,initial-scale=1">
 <title>فضای کاری</title>
 <style>
-body{font-family:Tahoma,sans-serif;background:#f7f8fa;margin:0;padding:16px;color:#0f172a}
-.card{background:#fff;border-radius:12px;padding:12px;margin:8px 0;box-shadow:0 1px 3px #0001}
+body{font-family:Tahoma,sans-serif;background:#f4f6f9;margin:0;padding:16px;color:#0f172a}
+.card{background:#fff;border-radius:12px;padding:12px;margin:8px 0;box-shadow:0 1px 3px #0001;border:1px solid #e2e8f0}
 input,textarea,button{width:100%;margin:4px 0;padding:10px;box-sizing:border-box;font-size:15px}
-button{background:#0ea5e9;color:#fff;border:0;border-radius:8px}
-nav a{margin-left:12px;color:#0369a1;text-decoration:none;font-weight:bold}
+button{background:#2563eb;color:#fff;border:0;border-radius:8px}
+nav a{margin-left:12px;color:#1d4ed8;text-decoration:none;font-weight:bold}
 .badge{font-size:12px;color:#64748b}
 </style></head><body>
 <nav>
