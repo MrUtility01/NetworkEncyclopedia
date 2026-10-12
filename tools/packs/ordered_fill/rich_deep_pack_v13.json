@@ -1,0 +1,117 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "ادامه v13 — غنی و عمیق، هر درس فقط موضوع خودش",
+  "lessons": [
+    {
+      "title_fa": "[L3] SD-WAN عمیق — Underlay، Overlay و سیاست ترافیک",
+      "title_en": "SD-WAN Deep Underlay Overlay Traffic Policy",
+      "chapter_order": 18,
+      "summary": "طراحی لبه شعب با چند لینک، health-check و انتخاب مسیر بر اساس کاربرد.",
+      "full_content": "# SD-WAN — عمق عملی\n\n## مفاهیم\n| لایه | معنی |\n|------|------|\n| Underlay | لینک‌های واقعی: Fiber، LTE، MPLS |\n| Overlay | تونل منطقی روی underlay |\n| Health-check | سنجش تأخیر/ازدست‌رفتن بسته |\n| Policy | Voice از لینک کم‌تأخیر، Backup روی LTE |\n\n## قبل از خرید جعبه\n1. نیاز کسب‌وکار و SLA را بنویس\n2. لینک‌های موجود و هزینه را لیست کن\n3. برنامه‌های حساس (Voice، ERP، Backup) را جدا کن\n4. معیار failover را مشخص کن\n\n## الگوی شعبه\n- Primary: Fiber\n- Secondary: LTE\n- Voice + ERP → Primary تا وقتی health OK\n- Bulk backup → هر زمان / Secondary\n\n## اشتباه رایج\nSD-WAN را جایگزین طراحی underlay دانستن. اگر هر دو لینک بد باشند، جعبه معجزه نمی‌کند.\n\n## Verify\nوضعیت تونل، health-check، و اینکه ترافیک واقعاً از لینک موردنظر خارج می‌شود.\n",
+      "commands": "# نمونه‌های کلی فروشنده‌محور:\nget system interface\ndiagnose sys sdwan health-check\ndiagnose sys sdwan service\nshow sdwan\nshow ip route\nping\ntraceroute",
+      "examples": "سناریو کاغذی + Lab مفهومی:\n1) دو underlay تعریف کن\n2) health-check روی ۸.۸.۸.۸ یا IP مرکز\n3) Voice را به لینک کم‌jitter ببند\n4) Primary را قطع کن و failover را ثبت کن\n5) برگردان و sticky/return path را بررسی کن",
+      "notes": "بدون مانیتورینگ، SD-WAN فقط یک تونل پیچیده است.\n",
+      "learning_objectives": ["underlay/overlay", "health-check", "سیاست per-app", "failover"]
+    },
+    {
+      "title_fa": "[L2] Docker شبکه — Bridge، Overlay و عیب‌یابی",
+      "title_en": "Docker Networking Bridge Overlay Troubleshooting",
+      "chapter_order": 40,
+      "summary": "مدل شبکه کانتینر، publish پورت، DNS داخلی و جدا کردن مشکل از میزبان.",
+      "full_content": "# Docker Networking — عمیق\n\n## مدل‌ها\n| نوع | کاربرد |\n|------|--------|\n| bridge | پیش‌فرض تک‌میزبان |\n| host | شبکه مشترک با میزبان |\n| none | بدون شبکه |\n| overlay | چند میزبان (Swarm) |\n\n## Publish پورت\n```\ndocker run -d --name web -p 8080:80 nginx\ncurl -sI http://127.0.0.1:8080\n```\n`-p میزبان:کانتینر` — فایروال میزبان را هم در نظر بگیر.\n\n## DNS بین کانتینر\nروی user-defined bridge، نام سرویس resolve می‌شود.\n\n## RCA\n| علامت | بررسی |\n|--------|--------|\n| از بیرون باز نیست | publish / فایروال / bind |\n| بین کانتینر نه | یک network مشترک؟ |\n| DNS داخل کانتینر | resolv و forward میزبان |\n\n## امنیت\nپورت حساس را روی 0.0.0.0 بدون نیاز باز نکن.\n",
+      "commands": "docker network ls\ndocker network inspect bridge\ndocker network create appnet\ndocker run -d --name web --network appnet -p 8080:80 nginx\ndocker ps\ndocker logs web\ndocker exec web ping -c 2 another\ncurl -sI http://127.0.0.1:8080\nip addr show docker0",
+      "examples": "Lab:\n1) nginx با publish 8080\n2) از میزبان curl\n3) دو کانتینر روی appnet و ping نام\n4) پورت را ببند و علامت را ببین\n5) inspect شبکه",
+      "notes": "مشکل اپ داخل کانتینر را با مشکل publish اشتباه نگیر.\n",
+      "learning_objectives": ["bridge", "publish", "user-defined network", "inspect"]
+    },
+    {
+      "title_fa": "[L2] CI برای شبکه — Git، Pipeline و کنترل تغییر",
+      "title_en": "Network CI Git Pipeline Change Control",
+      "chapter_order": 51,
+      "summary": "از commit کانفیگ تا pipeline تست و استقرار کنترل‌شده.",
+      "full_content": "# CI شبکه — عمیق\n\n## چرا\nتغییر دستی بدون تاریخچه = غیرقابل‌حسابرسی. Git + pipeline حداقل برای:\n- backup خودکار\n- syntax/check\n- diff قبل از apply\n- تأیید انسانی (approval)\n\n## حداقل pipeline\n1. clone repo\n2. lint / ansible --check\n3. ذخیره artifact\n4. apply فقط روی branch اصلی با تأیید\n\n## ضدالگو\n- push مستقیم به production بدون review\n- ذخیره رمز در repo\n- apply همزمان روی همه سایت‌ها بدون canary\n\n## الگوی canary\nاول یک شعبه/یک دستگاه → Verify → سپس موج بعدی.\n",
+      "commands": "git status\ngit diff\ngit log --oneline -10\nansible-playbook site.yml --check\nansible-playbook site.yml --limit branch-01\ngit checkout -b change-acl\ngit commit -m \"acl: restrict 22 to mgmt\"",
+      "examples": "Lab:\n1) کانفیگ را در Git بگذار\n2) یک ACL را عوض کن\n3) diff و commit\n4) --check\n5) apply روی یک دستگاه آزمایشی",
+      "notes": "CI جایگزین فهم شبکه نیست؛ فقط انضباط می‌آورد.\n",
+      "learning_objectives": ["Git برای کانفیگ", "check قبل از apply", "canary"]
+    },
+    {
+      "title_fa": "[L2] WireGuard کامل — تونل مدرن نقطه به نقطه و شبکه",
+      "title_en": "WireGuard Complete Point to Point and Network",
+      "chapter_order": 57,
+      "summary": "کلیدها، AllowedIPs، NAT، و عیب‌یابی تونل سبک.",
+      "full_content": "# WireGuard — کامل\n\n## اجزا\n- PrivateKey / PublicKey\n- Address روی اینترفیس wg\n- Peer با Endpoint و AllowedIPs\n- ListenPort (معمولاً UDP 51820)\n\n## نمونه\n```\n[Interface]\nPrivateKey = <local>\nAddress = 10.8.0.1/24\nListenPort = 51820\n\n[Peer]\nPublicKey = <remote>\nAllowedIPs = 10.8.0.2/32, 10.20.20.0/24\nEndpoint = x.x.x.x:51820\nPersistentKeepalive = 25\n```\n\n## AllowedIPs\nهم مسیر و هم «چه ترافیکی به این peer برود». تنگ کردن = امن‌تر.\n\n## RCA\n| علامت | بررسی |\n|--------|--------|\n| handshake نیست | UDP/فایروال/کلید/Endpoint |\n| handshake هست پینگ نه | AllowedIPs / route / iptables |\n| قطع بعد از NAT | PersistentKeepalive |\n",
+      "commands": "wg\nwg show\nwg showconf wg0\nip address show wg0\nip route\nping 10.8.0.2\nsystemctl status wg-quick@wg0\njournalctl -u wg-quick@wg0 -n 50",
+      "examples": "Lab:\n1) دو peer\n2) پینگ تونل\n3) AllowedIPs را اشتباه تنگ کن → fail\n4) درست کن\n5) فایروال UDP را ببند و handshake را ببین",
+      "notes": "کلید خصوصی را در چت و Git عمومی نگذار.\n",
+      "learning_objectives": ["کلید", "AllowedIPs", "Keepalive", "RCA handshake"]
+    },
+    {
+      "title_fa": "[L2] EIGRP کامل — Neighbor تا Metric",
+      "title_en": "EIGRP Complete Neighbor to Metric",
+      "chapter_order": 14,
+      "summary": "همسایگی، topology table، successor و Feasible Successor.",
+      "full_content": "# EIGRP — کامل\n\n## جداول\n1. Neighbor table\n2. Topology table\n3. Routing table (successor)\n\n## پیکربندی\n```\nrouter eigrp 100\n network 10.0.0.0 0.0.0.255\n network 10.1.1.0 0.0.0.255\n passive-interface default\n no passive-interface Gi0/0\n eigrp router-id 1.1.1.1\n```\n\n## شروط همسایگی\nAS یکسان، K-values یکسان، subnet مشترک، احراز یکسان.\n\n## Feasible Successor\nمسیر پشتیبان که شرط feasibility را دارد → همگرایی سریع بدون query کامل در بسیاری موارد.\n\n## Verify\n```\nshow ip eigrp neighbors\nshow ip eigrp topology\nshow ip route eigrp\n```\n",
+      "commands": "show ip eigrp neighbors\nshow ip eigrp neighbors detail\nshow ip eigrp topology\nshow ip eigrp topology all-links\nshow ip eigrp interfaces\nshow ip route eigrp\nshow ip protocols\ndebug eigrp packets\nundebug all",
+      "examples": "Lab:\n1) دو روتر AS 100\n2) neighbor up\n3) topology و route\n4) لینک اصلی را قطع کن و همگرایی را ببین\n5) AS را عمداً متفاوت کن → fail",
+      "notes": "AS number دو طرف باید یکی باشد.\n",
+      "learning_objectives": ["neighbor", "topology", "successor", "FS"]
+    },
+    {
+      "title_fa": "[L2] DNSSEC و DNS امن — مفهوم تا Verify",
+      "title_en": "DNSSEC Secure DNS Concept to Verify",
+      "chapter_order": 12,
+      "summary": "جلوگیری از دستکاری پاسخ DNS؛ زنجیره اعتماد و عیب‌یابی اعتبار.",
+      "full_content": "# DNSSEC — عمیق مفهومی-عملی\n\n## مشکل\nDNS بدون امضا در برابر spoofing/cache poisoning آسیب‌پذیر است.\n\n## ایده\nپاسخ با امضای رمزنگاری؛ resolver زنجیره را تا trust anchor بررسی می‌کند.\n\n## وضعیت عملی\n- دامنه باید signed باشد\n- resolver باید validation را پشتیبانی کند\n- ساعت سیستم (NTP) مهم است\n\n## Verify\n```\ndig example.com +dnssec\ndig example.com A +dnssec +multi\nresolvectl query example.com\n```\n\n## RCA\nSERVFAIL ناگهانی بعد از DNSSEC → امضا/زمان/زنجیره.\n",
+      "commands": "dig example.com A\ndig example.com +dnssec\ndig example.com DNSKEY\ndig example.com DS\nResolve-DnsName example.com -DnssecOk\nshow clock",
+      "examples": "Lab:\n1) dig معمولی\n2) dig +dnssec و وجود RRSIG\n3) ساعت را خراب کن (Lab) و اثر را مشاهده کن\n4) NTP را درست کن",
+      "notes": "DNSSEC جایگزین TLS اپ نیست؛ لایه نام را محکم می‌کند.\n",
+      "learning_objectives": ["چرا DNSSEC", "dig +dnssec", "نقش زمان"]
+    },
+    {
+      "title_fa": "[L2] Incident Response شبکه — از تشخیص تا بازیابی",
+      "title_en": "Network Incident Response Detect to Recover",
+      "chapter_order": 65,
+      "summary": "چارچوب عملی وقتی حمله یا قطعی جدی رخ می‌دهد.",
+      "full_content": "# Incident Response شبکه — عمیق\n\n## مراحل\n1. **Prepare** — backup، runbook، دسترسی out-of-band\n2. **Identify** — علائم، دامنه، زمان شروع\n3. **Contain** — جداسازی VLAN/پورت/ACL\n4. **Eradicate** — حذف علت\n5. **Recover** — برگشت سرویس با Verify\n6. **Lessons** — سند و اصلاح\n\n## شواهد شبکه\n- Syslog / SNMP trap\n- NetFlow / session فایروال\n- کانفیگ قبل/بعد\n- خروجی show در زمان حادثه\n\n## Contain نمونه\n```\n! بستن پورت مشکوک\ninterface Fa0/12\n shutdown\n! یا ACL موقت\naccess-list 199 deny ip host 10.10.10.66 any\naccess-list 199 permit ip any any\n```\n\n## ضدالگو\nپاک کردن لاگ‌ها، تغییر همزمان همه‌چیز، نبود کانال ارتباطی بحرانی.\n",
+      "commands": "show logging\nshow users\nshow interfaces status\nshow access-lists\nshow ip arp\nshow mac address-table\ndiagnose firewall session list\nexport compact file=incident",
+      "examples": "تمرین tabletop:\n1) علائم: اسکن پورت از یک host\n2) Identify با NetFlow/log\n3) Contain با ACL/shutdown\n4) Recover\n5) گزارش یک‌صفحه‌ای",
+      "notes": "اول contain در حوادث فعال؛ بعد تحلیل عمیق.\n",
+      "learning_objectives": ["۶ مرحله IR", "contain شبکه", "حفظ شواهد"]
+    },
+    {
+      "title_fa": "[L2] Load Balancing لایه ۴ و ۷ — مفهوم تا Verify",
+      "title_en": "L4 L7 Load Balancing Concept to Verify",
+      "chapter_order": 40,
+      "summary": "توزیع بار، health-check و تفاوت L4 با L7.",
+      "full_content": "# Load Balancing — عمیق\n\n## L4 در برابر L7\n| | L4 | L7 |\n|--|----|----|\n| اساس | IP/Port | HTTP path/header |\n| SSL offload | معمولاً نه | رایج |\n| مثال | TCP 443 به چند سرور | /api به pool A |\n\n## اجزا\n- VIP / Virtual Server\n- Pool اعضا\n- Health-check (TCP/HTTP)\n- Persistence (sticky)\n\n## RCA\n| علامت | بررسی |\n|--------|--------|\n| VIP down | همه اعضا down؟ |\n| یک عضو overload | الگوریتم / health |\n| session می‌پرد | persistence |\n\n## طراحی\nHealth-check باید «سلامت اپ» را بسنجد نه فقط باز بودن پورت.\n",
+      "commands": "# بستگی به محصول (F5/Nginx/HAProxy/Cloud)\ncurl -sI http://vip/\ncurl -sI http://member1/health\nss -lntu\n# nginx\nnginx -t\n# haproxy\nhaproxy -c -f /etc/haproxy/haproxy.cfg",
+      "examples": "Lab:\n1) دو backend\n2) VIP/proxy جلو\n3) یک backend را down کن\n4) ترافیک باید به سالم برود\n5) health-check را عمداً سخت کن",
+      "notes": "پینگ OK بودن سرور یعنی عضو healthy نیست.\n",
+      "learning_objectives": ["L4 vs L7", "health-check", "persistence"]
+    },
+    {
+      "title_fa": "[L2] گواهی دیجیتال و PKI عملی برای مهندس شبکه",
+      "title_en": "Certificates PKI Practical for Network Engineers",
+      "chapter_order": 65,
+      "summary": "CSR، زنجیره اعتماد، نصب روی سرویس و عیب‌یابی TLS.",
+      "full_content": "# PKI / گواهی — عمیق برای شبکه\n\n## زنجیره\nRoot CA → Intermediate → Server Certificate\nمرورگر باید chain کامل را ببیند.\n\n## مراحل\n1. تولید کلید و CSR\n2. امضا توسط CA\n3. نصب cert + chain روی سرویس\n4. Verify با openssl/curl\n\n## دستورات\n```\nopenssl req -new -newkey rsa:2048 -nodes -keyout key.pem -out req.csr\nopenssl x509 -in cert.pem -text -noout\ncurl -vI https://service.example\n```\n\n## RCA\n| علامت | علت |\n|--------|------|\n| not trusted | chain ناقص / CA داخلی نصب‌نشده |\n| expired | تاریخ و NTP |\n| name mismatch | CN/SAN |\n\n## کاربرد شبکه\nHTTPS پنل، RADSEC، LDAPS، API کنترلرها.\n",
+      "commands": "openssl version\nopenssl req -new -newkey rsa:2048 -nodes -keyout key.pem -out req.csr\nopenssl x509 -in cert.pem -text -noout\nopenssl s_client -connect example.com:443 -servername example.com\ncurl -vI https://example.com\ncurl -kI https://internal.local",
+      "examples": "Lab:\n1) self-signed بساز\n2) curl بدون -k هشدار می‌دهد\n3) با CA داخلی اعتماد کن\n4) گواهی منقضی را شبیه‌سازی کن",
+      "notes": "کلید خصوصی = محرمانه؛ در تیکت و repo عمومی نگذار.\n",
+      "learning_objectives": ["CSR", "chain", "openssl verify", "SAN"]
+    },
+    {
+      "title_fa": "[L2] NetFlow و Visibility — دیدن ترافیک واقعی",
+      "title_en": "NetFlow Visibility Real Traffic Insight",
+      "chapter_order": 25,
+      "summary": "از فعال‌سازی flow تا خواندن top talkers و استفاده در RCA.",
+      "full_content": "# NetFlow — عمیق\n\n## چرا\nACL و فایروال «اجازه» را می‌گویند؛ NetFlow می‌گوید «چه کسی چه کرد».\n\n## فعال‌سازی نمونه\n```\nip flow-export destination 10.10.10.100 2055\nip flow-export version 9\ninterface Gi0/0\n ip flow ingress\n```\n\n## کاربرد\n- top talkers\n- تشخیص اسکن\n- ظرفیت‌سنجی لینک\n- شواهد incident\n\n## Sampled Flow\nروی لینک شلوغ، نمونه‌برداری لازم است تا CPU نترکد.\n\n## Verify\n```\nshow ip flow export\nshow ip cache flow\n```\n",
+      "commands": "show ip flow export\nshow ip cache flow\nshow running-config | include flow\nshow interfaces Gi0/0\nnftop / nfdump (روی جمع‌کننده)",
+      "examples": "Lab:\n1) export را روشن کن\n2) ترافیک تولید کن\n3) cache را ببین\n4) یک host پرحجم را پیدا کن\n5) با ACL موقت محدود کن و دوباره بسنج",
+      "notes": "Flow را به شبکه مدیریت امن بفرست.\n",
+      "learning_objectives": ["export", "cache", "top talkers", "نقش در RCA"]
+    }
+  ]
+}
