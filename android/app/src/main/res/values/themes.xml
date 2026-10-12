@@ -15,5 +15,7 @@
         <item name="fontFamily">sans-serif</item>
         <item name="android:textDirection">rtl</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:isLightTheme">true</item>
     </style>
 </resources>
