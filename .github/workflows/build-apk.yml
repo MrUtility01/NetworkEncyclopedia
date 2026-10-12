@@ -8,66 +8,85 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Bootstrap Android SDK
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install platform 34 + build-tools
         run: |
           set -e
-          SDK_ROOT="$HOME/android-sdk"
-          mkdir -p "$SDK_ROOT/cmdline-tools"
-          curl -fsSL -o /tmp/cmdtools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-          rm -rf "$SDK_ROOT/cmdline-tools/latest"
-          unzip -qo /tmp/cmdtools.zip -d "$SDK_ROOT/cmdline-tools"
-          mv "$SDK_ROOT/cmdline-tools/cmdline-tools" "$SDK_ROOT/cmdline-tools/latest"
-          export ANDROID_HOME="$SDK_ROOT"
-          export ANDROID_SDK_ROOT="$SDK_ROOT"
-          export PATH="$SDK_ROOT/cmdline-tools/latest/bin:$PATH"
-          mkdir -p "$SDK_ROOT/licenses"
-          printf '%s\n' "24333f8a63b6825ea9c5514f83c2829b004d1fee" "d56f51874764545162ea396f5d536e251650e41b" > "$SDK_ROOT/licenses/android-sdk-license"
-          yes | sdkmanager --licenses >/tmp/lic.txt 2>&1 || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
-          test -d "$SDK_ROOT/platforms/android-34"
-          test -d "$SDK_ROOT/build-tools/34.0.0"
-          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
-          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
-          echo "SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
-          echo "sdk ok at $SDK_ROOT"
+          sdkmanager --install "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          echo "ANDROID_HOME=${ANDROID_HOME}"
+          ls "${ANDROID_HOME}/platforms" || true
 
-      - name: Icons + curriculum
+      - name: Icons (safe)
         run: |
           set -e
           python3 scripts/install_android_icon.py
-          python3 scripts/export_android_index.py
-          python3 scripts/merge_content_packs_into_android.py || true
+          echo "icons ok"
 
-      - name: Gradle assembleDebug
-        id: gradle
-        working-directory: android
-        continue-on-error: true
+      - name: Curriculum export (keep existing asset on failure)
+        run: |
+          set +e
+          python3 scripts/export_android_index.py
+          code=$?
+          set -e
+          if [ "$code" -ne 0 ]; then
+            echo "WARN: export_android_index failed ($code) — using committed curriculum_index.json.gz"
+            test -f android/app/src/main/assets/curriculum_index.json.gz
+          fi
+          python3 scripts/merge_content_packs_into_android.py || echo "WARN: merge packs skipped"
+
+      - name: Write local.properties
         run: |
           set -e
-          echo "sdk.dir=$ANDROID_HOME" > local.properties
-          cat local.properties
-          # Use Gradle Wrapper generator more robustly
-          curl -fsSL -o /tmp/gradle.zip https://services.gradle.org/distributions/gradle-8.2-bin.zip
-          sudo unzip -qo /tmp/gradle.zip -d /opt
-          /opt/gradle-8.2/bin/gradle wrapper --gradle-version 8.2 --stacktrace
+          # setup-android sets ANDROID_HOME
+          if [ -z "$ANDROID_HOME" ]; then
+            if [ -n "$ANDROID_SDK_ROOT" ]; then
+              export ANDROID_HOME="$ANDROID_SDK_ROOT"
+            else
+              export ANDROID_HOME="$HOME/android-sdk"
+            fi
+          fi
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          cat android/local.properties
+
+      - name: Ensure Gradle Wrapper
+        working-directory: android
+        run: |
+          set -e
+          if [ ! -f gradlew ]; then
+            curl -fsSL -o /tmp/gradle-8.2-bin.zip https://services.gradle.org/distributions/gradle-8.2-bin.zip
+            sudo unzip -qo /tmp/gradle-8.2-bin.zip -d /opt
+            /opt/gradle-8.2/bin/gradle wrapper --gradle-version 8.2
+          fi
           chmod +x gradlew
-          # Capture full log
-          ./gradlew assembleDebug --no-daemon --stacktrace --info 2>&1 | tee ../gradle-build.log
-          # Force exit code from gradle
+          # longer network timeout for wrapper dist download
+          sed -i 's/networkTimeout=.*/networkTimeout=120000/' gradle/wrapper/gradle-wrapper.properties || true
+          cat gradle/wrapper/gradle-wrapper.properties
+
+      - name: Assemble Debug APK
+        working-directory: android
+        run: |
+          set -e
+          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee ../gradle-build.log
           exit ${PIPESTATUS[0]}
 
-      - name: Upload Gradle log (always)
+      - name: Upload Gradle log
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -75,12 +94,6 @@ jobs:
           path: gradle-build.log
           if-no-files-found: ignore
           retention-days: 7
-
-      - name: Fail if Gradle failed
-        if: steps.gradle.outcome == 'failure'
-        run: |
-          echo "Gradle assembleDebug failed. See gradle-build-log artifact for details."
-          exit 1
 
       - name: Collect APK
         run: |
@@ -91,7 +104,8 @@ jobs:
           ls -lah dist/
           test "$(ls -A dist/*.apk 2>/dev/null)"
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: EngineerJokar-APK-v1
           path: dist/*.apk

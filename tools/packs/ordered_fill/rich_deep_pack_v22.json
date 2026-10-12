@@ -1,0 +1,95 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "v22 فوق‌عمیق — ادامه غنی‌سازی",
+  "lessons": [
+    {
+      "title_fa": "[L4] طراحی هسته Campus سه لایه و مدرن",
+      "title_en": "Campus Core Three Tier and Modern Design",
+      "chapter_order": 11,
+      "summary": "Access-Distribution-Core در برابر collapsed core؛ کجا کدام.",
+      "full_content": "# Campus Design — فوق‌عمیق\n\n## سه لایه کلاسیک\nAccess → Distribution → Core\n\n## Collapsed Core\nDistribution+Core ادغام برای سایت کوچک‌تر.\n\n## معیار انتخاب\nتعداد کاربر، تراکم سرور، نیاز به L3 در access، بودجه.\n\n## اصول\n- L2 فقط جایی که لازم است\n- L3 boundary مشخص\n- افزونگی uplink\n- مدیریت جدا\n",
+      "commands": "show cdp neighbors\nshow lldp neighbors\nshow spanning-tree summary\nshow ip route summary\nshow interfaces status",
+      "examples": "برای ۲۰۰ کاربر یک نقشه collapsed و یک نقشه سه لایه بکش و مقایسه کن.\n",
+      "notes": "طراحی را با رشد ۳ سال بسنج.\n",
+      "learning_objectives": ["سه لایه", "collapsed", "مرز L2/L3"]
+    },
+    {
+      "title_fa": "[L3] عیب‌یابی پیشرفته STP و Loop",
+      "title_en": "Advanced STP Loop Troubleshooting",
+      "chapter_order": 11,
+      "summary": "از root تا port state؛ پیدا کردن حلقه و محافظت.",
+      "full_content": "# STP Loop RCA\n\nعلائم: storm، CPU بالا، MAC flapping.\n\nابزار: show spanning-tree، blockedports، errdisabled، BPDU guard.\n\nاقدام: جدا کردن بخش‌ها، یافتن لینک اضافی ناخواسته.\n",
+      "commands": "show spanning-tree\nshow spanning-tree blockedports\nshow spanning-tree root\nshow interfaces status err-disabled\nshow mac address-table dynamic\nshow logging | include STP|BLOCK|err",
+      "examples": "Lab: لینک موازی عمدی؛ loop را ببین؛ BPDU guard روی access.\n",
+      "notes": "اول isolate بعد تحلیل عمیق.\n",
+      "learning_objectives": ["علائم loop", "root/port role", "BPDU guard"]
+    },
+    {
+      "title_fa": "[L3] مسیریابی مبتنی بر سیاست در لبه شعب",
+      "title_en": "Branch Edge Policy Routing Patterns",
+      "chapter_order": 14,
+      "summary": "Guest از ISP محلی، Corp از تونل مرکز.",
+      "full_content": "# Branch PBR Patterns\n\nGuest → local breakout\nCorp → VPN/DMVPN به DC\nVoice → لینک کم‌jitter\n\nهمیشه fallback وقتی تونل down است.\n",
+      "commands": "show route-map\nshow ip policy\nshow ip route\nshow crypto session\nshow interfaces",
+      "examples": "Lab: Guest فقط اینترنت؛ Corp فقط DC؛ قطع تونل و رفتار Corp.\n",
+      "notes": "PBR بدون مانیتورینگ مسیر واقعی خطرناک است.\n",
+      "learning_objectives": ["local breakout", "tunnel preference", "fallback"]
+    },
+    {
+      "title_fa": "[L3] امنیت لایه ۲ — DAI، IPSG، Port-Security",
+      "title_en": "Layer 2 Security DAI IPSG Port Security",
+      "chapter_order": 65,
+      "summary": "جلوگیری از spoofینگ ARP و IP روی access.",
+      "full_content": "# L2 Security Bundle\n\nPort-Security: محدود MAC\nDHCP Snooping: اعتماد uplink\nDAI: ARP معتبر\nIP Source Guard: IP+MAC+port\n\nترتیب پیاده‌سازی مهم است.\n",
+      "commands": "show port-security\nshow ip dhcp snooping\nshow ip arp inspection\nshow ip verify source\nshow mac address-table",
+      "examples": "Lab: spoof ARP؛ با DAI بسته شود.\n",
+      "notes": "بدون DHCP snooping، DAI را روشن نکن.\n",
+      "learning_objectives": ["زنجیره L2 security", "ترتیب enable", "تله false positive"]
+    },
+    {
+      "title_fa": "[L2] الگوی آدرس‌دهی و استاندارد نام‌گذاری",
+      "title_en": "Addressing Plan and Naming Standards",
+      "chapter_order": 5,
+      "summary": "IP schema، VLAN schema، نام دستگاه یکنواخت.",
+      "full_content": "# Addressing & Naming\n\nمثال:\n- 10.<site>.<role>.0/24\n- VLAN 1x users، 2x servers، 9x mgmt\n- نام: <site>-<role>-<num>\n\nسند در Git.\n",
+      "commands": "show ip interface brief\nshow vlan brief\nshow running-config | include hostname",
+      "examples": "برای ۳ سایت جدول VLAN/IP و نام سوئیچ بنویس.\n",
+      "notes": "استاندارد شفاهی = هرج‌ومرج در رشد.\n",
+      "learning_objectives": ["schema", "naming", "سند"]
+    },
+    {
+      "title_fa": "[L3] تونل GRE و مسیریابی روی overlay",
+      "title_en": "GRE Tunnel and Overlay Routing",
+      "chapter_order": 57,
+      "summary": "GRE خام، keepalives، و ترکیب با IPsec.",
+      "full_content": "# GRE\n\nکپسوله L3 روی IP؛ بدون رمز به تنهایی.\nاغلب GRE over IPsec.\n\nMTU/MSS را تنظیم کن.\n",
+      "commands": "show interface tunnel0\nshow ip interface brief\nshow ip route\nping\ntraceroute",
+      "examples": "Lab: دو روتر GRE؛ OSPF روی تونل؛ MTU مشکل را شبیه‌سازی کن.\n",
+      "notes": "GRE alone = بدون محرمانگی.\n",
+      "learning_objectives": ["GRE", "MTU", "با IPsec"]
+    },
+    {
+      "title_fa": "[L2] مدیریت وصله و نسخه OS شبکه",
+      "title_en": "Network OS Patch and Version Management",
+      "chapter_order": 5,
+      "summary": "سیاست ارتقا، آزمایش، موجی کردن و rollback.",
+      "full_content": "# Patch Management\n\nموجودی نسخه → advisory → lab → canary → موج‌ها → تأیید.\n\nهرگز همه core را هم‌زمان بدون پنجره.\n",
+      "commands": "show version\nshow inventory\ndir flash:\nshow boot",
+      "examples": "جدول نسخه ۵ دستگاه و یک برنامه ارتقا ۹۰ روزه.\n",
+      "notes": "release notes را قبل از upgrade بخوان.\n",
+      "learning_objectives": ["inventory", "canary OS", "rollback"]
+    },
+    {
+      "title_fa": "[L3] یکپارچگی لاگ — SIEM از نگاه شبکه",
+      "title_en": "Log Integration SIEM Network View",
+      "chapter_order": 25,
+      "summary": "چه چیزی را به SIEM بفرست و چگونه همبسته کن.",
+      "full_content": "# Network → SIEM\n\nحداقل: AAA، لینک down، تغییر کانفیگ، VPN fail، فایروال deny پرحجم.\n\nNTP اجباری است.\n",
+      "commands": "show logging\nshow running-config | include logging\nshow clock\nshow ntp status",
+      "examples": "۵ نوع رویداد شبکه برای SIEM و use-case هر کدام.\n",
+      "notes": "همه logها را با severity پایین سیل نکن.\n",
+      "learning_objectives": ["رویدادهای باارزش", "NTP", "کاهش نویز"]
+    }
+  ]
+}
