@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""موتور محتوای عمیق — با اینفوگرافیک و مثال عددی وابسته به دسته."""
+"""موتور محتوای عمیق — اینفوگرافیک + مثال + عمق تخصصی vendor."""
 from __future__ import annotations
 import re
 from typing import Any, Dict, List, Tuple
@@ -89,75 +89,60 @@ def _story(topic: str, cat: str) -> str:
         except Exception:
             return hooks[0]
     stories = {
-        "vlan": f"در یک سازمان دو دپارتمان روی یک سوئیچ هستند. بدون جداسازی «{topic}»، broadcast و ترافیک حساس قاطی می‌شود.",
-        "ospf": f"لینک اصلی بین دو سایت قطع شده. «{topic}» باید مسیر پشتیبان را سریع جایگزین کند.",
-        "bgp": f"دو ISP دارید. بدون سیاست درست «{topic}» ترافیک از لینک گران می‌رود یا blackhole می‌گیرید.",
-        "nat": f"اشتباه در «{topic}» یا همه اینترنت را به داخل باز می‌کند یا سرویس از بیرون timeout می‌دهد.",
-        "wireless": f"کاربران در راهرو وای‌فای دارند ولی در اتاق جلسه قطع می‌شود — «{topic}» را لایه به لایه ایزوله کنید.",
-        "tcpip": f"پینگ جواب می‌دهد ولی اپلیکیشن نه. بدون فهم «{topic}» بین لایه ۳ و ۴ گیر می‌کنید.",
+        "vlan": f"بدون جداسازی «{topic}» broadcast و ترافیک حساس قاطی می‌شود.",
+        "ospf": f"لینک اصلی قطع شده؛ «{topic}» باید backup را سریع جایگزین کند.",
+        "bgp": f"بدون سیاست درست «{topic}» ترافیک از لینک گران می‌رود یا blackhole می‌گیرید.",
+        "nat": f"اشتباه در «{topic}» یا همه را باز می‌کند یا سرویس timeout می‌دهد.",
+        "wireless": f"«{topic}» را از RF تا DHCP و gateway جدا ایزوله کنید.",
+        "tcpip": f"پینگ OK و اپ نه — بدون فهم «{topic}» بین L3/L4 گیر می‌کنید.",
     }
-    return stories.get(
-        cat,
-        f"NOC گزارش می‌دهد سرویس مرتبط با «{topic}» ناپایدار است. از لایه ۱ تا ۷ ایزوله کنید و با شواهد رفع کنید.",
-    )
+    return stories.get(cat, f"سرویس «{topic}» ناپایدار است — از لایه ۱ تا ۷ با شواهد ایزوله کنید.")
 
 
 def _arch_table(cat: str) -> str:
     tables = {
-        "vlan": "| جزء | نقش |\n|-----|-----|\n| Access | یک VLAN |\n| Trunk | چند VLAN + 802.1Q |\n| Native | بدون تگ |\n| SVI | gateway L3 |",
-        "ospf": "| جزء | نقش |\n|-----|-----|\n| Area 0 | Backbone |\n| Neighbor | adjacency |\n| LSA | توپولوژی |\n| Cost | معیار مسیر |",
-        "bgp": "| جزء | نقش |\n|-----|-----|\n| AS | دامنه سیاست |\n| eBGP/iBGP | بین/داخل |\n| Prefix-list | فیلتر |\n| Route-map | سیاست |",
-        "nat": "| جزء | نقش |\n|-----|-----|\n| Inside | LAN |\n| Outside | WAN |\n| PAT | چند به یک |\n| Static | یک به یک |",
-        "dhcp": "| جزء | نقش |\n|-----|-----|\n| DORA | چهار مرحله |\n| Scope | محدوده |\n| Relay | بین VLAN |\n| Lease | مدت |",
-        "dns": "| جزء | نقش |\n|-----|-----|\n| Resolver | کلاینت |\n| Recursive | جستجو |\n| Auth | zone |\n| TTL | cache |",
-        "vpn": "| جزء | نقش |\n|-----|-----|\n| Phase1 | IKE |\n| Phase2 | IPsec |\n| SA | association |\n| PFS | secrecy |",
-        "firewall": "| جزء | نقش |\n|-----|-----|\n| Zone | گروه |\n| Policy | قانون |\n| Session | حالت |\n| Log | رویداد |",
-        "wireless": "| جزء | نقش |\n|-----|-----|\n| SSID | نام |\n| AP | رادیو |\n| WLC | کنترلر |\n| CAPWAP | تونل |",
-        "tcpip": "| جزء | نقش |\n|-----|-----|\n| IP | منطقی |\n| TCP/UDP | انتقال |\n| ARP | IP→MAC |\n| ICMP | کنترل |",
+        "vlan": "| جزء | نقش |\n|-----|-----|\n| Access | یک VLAN |\n| Trunk | 802.1Q |\n| SVI | gateway L3 |",
+        "ospf": "| جزء | نقش |\n|-----|-----|\n| Area 0 | Backbone |\n| LSA | توپولوژی |\n| Cost | معیار |",
+        "bgp": "| جزء | نقش |\n|-----|-----|\n| AS | سیاست |\n| eBGP/iBGP | بین/داخل |\n| Route-map | فیلتر |",
+        "nat": "| جزء | نقش |\n|-----|-----|\n| Inside/Outside | مرز |\n| PAT | چندبهیک |",
+        "dhcp": "| جزء | نقش |\n|-----|-----|\n| DORA | اجاره IP |\n| Relay | بین VLAN |",
+        "dns": "| جزء | نقش |\n|-----|-----|\n| Resolver | پرسش |\n| Auth | zone |",
+        "vpn": "| جزء | نقش |\n|-----|-----|\n| Phase1/2 | IKE/IPsec |",
+        "firewall": "| جزء | نقش |\n|-----|-----|\n| Zone/Policy | کنترل |",
+        "wireless": "| جزء | نقش |\n|-----|-----|\n| AP/WLC | دسترسی |",
+        "tcpip": "| جزء | نقش |\n|-----|-----|\n| IP/TCP/ARP | پشته |",
     }
-    return tables.get(cat, "| جزء | نقش |\n|-----|-----|\n| Control | تصمیم |\n| Data | عبور ترافیک |\n| Mgmt | پیکربندی |")
+    return tables.get(cat, "| جزء | نقش |\n|-----|-----|\n| Control/Data | تصمیم/عبور |")
 
 
 def _frame_steps(cat: str) -> str:
     steps = {
-        "vlan": "1. فریم از access\n2. تعیین VLAN\n3. تگ روی trunk\n4. forward در همان VLAN\n5. L3 فقط با SVI/روتر",
-        "ospf": "1. Hello\n2. DBD/LSA\n3. LSDB یکسان\n4. SPF\n5. نصب route",
-        "bgp": "1. TCP 179\n2. UPDATE\n3. Best path\n4. RIB/FIB\n5. سیاست",
-        "nat": "1. پکت داخلی\n2. match rule\n3. rewrite\n4. WAN\n5. ترجمه معکوس",
-        "dhcp": "1. Discover\n2. Offer\n3. Request\n4. Ack\n5. Renew",
-        "dns": "1. پرسش\n2. cache/recursive\n3. Root→TLD→Auth\n4. پاسخ+TTL",
-        "vpn": "1. IKE1\n2. IKE2\n3. interesting traffic\n4. encrypt\n5. DPD",
-        "wireless": "1. Association\n2. Auth\n3. DHCP\n4. Gateway\n5. Internet",
-        "tcpip": "1. App\n2. L4 port\n3. IP\n4. MAC\n5. Physical",
-        "stp": "1. Root\n2. RP/DP\n3. Block\n4. BPDU\n5. reconverge",
+        "vlan": "1 Access 2 VLAN 3 Tag 4 Forward 5 L3",
+        "ospf": "1 Hello 2 LSA 3 SPF 4 Route",
+        "bgp": "1 TCP179 2 UPDATE 3 Bestpath 4 RIB",
+        "nat": "1 Match 2 Rewrite 3 WAN 4 Reverse",
+        "dhcp": "1 Discover 2 Offer 3 Request 4 Ack",
+        "dns": "1 Query 2 Recursive 3 Answer",
+        "vpn": "1 IKE1 2 IKE2 3 Encrypt",
+        "wireless": "1 Assoc 2 Auth 3 DHCP 4 GW",
+        "tcpip": "1 App 2 L4 3 IP 4 MAC 5 Phy",
+        "stp": "1 Root 2 Block 3 BPDU",
     }
-    return steps.get(cat, "1. Backup\n2. Change\n3. Verify\n4. RCA\n5. Rollback")
+    return steps.get(cat, "1 Backup 2 Change 3 Verify 4 Rollback").replace(" ", "\n")
 
 
 def _lab_concrete(topic: str, cat: str, level: str) -> str:
-    base = f"""# Lab — {topic}
-
-## توپولوژی
-۲ کلاینت + سوئیچ + روتر (یا EVE-NG/GNS3)
-
-## مراحل
-1. Baseline: `show ip interface brief` / لاگ
-2. Backup: `copy run start`
-3. تغییر حداقلی «{topic}»
-4. Verify محلی + از کلاینت
-5. Failure injection و RCA
-6. Rollback
-"""
+    base = f"# Lab — {topic}\n\n1. Baseline\n2. Backup\n3. Change «{topic}»\n4. Verify\n5. Failure + RCA\n6. Rollback\n"
     if level in ("L3", "L4"):
-        base += f"\n## سطح {level}\nChange window + Runbook + مانیتور ۳۰ دقیقه\n"
+        base += f"\n## {level}\nChange window + Runbook\n"
     return base
 
 
 def _rca_table(cat: str) -> str:
     rows = ERRORS.get(cat, [
-        ("قطع کامل", "فیزیکی/GW", "show interface / ping"),
-        ("بعضی کلاینت‌ها", "VLAN/ACL/DNS", "مقایسه خوب/بد"),
-        ("کندی", "duplex/DNS", "counters / dig"),
+        ("قطع", "فیزیکی/GW", "show interface"),
+        ("ناقص", "VLAN/ACL", "مقایسه کلاینت"),
+        ("کند", "duplex/DNS", "counters"),
     ])
     lines = ["| علامت | علت | دستور |", "|--------|------|--------|"]
     for a, b, c in rows[:6]:
@@ -166,25 +151,25 @@ def _rca_table(cat: str) -> str:
 
 
 def _security_block(cat: str, level: str) -> str:
-    common = "- AAA/SSH\n- Backup قبل change\n- Management جدا از User\n"
+    common = "- AAA/SSH\n- Backup\n- Mgmt جدا\n"
     extra = {
-        "vlan": "- Native غیرپیش‌فرض\n- Prune VLAN اضافه",
-        "stp": "- BPDU Guard\n- Root Guard",
-        "dhcp": "- Snooping\n- Trust فقط uplink",
-        "wireless": "- WPA2/3-Ent\n- Guest جدا",
-        "firewall": "- Default deny\n- Log deny",
-        "vpn": "- AES-GCM\n- PFS",
+        "vlan": "- Native غیرپیش‌فرض",
+        "stp": "- BPDU Guard",
+        "dhcp": "- Snooping",
+        "wireless": "- WPA2/3",
+        "firewall": "- Default deny",
+        "vpn": "- PFS",
     }
     return common + extra.get(cat, "")
 
 
 def _level_guidance(level: str) -> str:
     return {
-        "L0": "تصویر ذهنی و نمودار؛ حفظ دستور بعداً.",
-        "L1": "Lab ساده + خواندن خروجی show.",
-        "L2": "پیکربندی + Verify + Rollback.",
-        "L3": "طراحی و RCA.",
-        "L4": "معماری و Change Control.",
+        "L0": "نمودار و مفهوم",
+        "L1": "Lab + show",
+        "L2": "Config + Verify + Rollback",
+        "L3": "طراحی و RCA",
+        "L4": "معماری و Change Control",
     }.get(level, "")
 
 
@@ -208,9 +193,17 @@ def build_deep_fallback(
         info = ""
         example = ""
 
+    try:
+        from core.specialized_depth import specialized_block
+
+        spec = specialized_block(title_fa, title_en, level)
+    except Exception:
+        spec = {"extra_full": "", "extra_commands": "", "extra_lab": "", "extra_notes": ""}
+
     summary = (
-        f"«{topic}» ({level_fa}) — با اینفوگرافیک مسیر پکت و مثال عددی؛ "
-        f"تمرکز روی جریان واقعی، Verify و Rollback."
+        f"«{topic}» ({level_fa}) — اینفوگرافیک + مثال عددی"
+        + (" + عمق تخصصی vendor" if spec.get("extra_full") else "")
+        + "."
     )
 
     commands = "\n".join(
@@ -225,12 +218,13 @@ def build_deep_fallback(
             _fmt(
                 [
                     ("show running-config | redirect flash:pre-change.cfg", "بک‌آپ"),
-                    ("copy running-config startup-config", "ذخیره بعد Verify"),
+                    ("copy running-config startup-config", "ذخیره"),
                 ]
             ),
         ]
     )
 
+    spec_full = (spec.get("extra_full") or "").strip()
     full = f"""# {topic}
 
 **سطح:** {level} — {level_fa}  
@@ -294,6 +288,8 @@ Symptom → Scope → Evidence → Hypothesis → Test → Fix → Verify → Do
 - [ ] Verify محلی و End-to-End
 - [ ] مانیتور بعد از change
 
+{spec_full}
+
 ---
 
 ## جمع‌بندی
@@ -306,9 +302,9 @@ Symptom → Scope → Evidence → Hypothesis → Test → Fix → Verify → Do
     return {
         "summary": summary,
         "full_content": full,
-        "commands": commands,
-        "examples": (_lab_concrete(topic, cat, level) + "\n\n" + (example or "")),
-        "notes": f"## RCA — {topic}\n\n{_rca_table(cat)}\n\n{_level_guidance(level)}\n",
+        "commands": commands + ("\n" + (spec.get("extra_commands") or "")),
+        "examples": (_lab_concrete(topic, cat, level) + "\n\n" + (example or "") + "\n\n" + (spec.get("extra_lab") or "")),
+        "notes": f"## RCA — {topic}\n\n{_rca_table(cat)}\n\n{_level_guidance(level)}\n\n" + (spec.get("extra_notes") or ""),
         "level": level,
         "topic": topic,
         "category": cat,
