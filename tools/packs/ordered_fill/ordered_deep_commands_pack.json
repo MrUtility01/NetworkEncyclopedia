@@ -1,0 +1,117 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "دروس متمرکز با دستورات زیاد و Lab عملی — موازی ویندوز/اندروید",
+  "lessons": [
+    {
+      "title_fa": "[L2] VLAN — Access، Trunk و Inter-VLAN",
+      "title_en": "VLAN Access Trunk InterVLAN",
+      "chapter_order": 11,
+      "summary": "این درس فقط VLAN است: Access یک VLAN، Trunk چند VLAN با 802.1Q، و ارتباط بین VLAN فقط از لایه ۳.",
+      "full_content": "# VLAN — فقط همین موضوع\n\nVLAN دامنه پخش لایه ۲ را جدا می‌کند. دو PC در VLAN متفاوت بدون L3 به هم نمی‌رسند.\n\n## Access / Trunk\nAccess: یک VLAN، بدون تگ. Trunk: چند VLAN با 802.1Q.\n\n## مثال عددی\n| پورت | حالت | VLAN |\n|------|------|------|\n| Fa0/1 | access | 10 |\n| Fa0/2 | access | 20 |\n| Gi0/1 | trunk | allowed 10,20 |\n\nPC-A 10.10.10.50/24 GW 10.10.10.1 | PC-B 10.10.20.50/24 GW 10.10.20.1\n\n```\nvlan 10\n name FINANCE\nvlan 20\n name USERS\ninterface FastEthernet0/1\n switchport mode access\n switchport access vlan 10\n spanning-tree portfast\ninterface GigabitEthernet0/1\n switchport trunk encapsulation dot1q\n switchport mode trunk\n switchport trunk allowed vlan 10,20\n switchport trunk native vlan 999\n```\n\nبدون SVI/روتر پینگ بین VLAN fail است.\n",
+      "commands": "show vlan brief\nshow vlan id 10\nshow interfaces trunk\nshow interfaces switchport\nshow interfaces Gi0/1 switchport\nshow running-config | section vlan\nshow mac address-table vlan 10\nshow mac address-table vlan 20\nshow spanning-tree vlan 10\nshow spanning-tree vlan 20\nping 10.10.10.1\nping 10.10.20.1",
+      "examples": "Lab VLAN:\n1) دو access + trunk\n2) show vlan brief و show interfaces trunk\n3) PC-A به GW خودش پینگ OK\n4) به IP VLAN دیگر بدون L3 → Fail\n5) SVI اضافه → پینگ بین VLAN\n6) allowed را تنگ کن و علامت را ببین\n7) Rollback",
+      "notes": "Native دو سر یکسان؛ allowed صریح.",
+      "learning_objectives": ["Access/Trunk", "Verify با show", "Inter-VLAN جدا از Trunk"]
+    },
+    {
+      "title_fa": "[L2] OSPF تک‌Area — همسایگی و Verify",
+      "title_en": "OSPF Single Area Neighbor Verify",
+      "chapter_order": 14,
+      "summary": "فقط OSPF Area 0: FULL و مسیر LAN طرف مقابل.",
+      "full_content": "# OSPF تک‌Area\n\nR1 10.1.1.0/24 — 10.0.0.0/30 — R2 10.2.2.0/24 همه Area 0.\n\n```\nrouter ospf 1\n router-id 1.1.1.1\n passive-interface default\n no passive-interface GigabitEthernet0/0\n network 10.0.0.0 0.0.0.3 area 0\n network 10.1.1.0 0.0.0.255 area 0\n```\n\nموفقیت: neighbor FULL و show ip route ospf شبکه مقابل را دارد.\n",
+      "commands": "show ip ospf\nshow ip ospf neighbor\nshow ip ospf neighbor detail\nshow ip ospf interface\nshow ip ospf interface brief\nshow ip ospf database\nshow ip route\nshow ip route ospf\nshow ip protocols\nshow running-config | section router ospf\ndebug ip ospf adj\ndebug ip ospf hello\nundebug all\nping 10.2.2.1 source 10.1.1.1",
+      "examples": "Lab OSPF:\n1) دو روتر Area 0\n2) FULL\n3) پینگ LAN-LAN\n4) Hello یک طرف را خراب کن\n5) برگردان\n6) shut لینک و همگرایی",
+      "notes": "اول FULL بعد route.",
+      "learning_objectives": ["FULL", "showهای OSPF", "شکست hello"]
+    },
+    {
+      "title_fa": "[L2] NAT/PAT لبه — Overload",
+      "title_en": "NAT PAT Overload Edge",
+      "chapter_order": 12,
+      "summary": "فقط PAT overload و مشاهده translation.",
+      "full_content": "# NAT/PAT\n\n```\naccess-list 1 permit 10.10.10.0 0.0.0.255\nip nat inside source list 1 interface GigabitEthernet0/0 overload\ninterface GigabitEthernet0/1\n ip nat inside\ninterface GigabitEthernet0/0\n ip nat outside\n```\n",
+      "commands": "show ip nat translations\nshow ip nat translations verbose\nshow ip nat statistics\nclear ip nat translation *\nshow running-config | include nat\nshow running-config | include access-list\nshow ip route\nping 8.8.8.8",
+      "examples": "Lab NAT:\n1) PAT\n2) ترافیک از کلاینت\n3) translations\n4) برداشتن ip nat inside → fail\n5) برگردان",
+      "notes": "inside/outside را جا نینداز.",
+      "learning_objectives": ["PAT", "translation"]
+    },
+    {
+      "title_fa": "[L2] MikroTik Firewall Filter — فقط Filter",
+      "title_en": "MikroTik Firewall Filter Only",
+      "chapter_order": 20,
+      "summary": "فقط filter: input/forward و stats.",
+      "full_content": "# MikroTik Filter\n\n```\n/ip firewall filter\nadd chain=input connection-state=established,related action=accept\nadd chain=input connection-state=invalid action=drop\nadd chain=input in-interface-list=LAN action=accept\nadd chain=input in-interface-list=WAN action=drop\nadd chain=forward connection-state=established,related action=accept\nadd chain=forward in-interface-list=LAN action=accept\nadd chain=forward action=drop\n```\n",
+      "commands": "/ip firewall filter print\n/ip firewall filter print stats\n/ip firewall filter print stats without-paging\n/ip firewall filter print detail\n/interface list print\n/interface list member print\n/ip firewall connection print\n/log print where topics~\"firewall\"\n/export compact file=fw-before",
+      "examples": "Lab: drop روی WAN input؛ از LAN OK؛ stats را ببین؛ rollback.",
+      "notes": "ترتیب rule + stats.",
+      "learning_objectives": ["input/forward", "stats"]
+    },
+    {
+      "title_fa": "[L2] MikroTik NAT Masquerade — فقط NAT",
+      "title_en": "MikroTik NAT Masquerade Only",
+      "chapter_order": 20,
+      "summary": "فقط masquerade روی WAN.",
+      "full_content": "# MikroTik NAT\n\n```\n/ip firewall nat\nadd chain=srcnat out-interface-list=WAN action=masquerade\n```\nروی تونل masquerade نکن.\n",
+      "commands": "/ip firewall nat print\n/ip firewall nat print stats\n/ip address print\n/ip route print\n/ip firewall connection print\n/tool torch interface=ether1\n/ping 8.8.8.8 count=5",
+      "examples": "Lab: enable/disable masquerade و اثر روی اینترنت کلاینت.",
+      "notes": "out-interface-list=WAN.",
+      "learning_objectives": ["masquerade محدود"]
+    },
+    {
+      "title_fa": "[L2] DHCP DORA و Relay — فقط DHCP",
+      "title_en": "DHCP DORA Relay Only",
+      "chapter_order": 12,
+      "summary": "DORA و helper؛ 169.254 یعنی نرسیدن به سرور.",
+      "full_content": "# DHCP\n\nDiscover→Offer→Request→Ack\n```\ninterface Vlan30\n ip helper-address 10.10.10.50\n```\n",
+      "commands": "show ip dhcp binding\nshow ip dhcp server statistics\nshow ip dhcp pool\nshow ip dhcp conflict\nshow running-config | include helper\nipconfig /all\nipconfig /release\nipconfig /renew\ndhclient -v",
+      "examples": "Lab: بدون helper → 169.254؛ با helper → OK.",
+      "notes": "اول VLAN بعد DHCP.",
+      "learning_objectives": ["DORA", "Relay"]
+    },
+    {
+      "title_fa": "[L2] TCP Handshake و تست پورت — فقط L4",
+      "title_en": "TCP Handshake Port Test",
+      "chapter_order": 8,
+      "summary": "SYN/SYN-ACK/ACK و تست پورت؛ ICMP جایگزین نیست.",
+      "full_content": "# TCP\n\n1 SYN 2 SYN-ACK 3 ACK\nپینگ ≠ تست پورت.\n",
+      "commands": "Test-NetConnection 10.10.10.50 -Port 443\nTest-NetConnection 10.10.10.50 -Port 22\nnc -vz 10.10.10.50 443\nss -lntu\ntcpdump -ni any port 443\nGet-NetTCPConnection -State Listen",
+      "examples": "Lab: سرویس up/down و مقایسه tcpdump.",
+      "notes": "ICMP OK و پورت بسته = سرویس/فایروال پورت.",
+      "learning_objectives": ["handshake", "port test"]
+    },
+    {
+      "title_fa": "[L3] ACL Extended — فقط ACL",
+      "title_en": "Extended ACL Only",
+      "chapter_order": 13,
+      "summary": "ACL گسترده، ترتیب، counters.",
+      "full_content": "# ACL Extended\n\n```\naccess-list 100 permit tcp 10.10.10.0 0.0.0.255 any eq 443\naccess-list 100 permit tcp 10.10.10.0 0.0.0.255 any eq 80\naccess-list 100 deny ip any any log\ninterface GigabitEthernet0/0\n ip access-group 100 in\n```\n",
+      "commands": "show access-lists\nshow access-lists 100\nshow ip access-lists\nshow ip interface Gi0/0\nclear access-list counters\nshow running-config | include access-list",
+      "examples": "Lab: فقط 80/443؛ SSH fail؛ counters.",
+      "notes": "in/out را اشتباه نگیر.",
+      "learning_objectives": ["extended ACL", "counters"]
+    },
+    {
+      "title_fa": "[L3] Site-to-Site IPsec — فقط VPN",
+      "title_en": "IPsec Site to Site Only",
+      "chapter_order": 57,
+      "summary": "Phase1/2 و interesting traffic.",
+      "full_content": "# IPsec\n\n10.1.0.0/24 ↔ 10.2.0.0/24\nپارامترهای IKE/IPsec دو طرف جفت؛ ACL آینه‌ای.\n",
+      "commands": "show crypto isakmp sa\nshow crypto ipsec sa\nshow crypto session\nshow crypto map\ndebug crypto isakmp\ndebug crypto ipsec\nundebug all\nping 10.2.0.10 source 10.1.0.10",
+      "examples": "Lab: Phase1 → ترافیک → Phase2 → پینگ LAN؛ PSK خراب و برگردان.",
+      "notes": "Phase1≠داده.",
+      "learning_objectives": ["Phase1/2", "interesting traffic"]
+    },
+    {
+      "title_fa": "[L2] مسیر استاتیک و پیش‌فرض — فقط Static",
+      "title_en": "Static Default Routes Only",
+      "chapter_order": 14,
+      "summary": "static و floating؛ بدون OSPF/BGP.",
+      "full_content": "# Static\n\n```\nip route 0.0.0.0 0.0.0.0 203.0.113.1\nip route 10.50.0.0 255.255.0.0 10.0.0.2\nip route 0.0.0.0 0.0.0.0 198.51.100.1 10\n```\n",
+      "commands": "show ip route\nshow ip route static\nshow ip route 0.0.0.0\nshow running-config | include ip route\nshow ip cef 8.8.8.8\nping 8.8.8.8\ntraceroute 8.8.8.8",
+      "examples": "Lab: default + floating؛ قطع primary.",
+      "notes": "AD کمتر برنده است.",
+      "learning_objectives": ["static", "floating"]
+    }
+  ]
+}
