@@ -1,4 +1,4 @@
-/* Engineer Jokar Web — light UI + tasks + notes + scenarios + quiz + infographics */
+/* Engineer Jokar Web — login-gated UI */
 const $ = (s) => document.querySelector(s);
 const chaptersEl = $("#chapters");
 const viewer = $("#viewer");
@@ -15,8 +15,13 @@ const state = {
 const LS_TASKS = "netenc_tasks_v1";
 const LS_NOTES = "netenc_notes_v1";
 
-async function api(path, opts) {
-  const r = await fetch(path, opts);
+async function api(path, opts = {}) {
+  const headers = Object.assign({}, (opts && opts.headers) || {});
+  if (typeof netencGetToken === "function") {
+    headers["Authorization"] = "Bearer " + netencGetToken();
+    headers["X-NetEnc-Token"] = netencGetToken();
+  }
+  const r = await fetch(path, Object.assign({}, opts, { headers }));
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
@@ -30,10 +35,10 @@ function asList(data, key) {
 
 function escapeHtml(s) {
   return String(s || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/&/g, "&")
+    .replace(/</g, "<")
+    .replace(/>/g, ">")
+    .replace(/"/g, """);
 }
 
 function uid() {
@@ -100,8 +105,8 @@ function renderHome() {
   breadcrumb.textContent = "خانه";
   viewer.innerHTML = `
     <div class="welcome">
-      <h1>دایرةالمعارف شبکه — Engineer Jokar</h1>
-      <p>مطالب دسته‌محور · اینفوگرافیک مسیر پکت · کارها و نکته‌ها · سناریو و سوالات.</p>
+      <h1>دایرةالمعارف شبکه — Network Engineer</h1>
+      <p>مطالب دسته‌محور · اینفوگرافیک · کارها و نکته‌ها · سناریو و سوالات.</p>
       <div class="grid">
         <div class="card-link" data-go="info"><strong>اینفوگرافیک</strong><span class="muted">مسیر پکت / سوئیچ / روتر / وای‌فای</span></div>
         <div class="card-link" data-go="tasks"><strong>کارهای روزانه</strong><span class="muted">لیست کار و پیگیری</span></div>
@@ -376,7 +381,6 @@ async function renderInfographics() {
     viewer.innerHTML = `
       <div class="ws-panel" style="max-width:900px">
         <h2>اینفوگرافیک مسیر پکت و اجزا</h2>
-        <p class="muted">کلاینت → سوئیچ → روتر → مودم/فایروال → ISP | وایرلس | تصمیم L2/L3 | Encapsulation</p>
         ${items.map((it) => `<h3 style="margin-top:18px">${escapeHtml(it.title || "")}</h3><div class="infographic">${it.svg || ""}</div>`).join("")}
       </div>`;
   } catch (e) {
@@ -466,6 +470,11 @@ async function onLessonClick(btn) {
   }
 }
 
+function formatBody(text) {
+  if (!text) return "—";
+  return escapeHtml(text);
+}
+
 function renderLesson(les) {
   const tag = (les.tags || "L0").toLowerCase();
   const tabs = [
@@ -483,34 +492,19 @@ function renderLesson(les) {
         <span class="chip">${escapeHtml(les.title_en || "")}</span>
       </div>
       <div class="tabs">
-        ${tabs.map((t, i) => `<button type="button" class="tab ${i === 0 ? "active" : ""}" data-tab="${t.id}">${t.label}</button>`).join("")}
+        ${tabs.map((t, i) => `<button type="button" class="tab ${i === 1 ? "active" : ""}" data-i="${i}">${t.label}</button>`).join("")}
       </div>
-      <div class="tab-body" id="tab-body">${formatBody(tabs[0].body)}</div>
+      <div class="tab-body"><pre class="content-pre">${formatBody(tabs[1].body)}</pre></div>
     </div>`;
-  viewer.querySelectorAll(".tab").forEach((tabBtn) => {
-    tabBtn.addEventListener("click", () => {
-      viewer.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
-      tabBtn.classList.add("active");
-      const t = tabs.find((x) => x.id === tabBtn.dataset.tab);
-      $("#tab-body").innerHTML = formatBody(t ? t.body : "");
+  const body = viewer.querySelector(".tab-body");
+  viewer.querySelectorAll(".tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      viewer.querySelectorAll(".tab").forEach((x) => x.classList.remove("active"));
+      tab.classList.add("active");
+      const i = +tab.dataset.i;
+      body.innerHTML = `<pre class="content-pre">${formatBody(tabs[i].body)}</pre>`;
     });
   });
-}
-
-function formatBody(body) {
-  if (body == null || body === "") return `<p class="muted-p">محتوایی ثبت نشده</p>`;
-  const s = String(body);
-  if (s.includes("<svg")) {
-    const parts = s.split(/(<svg[\s\S]*?<\/svg>)/gi);
-    return parts
-      .map((part) => {
-        if (/^<svg/i.test(part)) return `<div class="infographic">${part}</div>`;
-        if (!part.trim()) return "";
-        return `<pre class="content-pre">${escapeHtml(part)}</pre>`;
-      })
-      .join("");
-  }
-  return `<pre class="content-pre">${escapeHtml(s)}</pre>`;
 }
 
 $("#btnHome").onclick = () => renderHome();
@@ -547,15 +541,20 @@ $("#q").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#btnSearc
 $("#btnReseed").onclick = async () => {
   if (!confirm("بازسازی؟ چند دقیقه طول می‌کشد.")) return;
   try {
-    await api("/api/reseed", {
-      method: "POST",
-      headers: { Authorization: "Bearer 09136555866", "X-NetEnc-Token": "09136555866" },
-    });
+    await api("/api/reseed", { method: "POST" });
     state.levelsCache = {}; state.lessonsCache = {};
     await loadStats(); await loadChapters(); alert("انجام شد");
   } catch (e) { alert("خطا: " + e.message); }
 };
 
-loadStats();
-loadChapters();
-renderHome();
+if (typeof netencSetupLogin === "function") {
+  netencSetupLogin(() => {
+    loadStats();
+    loadChapters();
+    renderHome();
+  });
+} else {
+  loadStats();
+  loadChapters();
+  renderHome();
+}
