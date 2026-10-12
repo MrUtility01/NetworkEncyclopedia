@@ -1,0 +1,117 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "ادامه v16 — غنی و عمیق، هر درس فقط موضوع خودش",
+  "lessons": [
+    {
+      "title_fa": "[L3] BFD — تشخیص سریع خرابی لینک و همسایه",
+      "title_en": "BFD Bidirectional Forwarding Detection",
+      "chapter_order": 14,
+      "summary": "کاهش زمان تشخیص down بودن مسیر برای OSPF/BGP/Static با تایمر میلی‌ثانیه‌ای.",
+      "full_content": "# BFD — عمیق\n\n## مشکل\nHelloهای OSPF/BGP ممکن است چند ثانیه طول بکشند تا down را بفهمند. در لینک‌های حیاتی این تأخیر گران است.\n\n## ایده\nBFD یک پروتکل سبک تشخیص liveliness است که مسیرها/همسایه‌ها می‌توانند به آن وابسته شوند.\n\n## کاربرد\n| پروتکل | نقش BFD |\n|---------|---------|\n| OSPF/IS-IS | همسایگی سریع‌تر down |\n| BGP | session failover سریع‌تر |\n| Static route | حذف مسیر هنگام fail next-hop |\n\n## نمونه مفهومی\n```\nbfd-template MultiHop\n interval min-tx 300 min-rx 300 multiplier 3\nrouter ospf 1\n bfd all-interfaces\n!\nip route 0.0.0.0 0.0.0.0 203.0.113.1\nip route static bfd Gi0/0 203.0.113.1\n```\n\n## طراحی\nتایمر خیلی تهاجمی روی لینک jitterدار = flapping. با واقعیت لینک هماهنگ کن.\n\n## RCA\nSession down مداوم: ACL UDP، عدم تقارن مسیر، CPU بالا، تایمر ناسازگار.\n",
+      "commands": "show bfd neighbors\nshow bfd neighbors details\nshow bfd session\nshow ip ospf neighbor\nshow ip bgp summary\nshow running-config | include bfd",
+      "examples": "Lab:\n1) OSPF بدون BFD — زمان failover را اندازه بگیر\n2) BFD را فعال کن\n3) لینک را قطع کن و زمان را مقایسه کن\n4) multiplier را عمداً کم کن و flapping را ببین",
+      "notes": "BFD جادوی ظرفیت نیست؛ فقط تشخیص را تند می‌کند.\n",
+      "learning_objectives": ["نقش BFD", "اتصال به IGP/BGP/static", "تایمر واقع‌بینانه"]
+    },
+    {
+      "title_fa": "[L2] Anycast — یک IP، چند نقطه حضور",
+      "title_en": "Anycast One IP Many Locations",
+      "chapter_order": 14,
+      "summary": "مسیریابی به نزدیک‌ترین نمونه سرویس؛ DNS ریشه و CDN.",
+      "full_content": "# Anycast — عمیق\n\n## تعریف\nچند گره در مکان‌های مختلف همان پیشوند IP را تبلیغ می‌کنند. مسیریابی اینترنت/IGP ترافیک را به «نزدیک‌ترین» می‌برد.\n\n## کاربرد\n- DNS عمومی (1.1.1.1، 8.8.8.8)\n- CDN edge\n- سرویس‌های کنترل حساس به تأخیر\n\n## در برابر Unicast / Multicast\n| | Unicast | Anycast | Multicast |\n|--|---------|---------|-----------|\n| مقصد | یک گره | یک از چند | گروه |\n| انتخاب | آدرس یکتا | مسیریابی | عضویت گروه |\n\n## چالش\n- Session stateful ممکن است با تغییر مسیر بپرد\n- Health: اگر گره بیمار هنوز advertise کند، ترافیک بد می‌رود\n- نیاز به withdraw سریع هنگام fail\n\n## طراحی سازمانی\nبرای DNS داخلی یا NTP anycast داخل AS با IGP.\n",
+      "commands": "show ip route 1.1.1.1\ntraceroute 1.1.1.1\ndig @1.1.1.1 example.com\nshow bgp ip unicast 203.0.113.0/24\nping 1.1.1.1",
+      "examples": "Lab مفهومی:\n1) دو سرور DNS با IP یکسان در دو site (شبیه‌سازی)\n2) از کلاینت‌های مختلف traceroute\n3) یک site را خاموش کن و تغییر مسیر را ببین\n4) اثر روی session طولانی را بحث کن",
+      "notes": "برای TCP طولانی بدون همگام‌سازی state محتاط باش.\n",
+      "learning_objectives": ["تعریف anycast", "کاربرد DNS/CDN", "خطر state"]
+    },
+    {
+      "title_fa": "[L3] CGNAT — NAT در مقیاس اپراتور",
+      "title_en": "CGNAT Carrier Grade NAT",
+      "chapter_order": 12,
+      "summary": "اشتراک IPv4 عمومی بین مشترکین؛ لاگ، پورت و محدودیت‌های اپ.",
+      "full_content": "# CGNAT — عمیق\n\n## چرا\nکمبود IPv4 عمومی؛ اپراتور چند مشترک را پشت یک یا چند IP عمومی می‌گذارد.\n\n## تفاوت با NAT خانگی\nمقیاس بسیار بالاتر، نیاز به logging نگاشت پورت، و گاهی endpoint-independent mapping.\n\n## چالش اپ‌ها\n- P2P و برخی VoIP سخت‌تر\n- IP reputation مشترک\n- ردیابی قانونی نیاز به لاگ دقیق زمان/پورت\n\n## برای مهندس سازمانی\nاگر سایت شما پشت CGNAT ISP است:\n- inbound از اینترنت مستقیم سخت است → VPN/reverse یا IPv6\n- blacklist شدن IP عمومی روی همه مشترکین اثر می‌گذارد\n\n## IPv6\nراهبرد بلندمدت: dual-stack و کاهش وابستگی به IPv4 عمومی.\n",
+      "commands": "# سمت مشتری اغلب شفاف است؛ تشخیص:\ncurl ifconfig.me\ntraceroute 8.8.8.8\n# مقایسه با IP اعلام‌شده مودم/ISP\nshow ip nat translations\nshow ip nat statistics",
+      "examples": "تمرین:\n1) IP عمومی دیده‌شده از بیرون را ثبت کن\n2) با IP WAN مودم مقایسه کن\n3) اگر متفاوت است احتمال CGNAT/میان‌نا\n4) اثر روی port-forward خانگی را توضیح بده",
+      "notes": "Port-forward پشت CGNAT معمولاً بدون کمک ISP ممکن نیست.\n",
+      "learning_objectives": ["چرا CGNAT", "اثر روی inbound", "نقش لاگ"]
+    },
+    {
+      "title_fa": "[L2] TACACS+ در برابر RADIUS — مدیریت دسترسی تجهیزات",
+      "title_en": "TACACS Plus vs RADIUS Device Administration",
+      "chapter_order": 65,
+      "summary": "انتخاب پروتکل AAA برای لاگین تجهیزات شبکه و فرمان‌ها.",
+      "full_content": "# TACACS+ و RADIUS — عمیق\n\n## مقایسه\n| ویژگی | TACACS+ | RADIUS |\n|--------|---------|--------|\n| لایه | TCP | UDP |\n| رمز | کل payload | عمدتاً پسورد |\n| Authorization فرمان | قوی (command-level) | محدودتر |\n| کاربرد کلاسیک | دستگاه شبکه Cisco-like | 802.1X، VPN، Wi-Fi |\n\n## الگوی سازمانی\n- **دستگاه شبکه (SSH/enable)**: اغلب TACACS+\n- **کاربر و کلاینت (802.1X/VPN)**: اغلب RADIUS\n\n## نمونه\n```\naaa new-model\ntacacs server T1\n address ipv4 10.10.10.50\n key SecretKey\naaa authentication login default group tacacs+ local\naaa authorization exec default group tacacs+ local\naaa accounting exec default start-stop group tacacs+\n```\n\n## قانون طلایی\nfallback local را قبل از قطع سرور مرکزی تست کن تا قفل نشوی.\n",
+      "commands": "show aaa servers\nshow tacacs\nshow radius server-group all\ntest aaa group tacacs+ admin Secret local\nshow running-config | include tacacs|radius|aaa",
+      "examples": "Lab:\n1) لاگین با TACACS+\n2) سرور را قطع کن → local\n3) accounting را در لاگ ببین\n4) یک فرمان authorize‌نشده را تست کن",
+      "notes": "RADIUS و TACACS+ جایگزین هم در همه سناریوها نیستند.\n",
+      "learning_objectives": ["تفاوت پروتکل", "command authorization", "local fallback"]
+    },
+    {
+      "title_fa": "[L2] Port Security سوئیچ — محدود کردن MAC",
+      "title_en": "Switch Port Security MAC Limit",
+      "chapter_order": 11,
+      "summary": "جلوگیری از اتصال غیرمجاز روی پورت access با محدودیت MAC.",
+      "full_content": "# Port Security — عمیق\n\n## هدف\nروی پورت access فقط تعداد مشخصی MAC (گاهی sticky) مجاز باشد.\n\n## حالت نقض\n| حالت | رفتار |\n|------|--------|\n| protect | فریم اضافه drop |\n| restrict | drop + شمارنده/لاگ |\n| shutdown | err-disable |\n\n## نمونه\n```\ninterface Fa0/10\n switchport mode access\n switchport port-security\n switchport port-security maximum 2\n switchport port-security mac-address sticky\n switchport port-security violation restrict\n```\n\n## RCA\nپورت err-disable: `show port-security interface` و `show interfaces status err-disabled`.\n\n## طراحی\nبرای IP Phone + PC گاهی maximum 2-3 لازم است. روی uplink هرگز port-security کلاینتی نگذار.\n",
+      "commands": "show port-security\nshow port-security interface\\nshow port-security interface Fa0/10\nshow mac address-table interface Fa0/10\nshow interfaces status err-disabled\nshow running-config interface Fa0/10",
+      "examples": "Lab:\n1) maximum 1\n2) کلاینت اول OK\n3) کلاینت دوم → violation\n4) sticky MAC را ببین\n5) recovery از err-disable",
+      "notes": "sticky را بعد از تغییر کلاینت فراموش نکن پاک/به‌روز کن.\n",
+      "learning_objectives": ["maximum", "violation modes", "sticky"]
+    },
+    {
+      "title_fa": "[L2] IP SLA و TWAMP — اندازه‌گیری کیفیت مسیر",
+      "title_en": "IP SLA TWAMP Path Quality Measurement",
+      "chapter_order": 25,
+      "summary": "سنجش تأخیر، ازدست‌رفتن بسته و jitter برای تصمیم مسیر و SLA.",
+      "full_content": "# IP SLA / TWAMP — عمیق\n\n## چرا\nPing دستی کافی نیست؛ نیاز به نمونه‌برداری مداوم و آستانه.\n\n## IP SLA (Cisco-style)\nProbeهای ICMP/UDP/HTTP برای RTT و loss.\n\n## TWAMP\nاستاندارد اندازه‌گیری دو طرفه؛ مناسب بین دستگاه‌های چندفروشنده.\n\n## کاربرد\n- تصمیم SD-WAN / policy-based routing\n- اثبات SLA به مدیریت\n- هشدار قبل از تیکت کاربر\n\n## نمونه ذهنی\nهر ۶۰ ثانیه ICMP به hub؛ اگر RTT>80ms یا loss>2٪ → آلارم.\n\n## محدودیت\nخود probe هم ترافیک است؛ روی لینک بسیار باریک فاصله را زیاد کن.\n",
+      "commands": "show ip sla configuration\nshow ip sla statistics\nshow ip sla summary\nshow track\nping\ntraceroute",
+      "examples": "Lab:\n1) probe به سرور مرکز\n2) آمار RTT را جمع کن\n3) لینک را با ترافیک پر کن\n4) تغییر RTT/loss را ثبت کن\n5) آستانه آلارم تعریف کن",
+      "notes": "اندازه‌گیری بدون NTP دقیق، زمان‌بندی رویدادها را خراب می‌کند.\n",
+      "learning_objectives": ["probe", "RTT/loss", "آستانه SLA"]
+    },
+    {
+      "title_fa": "[L2] DNS Anycast داخلی و Hardening DNS",
+      "title_en": "Internal DNS Anycast and Hardening",
+      "chapter_order": 12,
+      "summary": "چند resolver با یک IP منطقی و محکم‌کاری سرویس نام.",
+      "full_content": "# DNS داخلی مقاوم — عمیق\n\n## Anycast DNS داخلی\nدو یا چند سرور DNS روی سایت‌های مختلف همان IP anycast را از IGP تبلیغ می‌کنند.\nکلاینت همیشه «نزدیک‌ترین» را می‌بیند؛ با fail یک سایت، مسیر به دیگری می‌رود.\n\n## Hardening\n- recursion فقط برای کلاینت داخلی\n- جدا authoritative و recursive در صورت امکان\n- محدودیت rate\n- DNSSEC در صورت نیاز\n- مانیتور query failure\n\n## کلاینت\nحداقل دو DNS در تنظیمات؛ اما anycast می‌تواند هر دو به یک VIP منطقی اشاره کند.\n\n## RCA\nresolve گاهی fail: health سرور، IGP withdraw، firewall 53.\n",
+      "commands": "dig @10.10.10.53 corp.local\nResolve-DnsName corp.local\nshow ip route 10.10.10.53\nnslookup corp.local\n# روی سرور DNS:\nrndc status\njournalctl -u named -n 50",
+      "examples": "Lab:\n1) دو resolver\n2) کلاینت به VIP/anycast\n3) یک سرور را خاموش کن\n4) resolve باید ادامه یابد\n5) recursion از بیرون را ببند و تست کن",
+      "notes": "DNS باز (open recursive) روی اینترنت = سوءاستفاده.\n",
+      "learning_objectives": ["anycast DNS", "recursion محدود", "failover نام"]
+    },
+    {
+      "title_fa": "[L2] Change Freeze و تقویم عملیات شبکه",
+      "title_en": "Change Freeze Network Operations Calendar",
+      "chapter_order": 5,
+      "summary": "کی تغییر ندهیم، استثناها و ارتباط با کسب‌وکار.",
+      "full_content": "# Change Freeze — عمیق\n\n## تعریف\nبازه زمانی که تغییرات غیرضروری روی production ممنوع یا بسیار محدود است (مثلاً پیک فروش، مهاجرت بزرگ، تعطیلات).\n\n## انواع\n| نوع | مثال |\n|------|------|\n| Hard freeze | فقط break-fix اضطراری |\n| Soft freeze | change با approval مضاعف |\n| Maintenance window | فقط در پنجره توافق‌شده |\n\n## محتوا\n- چه سیستم‌هایی freeze هستند\n- مسیر استثنای اضطراری\n- کانال ارتباطی\n- معیار «اضطراری»\n\n## ضدالگو\nfreeze بدون استثنای مشخص → تیم در حادثه واقعی فلج می‌شود.\n\n## پیوند با CAB\nتغییرات از قبل در تقویم؛ freeze تاریخ را روی تقویم تیم بگذار.\n",
+      "commands": "# بیشتر فرآیندی است؛ ابزار پشتیبان:\nshow archive\ngit log --since=\"2026-10-01\"\nshow logging | include configured",
+      "examples": "تمرین:\n1) یک هفته freeze برای «رویداد فروش» بنویس\n2) سه نوع change: عادی / مهم / اضطراری\n3) مسیر approve هر کدام را مشخص کن",
+      "notes": "Freeze باید نوشته و اعلام شود نه شفاهی.\n",
+      "learning_objectives": ["hard/soft freeze", "مسیر اضطراری", "تقویم عملیات"]
+    },
+    {
+      "title_fa": "[L2] Greylist و کنترل ایمیل لبه شبکه",
+      "title_en": "Email Edge Greylisting Network Controls",
+      "chapter_order": 45,
+      "summary": "نقش شبکه و DNS در مقابله با اسپم؛ SPF/DKIM/DMARC در کنار فایروال.",
+      "full_content": "# ایمیل لبه و شبکه — عمیق\n\n## زنجیره\nDNS (MX، SPF، DKIM، DMARC) → MTA لبه → فیلتر → صندوق.\n\n## Greylisting\nاولین تلاش ارسال از منبع ناشناس موقتاً reject می‌شود؛ فرستنده معتبر دوباره تلاش می‌کند؛ اسپم‌بات‌ها اغلب نه.\n\n## کار مهندس شبکه\n- پورت 25/465/587 فقط جایی که لازم است\n- PTR درست برای IP ارسال\n- محدودیت outbound 25 از کلاینت‌ها (ضد botnet)\n- مانیتور queue پر شدن\n\n## RCA تحویل نشدن\n1. MX و DNS\n2. blacklist IP\n3. SPF fail\n4. فایروال\n5. greylist/تأخیر\n",
+      "commands": "dig MX example.com\ndig TXT example.com\nnslookup -type=MX example.com\ntelnet mx.example.com 25\nTest-NetConnection mx.example.com -Port 25\nshow logging | include SMTP",
+      "examples": "Lab:\n1) MX و SPF دامنه خود را بخوان\n2) از شبکه داخلی اتصال 25 به بیرون را تست کن\n3) سیاست «کلاینت عادی SMTP مستقیم نداشته باشد» را طراحی کن",
+      "notes": "بستن کامل 25 بدون دانستن نیاز پرینتر/اسکنر ممکن است سرویس‌ها را بشکند.\n",
+      "learning_objectives": ["نقش DNS ایمیل", "SPF/DKIM/DMARC", "کنترل پورت 25"]
+    },
+    {
+      "title_fa": "[L3] Policy-Based Routing عمیق",
+      "title_en": "Deep Policy Based Routing",
+      "chapter_order": 14,
+      "summary": "انتخاب مسیر بر اساس مبدأ/اپ نه فقط مقصد؛ همراه با تله‌ها.",
+      "full_content": "# PBR — عمیق\n\n## ایده\nجدول مسیریابی معمولی مقصدمحور است. PBR می‌تواند بر اساس ACL مبدأ، DSCP یا اندازه بسته next-hop دیگری بدهد.\n\n## نمونه\n```\naccess-list 100 permit ip 10.10.10.0 0.0.0.255 any\nroute-map PBR-GUEST permit 10\n match ip address 100\n set ip next-hop 203.0.113.5\ninterface Vlan50\n ip policy route-map PBR-GUEST\n```\n\n## تله‌ها\n- فراموش کردن apply روی اینترفیس ورودی\n- next-hop down بدون fallback\n- ناسازگاری با ICMP/reply path\n- تداخل با local traffic روی خود روتر\n\n## Verify\n```\nshow route-map\nshow ip policy\ndebug ip policy\n```\n\n## طراحی\nPBR را مستند و حداقل نگه دار؛ هر خط PBR هزینه عملیاتی دارد.\n",
+      "commands": "show route-map\nshow ip policy\nshow access-lists 100\nshow ip interface Vlan50\ndebug ip policy\nundebug all\ntraceroute\nping",
+      "examples": "Lab:\n1) Guest از ISP-B خارج شود\n2) Corp از ISP-A\n3) next-hop B را down کن و رفتار را ببین\n4) با set ip next-hop verify-availability (اگر پشتیبانی) پایدارتر کن",
+      "notes": "PBR را با SD-WAN/routing مدرن قاطی نکن مگر لازم باشد.\n",
+      "learning_objectives": ["match/set", "اعمال روی ingress", "fallback"]
+    }
+  ]
+}
