@@ -34,7 +34,7 @@ def _cat_for(topic: str) -> str:
         return "firewall"
     if any(k in t for k in ("wireless", "wifi", "ssid", "wpa")):
         return "wireless"
-    if any(k in t for k in ("tcp", "udp", "arp", "icmp", "ip "):
+    if any(k in t for k in ("tcp", "udp", "arp", "icmp", "ip ")):
         return "tcpip"
     if any(k in t for k in ("mikrotik", "routeros", "winbox")):
         return "mikrotik"
