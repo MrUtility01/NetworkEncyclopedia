@@ -26,6 +26,13 @@ function netencLock() {
   });
 }
 
+function normalizePass(v) {
+  return String(v || "")
+    .replace(/[\u200c\u200f\u200e\ufeff]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
 function netencSetupLogin(onOk) {
   const gate = document.getElementById("loginGate");
   const root = document.getElementById("appRoot");
@@ -52,14 +59,23 @@ function netencSetupLogin(onOk) {
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const v = ((pass && pass.value) || "").trim();
+    const v = normalizePass(pass && pass.value);
     if (v === APP_PASSWORD) {
-      if (err) err.hidden = true;
+      if (err) {
+        err.hidden = true;
+        err.textContent = "رمز نادرست است";
+      }
       netencUnlock(true);
       showApp();
     } else {
-      if (err) err.hidden = false;
-      if (pass) pass.select();
+      if (err) {
+        err.hidden = false;
+        err.textContent = "رمز نادرست است — دقیقاً: engineerjokar (انگلیسی، بدون فاصله)";
+      }
+      if (pass) {
+        pass.value = "";
+        pass.focus();
+      }
     }
   });
 
@@ -71,3 +87,4 @@ function netencSetupLogin(onOk) {
 
 window.netencGetToken = netencGetToken;
 window.netencSetupLogin = netencSetupLogin;
+window.netencLock = netencLock;
