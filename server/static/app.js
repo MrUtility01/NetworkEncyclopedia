@@ -86,15 +86,10 @@ async function loadChapters() {
       var wrap = document.createElement("div");
       wrap.className = "ch-item";
       wrap.innerHTML =
-        '<button type="button" class="ch-btn" data-id="' +
-        ch.id +
-        '"><span class="caret">▶</span><span class="ch-title">' +
-        escapeHtml(ch.title_fa) +
-        '</span><span class="badge">' +
-        ch.order_index +
-        '</span></button><div class="nested" id="ch-nest-' +
-        ch.id +
-        '"></div>';
+        '<button type="button" class="ch-btn" data-id="' + ch.id +
+        '"><span class="caret">▶</span><span class="ch-title">' + escapeHtml(ch.title_fa) +
+        '</span><span class="badge">' + ch.order_index +
+        '</span></button><div class="nested" id="ch-nest-' + ch.id + '"></div>';
       chaptersEl.appendChild(wrap);
     });
   } catch (err) {
@@ -110,12 +105,12 @@ function renderHome() {
     '<div class="welcome"><h1>دایرةالمعارف شبکه — Network Engineer</h1>' +
     "<p>مطالب دسته‌محور · اینفوگرافیک تصویری · مدیریت دانش · سناریو و سوالات.</p>" +
     '<div class="grid">' +
-    '<div class="card-link" data-go="info"><strong>اینفوگرافیک تصویری</strong><span class="muted">مسیر پکت و پروتکل‌ها</span></div>' +
+    '<div class="card-link" data-go="info"><strong>اینفوگرافیک تصویری</strong><span class="muted">مسیر پکت</span></div>' +
     '<div class="card-link" data-go="knowledge"><strong>مدیریت دانش</strong><span class="muted">کار · نکته · مرور</span></div>' +
     '<div class="card-link" data-go="tasks"><strong>کارهای روزانه</strong><span class="muted">پیگیری</span></div>' +
     '<div class="card-link" data-go="notes"><strong>نکته‌ها</strong><span class="muted">یادداشت</span></div>' +
     '<div class="card-link" data-go="scenarios"><strong>سناریوها</strong><span class="muted">Capstone</span></div>' +
-    '<div class="card-link" data-go="quiz"><strong>سوالات</strong><span class="muted">مرور</span></div>' +
+    '<div class="card-link" data-go="quiz"><strong>سوالات</strong><span class="muted">۲۰ سوال</span></div>' +
     "</div></div>";
   viewer.querySelectorAll("[data-go]").forEach(function (el) {
     el.addEventListener("click", function () {
@@ -137,17 +132,13 @@ function renderTasks() {
   var today = new Date().toISOString().slice(0, 10);
   viewer.innerHTML =
     '<div class="ws-panel"><h2>مدیریت کارهای روزانه</h2><div class="ws-form">' +
-    '<input id="taskTitle" placeholder="عنوان کار" />' +
-    '<textarea id="taskBody" placeholder="توضیح"></textarea>' +
+    '<input id="taskTitle" placeholder="عنوان کار" /><textarea id="taskBody" placeholder="توضیح"></textarea>' +
     '<input id="taskDue" type="date" value="' + today + '" />' +
     '<button type="button" id="taskAdd">افزودن کار</button></div><div class="ws-list" id="taskList"></div></div>';
   var listEl = $("#taskList");
   function paint() {
     var arr = loadLS(LS_TASKS);
-    if (!arr.length) {
-      listEl.innerHTML = '<div class="loading">هنوز کاری ثبت نشده</div>';
-      return;
-    }
+    if (!arr.length) { listEl.innerHTML = '<div class="loading">هنوز کاری ثبت نشده</div>'; return; }
     arr.sort(function (a, b) { return a.done === b.done ? 0 : a.done ? 1 : -1; });
     listEl.innerHTML = arr.map(function (t) {
       return '<div class="ws-item ' + (t.done ? "done" : "") + '" data-id="' + t.id +
@@ -180,8 +171,7 @@ function renderTasks() {
     var all = loadLS(LS_TASKS);
     all.unshift({ id: uid(), title: title, body: $("#taskBody").value.trim(), due: $("#taskDue").value, done: false });
     saveLS(LS_TASKS, all);
-    $("#taskTitle").value = "";
-    $("#taskBody").value = "";
+    $("#taskTitle").value = ""; $("#taskBody").value = "";
     paint();
   };
   paint();
@@ -252,11 +242,26 @@ async function renderScenarios() {
 }
 
 var QUIZ_BANK = [
-  { q: "جداسازی Broadcast Domain؟", opts: ["VLAN", "OSPF", "FTP", "NTP"], a: 0 },
-  { q: "برقراری TCP؟", opts: ["Three-way Handshake", "ARP", "DHCP", "ICMP"], a: 0 },
-  { q: "آدرس خصوصی؟", opts: ["8.8.8.8", "192.168.10.5", "1.1.1.1", "9.9.9.9"], a: 1 },
-  { q: "هدف NAT؟", opts: ["رمزنگاری", "ترجمه آدرس", "OSPF", "DNS"], a: 1 },
-  { q: "رکورد IPv6؟", opts: ["A", "AAAA", "MX", "CNAME"], a: 1 },
+  { q: "جداسازی Broadcast Domain در لایه ۲؟", opts: ["VLAN", "OSPF", "FTP", "NTP"], a: 0 },
+  { q: "برقراری اتصال TCP چه نام دارد؟", opts: ["Three-way Handshake", "ARP Storm", "DHCP Discover", "ICMP Echo"], a: 0 },
+  { q: "کدام آدرس خصوصی است؟", opts: ["8.8.8.8", "192.168.10.5", "1.1.1.1", "9.9.9.9"], a: 1 },
+  { q: "هدف اصلی NAT؟", opts: ["رمزنگاری ترافیک", "ترجمه آدرس", "مسیریابی OSPF", "رزولوشن DNS"], a: 1 },
+  { q: "رکورد DNS برای IPv6؟", opts: ["A", "AAAA", "MX", "CNAME"], a: 1 },
+  { q: "Native VLAN روی Trunk؟", opts: ["بدون تگ ارسال می‌شود", "همیشه VLAN 100", "فقط مدیریت", "غیرفعال است"], a: 0 },
+  { q: "OSPF Area 0 چه نقشی دارد؟", opts: ["Backbone", "فقط Stub", "فقط NSSA", "جایگزین BGP"], a: 0 },
+  { q: "تفاوت eBGP و iBGP؟", opts: ["بین AS در برابر داخل AS", "سرعت لینک", "فقط IPv6", "نوع کابل"], a: 0 },
+  { q: "DHCP ترتیب DORA؟", opts: ["Discover-Offer-Request-Ack", "Ack-Request-Offer", "Only Discover", "ARP-first"], a: 0 },
+  { q: "هدف STP؟", opts: ["جلوگیری از حلقه L2", "رمزنگاری", "NAT", "QoS"], a: 0 },
+  { q: "HSRP/VRRP چه می‌دهد؟", opts: ["Gateway مجازی با Failover", "فقط DNS", "فقط VPN", "Load balance L7"], a: 0 },
+  { q: "Stateful Firewall یعنی؟", opts: ["Session را ردیابی می‌کند", "فقط IP ثابت", "بدون لاگ", "فقط IDS"], a: 0 },
+  { q: "RPO در Backup یعنی؟", opts: ["حداکثر داده قابل از دست رفتن", "زمان بازیابی", "حجم دیسک", "تعداد نوار"], a: 0 },
+  { q: "AAA مخفف چیست؟", opts: ["Authentication Authorization Accounting", "ARP ACL Address", "Always Allow All", "Active Agent API"], a: 0 },
+  { q: "Idempotent در Automation؟", opts: ["تکرار نتیجه را خراب نمی‌کند", "فقط یک‌بار", "بدون Inventory", "بدون لاگ"], a: 0 },
+  { q: "SNMP برای چیست؟", opts: ["مانیتورینگ تجهیزات", "فقط فایل‌شیر", "رمزنگاری دیسک", "تلفن IP"], a: 0 },
+  { q: "Port Security جلوی چیست؟", opts: ["MAC اضافی روی پورت", "OSPF", "BGP flap", "DNS spoof فقط"], a: 0 },
+  { q: "MTU بزرگ‌تر از مسیر؟", opts: ["Fragment یا Drop", "سرعت بی‌نهایت", "قطع STP", "حذف VLAN"], a: 0 },
+  { q: "هدف Syslog؟", opts: ["جمع‌آوری رویداد و عیب‌یابی", "مسیریابی", "NAT", "فقط Backup"], a: 0 },
+  { q: "SD-WAN معمولاً چه را جدا می‌کند؟", opts: ["Control از Data بر اساس سیاست", "فقط کابل مسی", "فقط WiFi", "فقط چاپگر"], a: 0 },
 ];
 
 function renderQuiz() {
@@ -305,18 +310,16 @@ async function renderInfographics() {
     viewer.innerHTML =
       '<div class="info-gallery"><div class="ws-panel" style="max-width:960px">' +
       "<h2>اینفوگرافیک‌های تصویری شبکه</h2>" +
-      '<p class="muted">نمودار SVG — مسیر پکت، پروتکل‌ها، امنیت و مسیریابی</p>' +
+      '<p class="muted">نمودار SVG</p>' +
       '<p><button type="button" class="ghost" id="infoHome">خانه</button></p>' +
       '<div class="info-toc">' +
       items.map(function (it, idx) {
         return '<a class="chip" href="#inf-' + idx + '">' + escapeHtml(it.title || "") + "</a>";
-      }).join("") +
-      "</div>" +
+      }).join("") + "</div>" +
       items.map(function (it, idx) {
         return '<article class="info-card" id="inf-' + idx + '"><h3>' + escapeHtml(it.title || "") +
           '</h3><div class="info-svg">' + (it.svg || "<p>نمودار موجود نیست</p>") + "</div></article>";
-      }).join("") +
-      "</div></div>";
+      }).join("") + "</div></div>";
     var ih = document.getElementById("infoHome");
     if (ih) ih.onclick = function () { renderHome(); };
   } catch (e) {
@@ -331,15 +334,14 @@ function renderKnowledge() {
   viewer.innerHTML =
     '<div class="ws-panel" style="max-width:900px">' +
     "<h2>مدیریت دانش شبکه</h2>" +
-    "<p>مرکز یکپارچه برای کارها، یادداشت‌ها، آزمون، اینفوگرافیک و فضای کاری.</p>" +
     '<p><button type="button" class="ghost" id="kmHome">خانه</button></p>' +
     '<div class="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:12px">' +
-    '<div class="card-link" data-km="tasks"><strong>کارهای روزانه</strong><span class="muted">پیگیری</span></div>' +
-    '<div class="card-link" data-km="notes"><strong>نکته‌ها</strong><span class="muted">دانش شخصی</span></div>' +
-    '<div class="card-link" data-km="quiz"><strong>آزمون</strong><span class="muted">مرور</span></div>' +
-    '<div class="card-link" data-km="info"><strong>اینفوگرافیک</strong><span class="muted">نمودار تصویری</span></div>' +
-    '<div class="card-link" data-km="scenarios"><strong>سناریو</strong><span class="muted">Capstone</span></div>' +
-    '<a class="card-link" href="/workspace" style="text-decoration:none;color:inherit"><strong>فضای کاری+</strong><span class="muted">کار / یادداشت / رمز</span></a>' +
+    '<div class="card-link" data-km="tasks"><strong>کارهای روزانه</strong></div>' +
+    '<div class="card-link" data-km="notes"><strong>نکته‌ها</strong></div>' +
+    '<div class="card-link" data-km="quiz"><strong>آزمون (۲۰ سوال)</strong></div>' +
+    '<div class="card-link" data-km="info"><strong>اینفوگرافیک</strong></div>' +
+    '<div class="card-link" data-km="scenarios"><strong>سناریو</strong></div>' +
+    '<a class="card-link" href="/workspace" style="text-decoration:none;color:inherit"><strong>فضای کاری+</strong></a>' +
     "</div></div>";
   document.getElementById("kmHome").onclick = function () { renderHome(); };
   viewer.querySelectorAll("[data-km]").forEach(function (el) {
@@ -426,7 +428,7 @@ function renderLesson(les) {
     { id: "content", label: "درس کامل", body: les.full_content },
     { id: "commands", label: "دستورات", body: les.commands },
     { id: "examples", label: "Lab", body: les.examples },
-    { id: "notes", label: "RCA", body: les.notes },
+    { id: "notes", label: "RCA / آزمون", body: les.notes },
   ];
   viewer.innerHTML =
     '<div class="lesson-card"><h1>' + escapeHtml(les.title_fa || "") +
