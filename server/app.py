@@ -207,6 +207,16 @@ def scenario_one(sid: int):
     return jsonify(row)
 
 
+@app.get("/api/infographics")
+def api_infographics():
+    try:
+        from core.infographics import all_infographics
+        items = [{"title": t, "svg": s} for t, s in all_infographics()]
+    except Exception as e:
+        return jsonify({"items": [], "error": str(e)})
+    return jsonify({"items": items, "count": len(items)})
+
+
 @app.get("/api/search")
 def search():
     q = request.args.get("q") or ""
@@ -330,8 +340,6 @@ def main():
             _MODULE_STATUS["study_error"] = str(e)
             print("study routes", e)
     print(f"NetEnc listening on http://{host}:{port}")
-    print("  catalog APIs: public")
-    print("  sync APIs: require Bearer token")
     app.run(host=host, port=port, debug=False, threaded=True)
 
 
