@@ -1,0 +1,139 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "بسته بعدی v7 — هر درس فقط موضوع خودش + دستورات + Lab",
+  "lessons": [
+    {
+      "title_fa": "[L3] FortiGate — Policy و Session",
+      "title_en": "FortiGate Policy Session",
+      "chapter_order": 22,
+      "summary": "فقط FortiGate: policy از zone به zone، NAT، خواندن session برای RCA.",
+      "full_content": "# FortiGate Policy — محدوده\n\nترافیک بدون policy hit رد نمی‌شود حتی اگر route باشد.\n\n## حداقل لبه\n- LAN → WAN : Accept + NAT\n- WAN → LAN : Deny (مگر DNAT)\n- LAN → DMZ : محدود به سرویس\n\n## تشخیص\n```\ndiagnose firewall session list\ndiagnose debug flow filter addr 10.10.10.50\ndiagnose debug flow show function-name enable\ndiagnose debug flow trace start 100\n```\n\nاگر session ساخته نشود، policy یا route یا interface اشتباه است.\n",
+      "commands": "get system status\nget router info routing-table all\nshow firewall policy\ndiagnose firewall session list\ndiagnose firewall session clear\ndiagnose debug flow filter clear\ndiagnose debug flow filter addr 10.10.10.50\ndiagnose debug flow trace start 50\ndiagnose debug enable\ndiagnose debug disable\nexecute ping 8.8.8.8",
+      "examples": "Lab:\n1) policy LAN→WAN را disable کن → اینترنت قطع\n2) session list را ببین\n3) policy را برگردان\n4) flow debug برای یک IP کلاینت",
+      "notes": "ترتیب policy از specific به general.",
+      "learning_objectives": ["policy hit", "session", "flow debug"]
+    },
+    {
+      "title_fa": "[L3] FortiGate — DNAT و VIP",
+      "title_en": "FortiGate DNAT VIP",
+      "chapter_order": 22,
+      "summary": "انتشار سرور داخلی با VIP و policy از WAN به VIP.",
+      "full_content": "# DNAT / VIP\n\n1. VIP: IP عمومی → IP داخلی سرور\n2. Policy: WAN → VIP (یا DMZ) با سرویس محدود (مثلاً فقط 443)\n3. سرور gateway باید به FortiGate باشد\n\nاشتباه رایج: VIP درست + policy از WAN به LAN بدون match روی VIP.\n",
+      "commands": "show firewall vip\nshow firewall policy\ndiagnose firewall session list | grep 443\nexecute ping-options source x.x.x.x\nexecute traceroute <server>",
+      "examples": "Lab: VIP برای 10.10.10.50:443؛ از بیرون فقط 443 باز؛ 22 بسته.\n",
+      "notes": "پورت غیرضروری را باز نکن.",
+      "learning_objectives": ["VIP", "policy محدود"]
+    },
+    {
+      "title_fa": "[L3] DMVPN مفهوم و فاز یادگیری",
+      "title_en": "DMVPN Concept Learning Path",
+      "chapter_order": 14,
+      "summary": "Hub-and-Spoke پویا؛ قبل از کانفیگ کامل باید IPsec و مسیریابی را بلد باشی.",
+      "full_content": "# DMVPN — محدوده مفهومی\n\n- **Hub**: مرکز\n- **Spoke**: شعب\n- **NHRP**: نگاشت آدرس تونل به NBMA\n- Spoke-to-Spoke در فازهای بالاتر بدون عبور همیشگی از Hub\n\nمسیر یادگیری:\n1) Site-to-Site IPsec ساده\n2) mGRE\n3) NHRP\n4) مسیریابی (OSPF/EIGRP/BGP) روی تونل\n",
+      "commands": "show dmvpn\nshow ip nhrp\nshow ip nhrp nhs\nshow crypto session\nshow ip route\nshow interface tunnel0",
+      "examples": "Lab مرحله‌ای: اول دو Spoke فقط به Hub؛ پینگ LAN؛ بعد مشاهده NHRP.\n",
+      "notes": "یک‌جا همه را از صفر ننویس؛ فازبندی کن.",
+      "learning_objectives": ["نقش Hub/Spoke", "NHRP در یک جمله"]
+    },
+    {
+      "title_fa": "[L2] Ansible — Inventory و Playbook شبکه",
+      "title_en": "Ansible Inventory Network Playbook",
+      "chapter_order": 51,
+      "summary": "اتوماسیون: inventory، اتصال، یک playbook امن برای show.\n",
+      "full_content": "# Ansible شبکه — محدوده\n\n```yaml\n# inventory\n[routers]\nr1 ansible_host=10.10.10.1\n[routers:vars]\nansible_network_os=ios\nansible_user=admin\nansible_password=Secret\nansible_connection=network_cli\n```\n\n```yaml\n# backup.yml\n- hosts: routers\n  gather_facts: no\n  tasks:\n    - name: show version\n      ios_command:\n        commands: show version\n```\n\nاول read-only؛ بعد change با dry-run و backup.\n",
+      "commands": "ansible --version\nansible routers -i inventory -m ping\nansible-playbook -i inventory backup.yml --check\nansible-playbook -i inventory backup.yml",
+      "examples": "Lab: inventory دو روتر؛ playbook فقط show؛ خروجی را ذخیره کن.\n",
+      "notes": "رمز را در Git نگذار؛ از ansible-vault یا env استفاده کن.",
+      "learning_objectives": ["inventory", "playbook read-only"]
+    },
+    {
+      "title_fa": "[L2] Netmiko — اسکریپت ساده اتصال",
+      "title_en": "Netmiko Simple Connection Script",
+      "chapter_order": 51,
+      "summary": "پایتون + Netmiko برای اجرای چند دستور show.\n",
+      "full_content": "# Netmiko\n\n```python\nfrom netmiko import ConnectHandler\ndevice = {\n  'device_type': 'cisco_ios',\n  'host': '10.10.10.1',\n  'username': 'admin',\n  'password': 'Secret',\n}\ncmd = ConnectHandler(**device)\nprint(cmd.send_command('show ip interface brief'))\ncmd.disconnect()\n```\n\nبرای change از `send_config_set` + ذخیره running استفاده کن و همیشه backup بگیر.\n",
+      "commands": "python -c \"import netmiko; print(netmiko.__version__)\"\n# اجرای اسکریپت\npython backup_show.py",
+      "examples": "Lab: از سه سوئیچ show version بگیر و در فایل جدا ذخیره کن.\n",
+      "notes": "timeout و exception را handle کن.",
+      "learning_objectives": ["ConnectHandler", "send_command"]
+    },
+    {
+      "title_fa": "[L2] Issabel — ترانک SIP و مسیر تماس",
+      "title_en": "Issabel SIP Trunk Dialplan",
+      "chapter_order": 45,
+      "summary": "فقط مسیر صدا: ترانک SIP، Inbound/Outbound route.\n",
+      "full_content": "# Issabel / Asterisk — محدوده\n\n1. SIP Trunk به اپراتور یا سانترال بالا\n2. Outbound Route با الگو شماره\n3. Inbound Route به IVR یا داخلی\n\nعیب‌یابی:\n- ثبت trunk (Registered)\n- یک‌طرفه بودن صدا اغلب NAT/RTP است\n- کدک ناسازگار\n",
+      "commands": "# در Asterisk CLI\nsip show peers\nsip show registry\npjsip show endpoints\ncore show channels\nrtp set debug on",
+      "examples": "Lab: تماس داخلی به داخلی؛ سپس از ترانک بیرون؛ در CLI کانال را ببین.\n",
+      "notes": "پورت‌های SIP/RTP را روی فایروال درست باز کن.",
+      "learning_objectives": ["trunk", "route", "یک‌طرفه صدا"]
+    },
+    {
+      "title_fa": "[L2] وایرلس سازمانی — SSID به VLAN",
+      "title_en": "Enterprise SSID to VLAN Mapping",
+      "chapter_order": 30,
+      "summary": "هر SSID به VLAN جدا؛ Guest ایزوله از Corp.\n",
+      "full_content": "# SSID → VLAN\n\n| SSID | VLAN | Gateway |\n|------|------|---------|\n| CORP | 40 | 10.40.40.1 |\n| GUEST | 50 | 10.50.50.1 |\n\nروی کنترلر/AP: map SSID به VLAN\nروی سوئیچ: trunk به AP با allowed همان VLANها\n",
+      "commands": "show wlan summary\nshow ap summary\nshow client summary\nshow vlan brief\nshow interfaces trunk\nping 10.40.40.1",
+      "examples": "Lab: کلاینت CORP فقط به VLAN40؛ تلاش به VLAN کاربران باید fail شود.\n",
+      "notes": "بدون trunk درست، کلاینت Associate می‌شود ولی IP/GW نمی‌گیرد.",
+      "learning_objectives": ["map SSID", "ایزوله Guest"]
+    },
+    {
+      "title_fa": "[L3] EIGRP پایه",
+      "title_en": "EIGRP Basics",
+      "chapter_order": 14,
+      "summary": "فقط EIGRP: neighbor، topology، successor.\n",
+      "full_content": "# EIGRP\n\n```\nrouter eigrp 100\n network 10.0.0.0 0.0.0.255\n network 10.1.1.0 0.0.0.255\n passive-interface default\n no passive-interface Gi0/0\n```\n\nVerify: `show ip eigrp neighbors` و `show ip route eigrp`.\n",
+      "commands": "show ip eigrp neighbors\nshow ip eigrp topology\nshow ip eigrp interfaces\nshow ip route eigrp\nshow ip protocols\ndebug eigrp packets\nundebug all",
+      "examples": "Lab: دو روتر AS یکسان؛ neighbor up؛ پینگ LAN.\n",
+      "notes": "AS number دو طرف یکی باشد.\n",
+      "learning_objectives": ["neighbor", "topology"]
+    },
+    {
+      "title_fa": "[L3] MPLS و VRF-Lite آشنایی",
+      "title_en": "MPLS VRF-Lite Intro",
+      "chapter_order": 16,
+      "summary": "برچسب MPLS و جداسازی مشتری؛ سطح آشنایی عملی.\n",
+      "full_content": "# MPLS / VRF-Lite\n\nVRF-Lite: جداسازی بدون کل هسته MPLS.\nMPLS کامل: LDP/Label بین روترهای هسته + L3VPN.\n\nبرای شروع:\n- VRF per customer\n- routing جدا\n- بعداً MPLS core\n",
+      "commands": "show mpls ldp neighbor\nshow mpls forwarding-table\nshow ip vrf\nshow ip route vrf CUST-A\nshow mpls interface",
+      "examples": "Lab مفهومی: دو VRF روی یک روتر لبه بدون MPLS.\n",
+      "notes": "اول VRF-Lite را بفهم بعد label switching.\n",
+      "learning_objectives": ["VRF در برابر MPLS", "کاربرد"]
+    },
+    {
+      "title_fa": "[L2] NetFlow / Traffic Visibility",
+      "title_en": "NetFlow Traffic Visibility",
+      "chapter_order": 25,
+      "summary": "ببین چه کسی چه ترافیکی تولید می‌کند؛ مکمل ACL و فایروال.\n",
+      "full_content": "# NetFlow\n\n```\nip flow-export destination 10.10.10.100 2055\nip flow-export version 9\ninterface Gi0/0\n ip flow ingress\n```\n\nروی جمع‌کننده (ntop/Scrutinizer/…) جریان‌ها را ببین.\n",
+      "commands": "show ip flow export\nshow ip cache flow\nshow running-config | include flow\nshow interfaces Gi0/0",
+      "examples": "Lab: flow را روشن کن؛ ترافیک تولید کن؛ cache را ببین.\n",
+      "notes": "نمونه‌برداری (sampled) در لینک‌های شلوغ لازم است.\n",
+      "learning_objectives": ["export", "خواندن cache"]
+    },
+    {
+      "title_fa": "[L3] IPsec — عیب‌یابی Phase1 و Phase2",
+      "title_en": "IPsec Phase1 Phase2 Troubleshooting",
+      "chapter_order": 57,
+      "summary": "جدا کردن شکست IKE از شکست تونل داده.\n",
+      "full_content": "# RCA تونل\n\n| علامت | لایه |\n|--------|------|\n| SA برقرار نمی‌شود | Phase1: PSK/PFA/الگوریتم/UDP500 |\n| SA هست پینگ LAN نه | Phase2/ACL/NAT/route |\n\nدو طرف interesting traffic باید آینه باشند.\n",
+      "commands": "show crypto isakmp sa\nshow crypto ipsec sa\nshow crypto session\ndebug crypto isakmp\ndebug crypto ipsec\nundebug all\nping <remote-lan> source <local-lan>",
+      "examples": "Lab: PSK را خراب کن → Phase1 fail؛ برگردان؛ ACL را یک‌طرفه کن → Phase2/داده fail.\n",
+      "notes": "NAT-T روی 4500 وقتی یک طرف پشت NAT است.\n",
+      "learning_objectives": ["جدا Phase1/2", "ACL آینه‌ای"]
+    },
+    {
+      "title_fa": "[L2] Git — شاخه، Commit و Rollback ساده",
+      "title_en": "Git Branch Commit Rollback",
+      "chapter_order": 64,
+      "summary": "برای کانفیگ و اسکریپت شبکه: تاریخچه و برگشت.\n",
+      "full_content": "# Git عملی\n\n```\ngit clone <repo>\ngit checkout -b change-acl\n# ویرایش\ngit add .\ngit commit -m \"acl: allow 443 only\"\ngit push -u origin change-acl\n```\n\nبرگشت فایل:\n```\ngit restore --source=HEAD~1 -- path/to/file\n```\n",
+      "commands": "git status\ngit log --oneline -10\ngit diff\ngit branch -a\ngit checkout main\ngit pull",
+      "examples": "Lab: یک فایل کانفیگ را عوض کن؛ commit؛ revert.\n",
+      "notes": "رمز و کلید را commit نکن.\n",
+      "learning_objectives": ["commit", "branch", "restore"]
+    }
+  ]
+}
