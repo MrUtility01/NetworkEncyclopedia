@@ -12,8 +12,8 @@ android {
         applicationId = "com.netenc.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 3
-        versionName = "1.2.0-study"
+        versionCode = 4
+        versionName = "2.0.0-network-engineer"
     }
 
     buildTypes {
