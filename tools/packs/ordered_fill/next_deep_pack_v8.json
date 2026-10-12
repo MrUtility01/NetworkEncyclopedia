@@ -1,0 +1,139 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "بسته v8 — درس‌های متمرکز + دستورات + Lab",
+  "lessons": [
+    {
+      "title_fa": "[L3] VRRP — دروازه افزونه چندفروشنده",
+      "title_en": "VRRP Multi Vendor Gateway",
+      "chapter_order": 14,
+      "summary": "فقط VRRP: VIP مشترک، Master/Backup، مقایسه کوتاه با HSRP.",
+      "full_content": "# VRRP — محدوده\n\nمشابه HSRP ولی استاندارد IETF؛ بین فروشنده‌ها مشترک‌تر است.\n\n```\ninterface Vlan10\n ip address 10.10.10.2 255.255.255.0\n vrrp 1 ip 10.10.10.1\n vrrp 1 priority 120\n vrrp 1 preempt\n```\n\nکلاینت GW = 10.10.10.1\n",
+      "commands": "show vrrp\nshow vrrp brief\nshow vrrp interface Vlan10\nshow running-config | include vrrp\nping 10.10.10.1",
+      "examples": "Lab: دو روتر؛ Master را خاموش کن؛ VIP روی Backup بماند.\n",
+      "notes": "VRID و VIP دو طرف یکی باشد.\n",
+      "learning_objectives": ["VIP", "Master/Backup", "failover"]
+    },
+    {
+      "title_fa": "[L2] وایرلس — WPA2/WPA3 و امنیت SSID",
+      "title_en": "WPA2 WPA3 SSID Security",
+      "chapter_order": 30,
+      "summary": "فقط امنیت لایه لینک وایرلس: رمزنگاری و نوع احراز.",
+      "full_content": "# امنیت SSID\n\n| حالت | کاربرد |\n|------|--------|\n| Open | فقط Lab ایزوله |\n| WPA2-PSK | شعبه کوچک |\n| WPA3-SAE | ترجیح جدید PSK |\n| WPA2/3-Enterprise | 802.1X + RADIUS سازمانی |\n\nGuest را از Corp جدا کن (SSID و VLAN جدا).\n",
+      "commands": "show wlan summary\nshow client summary\nshow ap config general\n# روی کنترلر: encryption/authentication profile",
+      "examples": "Lab: یک SSID با PSK؛ کلاینت وصل؛ SSID دوم Enterprise (اگر RADIUS داری).\n",
+      "notes": "PSK ضعیف = نفوذ به VLAN همان SSID.\n",
+      "learning_objectives": ["تفاوت PSK و Enterprise", "جدا Guest"]
+    },
+    {
+      "title_fa": "[L2] مانیتورینگ با Zabbix / SNMP عملی",
+      "title_en": "Zabbix SNMP Monitoring Practice",
+      "chapter_order": 25,
+      "summary": "دستگاه را در مانیتورینگ ببین: up/down، CPU، اینترفیس.\n",
+      "full_content": "# مانیتورینگ\n\n1) روی تجهیز SNMP read\n2) در Zabbix/Host اضافه کن\n3) Template شبکه\n4) Trigger برای link down\n\nبدون NTP، timestamp آلارم‌ها به‌هم می‌ریزد.\n",
+      "commands": "show snmp\nshow snmp community\nsnmpwalk -v2c -c RO_NET 10.10.10.1 1.3.6.1.2.1.1.5\nsnmpwalk -v2c -c RO_NET 10.10.10.1 ifDescr",
+      "examples": "Lab: اینترفیس را shut کن؛ آلارم link down را در NMS ببین.\n",
+      "notes": "Community را پیچیده بگذار؛ SNMPv3 بهتر است.\n",
+      "learning_objectives": ["SNMP read", "آلارم link"]
+    },
+    {
+      "title_fa": "[L2] Terraform — ایده State برای زیرساخت",
+      "title_en": "Terraform State Infrastructure Idea",
+      "chapter_order": 51,
+      "summary": "زیرساخت به‌صورت کد؛ state منبع حقیقت است.\n",
+      "full_content": "# Terraform مفهوم\n\n```hcl\nresource \"local_file\" \"example\" {\n  content  = \"netenc\"\n  filename = \"out.txt\"\n}\n```\n\n```\nterraform init\nterraform plan\nterraform apply\n```\n\nبرای شبکه: providerهای ابری/فایروال؛ در Lab اول local.\n",
+      "commands": "terraform version\nterraform init\nterraform plan\nterraform apply -auto-approve\nterraform destroy -auto-approve",
+      "examples": "Lab: یک فایل با terraform بساز؛ state را ببین؛ destroy کن.\n",
+      "notes": "state را در Git عمومی نگذار.\n",
+      "learning_objectives": ["plan/apply", "اهمیت state"]
+    },
+    {
+      "title_fa": "[L2] WireGuard — تونل ساده",
+      "title_en": "WireGuard Simple Tunnel",
+      "chapter_order": 57,
+      "summary": "VPN مدرن و سبک؛ کلید عمومی/خصوصی و AllowedIPs.\n",
+      "full_content": "# WireGuard\n\n```\n[Interface]\nPrivateKey = <local>\nAddress = 10.8.0.1/24\nListenPort = 51820\n\n[Peer]\nPublicKey = <remote>\nAllowedIPs = 10.8.0.2/32, 10.20.20.0/24\nEndpoint = x.x.x.x:51820\n```\n\n",
+      "commands": "wg\nwg show\nip address show wg0\nping 10.8.0.2\n# لینوکس\nsystemctl status wg-quick@wg0",
+      "examples": "Lab: دو peer؛ پینگ تونل؛ AllowedIPs را تنگ/باز کن و اثر را ببین.\n",
+      "notes": "فایروال UDP 51820 را باز کن.\n",
+      "learning_objectives": ["کلید", "AllowedIPs"]
+    },
+    {
+      "title_fa": "[L3] SD-WAN مفهومی لبه شعب",
+      "title_en": "SD-WAN Branch Edge Concept",
+      "chapter_order": 18,
+      "summary": "انتخاب هوشمند لینک (اینترنت/MPLS) بر اساس سیاست و سلامت.\n",
+      "full_content": "# SD-WAN مفهوم\n\n- چند underlay (Fiber, LTE, MPLS)\n- Overlay تونل\n- Policy: Voice از لینک کم‌تأخیر، Backup روی LTE\n- Health-check و failover\n\nقبل از خرید جعبه: نیاز کسب‌وکار و SLA را بنویس.\n",
+      "commands": "# بستگی به فروشنده دارد — نمونه‌های کلی:\nshow sdwan\ndiagnose sys sdwan health-check\nget system interface",
+      "examples": "سناریو کاغذی: شعبه با دو اینترنت؛ Voice و ERP را جدا سیاست بده.\n",
+      "notes": "SD-WAN جادو نیست؛ طراحی underlay هنوز مهم است.\n",
+      "learning_objectives": ["underlay/overlay", "سیاست ترافیک"]
+    },
+    {
+      "title_fa": "[L2] گواهی TLS و HTTPS روی سرویس داخلی",
+      "title_en": "TLS Certificate Internal HTTPS",
+      "chapter_order": 65,
+      "summary": "HTTPS بدون گواهی معتبر = هشدار مرورگر؛ برای سرویس داخلی CA داخلی یا معتبر.\n",
+      "full_content": "# TLS عملی\n\n1) CSR بساز\n2) امضا توسط CA\n3) نصب روی سرویس (nginx/IIS/پنل)\n4) زنجیره (chain) کامل باشد\n\n",
+      "commands": "openssl version\nopenssl req -new -newkey rsa:2048 -nodes -keyout key.pem -out req.csr\nopenssl x509 -in cert.pem -text -noout\ncurl -vI https://service.local",
+      "examples": "Lab: گواهی self-signed؛ curl با -k؛ سپس با CA داخلی بدون -k.\n",
+      "notes": "کلید خصوصی را در مخزن عمومی نگذار.\n",
+      "learning_objectives": ["CSR", "chain", "تست curl"]
+    },
+    {
+      "title_fa": "[L2] شبکه کانتینر — Bridge و Port Publish",
+      "title_en": "Container Bridge Port Publish",
+      "chapter_order": 40,
+      "summary": "Docker bridge، پورت میزبان، و ارتباط بین کانتینر.\n",
+      "full_content": "# شبکه کانتینر\n\n```\ndocker network ls\ndocker run -d --name web -p 8080:80 nginx\ncurl http://127.0.0.1:8080\n```\n\nکانتینرها روی یک user-defined bridge با نام همدیگر resolve می‌شوند.\n",
+      "commands": "docker network ls\ndocker network inspect bridge\ndocker ps\ndocker logs web\ncurl -sI http://127.0.0.1:8080\nip addr show docker0",
+      "examples": "Lab: nginx با publish؛ از میزبان باز کن؛ پورت را قطع و دوباره بساز.\n",
+      "notes": "-p 80:80 روی سرور production با فایروال هماهنگ باشد.\n",
+      "learning_objectives": ["publish port", "bridge"]
+    },
+    {
+      "title_fa": "[L3] OSPF Stub Area مفهوم",
+      "title_en": "OSPF Stub Area Concept",
+      "chapter_order": 14,
+      "summary": "کاهش LSA خارجی در Areaهای لبه با Stub.\n",
+      "full_content": "# Stub Area\n\nدر Area stub، LSA نوع ۵ خارجی وارد نمی‌شود؛ به‌جای آن default از ABR می‌آید.\n\n```\nrouter ospf 1\n area 2 stub\n```\n\nهمه روترهای آن Area باید stub یکسان باشند.\n",
+      "commands": "show ip ospf\nshow ip ospf database\nshow ip ospf database external\nshow ip route ospf\nshow running-config | section router ospf",
+      "examples": "Lab: Area2 را stub کن؛ externalها را مقایسه کن قبل/بعد.\n",
+      "notes": "ASBR داخل stub معمولی قرار نمی‌گیرد.\n",
+      "learning_objectives": ["هدف stub", "default از ABR"]
+    },
+    {
+      "title_fa": "[L2] MikroTik — Netwatch و Scheduler",
+      "title_en": "MikroTik Netwatch Scheduler",
+      "chapter_order": 21,
+      "summary": "اتوماسیون داخلی RouterOS: اگر مقصد نپینگ شد، اسکریپت بزن.\n",
+      "full_content": "# Netwatch + Scheduler\n\n```\n/tool netwatch\nadd host=8.8.8.8 interval=10s up-script=\"\" down-script=\":log info \"WAN down\"\"\n\n/system scheduler\nadd name=nightly-backup interval=1d on-event=\"/system backup save name=auto\"\n```\n\n",
+      "commands": "/tool netwatch print\n/tool netwatch print stats\n/system scheduler print\n/system script print\n/log print where topics~\"script\"",
+      "examples": "Lab: netwatch روی IP تست؛ down را شبیه‌سازی کن؛ لاگ را ببین.\n",
+      "notes": "اسکریپت down نباید حلقه بی‌نهایت بسازد.\n",
+      "learning_objectives": ["netwatch", "scheduler"]
+    },
+    {
+      "title_fa": "[L2] PowerShell — جمع‌آوری وضعیت شبکه از چند سرور",
+      "title_en": "PowerShell Multi Host Network Check",
+      "chapter_order": 35,
+      "summary": "اسکریپت بررسی پورت/پینگ روی لیست سرورها.\n",
+      "full_content": "# PowerShell عملی\n\n```powershell\n$hosts = @('10.10.10.10','10.10.10.11')\nforeach ($h in $hosts) {\n  Test-NetConnection $h -Port 443 | Select-Object ComputerName,TcpTestSucceeded\n}\n```\n\n",
+      "commands": "Test-NetConnection 10.10.10.10 -Port 443\nGet-NetIPConfiguration\nInvoke-Command -ComputerName SRV1 -ScriptBlock { Get-NetAdapter }\nGet-Content .\\hosts.txt",
+      "examples": "Lab: فایل hosts.txt؛ حلقه تست 443؛ خروجی CSV.\n",
+      "notes": "WinRM برای Invoke-Command باید فعال و امن باشد.\n",
+      "learning_objectives": ["حلقه تست", "گزارش سریع"]
+    },
+    {
+      "title_fa": "[L3] امن‌سازی مدیریت — ACL روی VTY",
+      "title_en": "VTY ACL Management Hardening",
+      "chapter_order": 65,
+      "summary": "فقط از VLAN مدیریت به SSH وصل شو.\n",
+      "full_content": "# VTY ACL\n\n```\naccess-list 50 permit 10.255.255.0 0.0.0.255\naccess-list 50 deny any log\nline vty 0 4\n access-class 50 in\n transport input ssh\n login local\n```\n\nقبل از apply از session موجود تست کن تا قفل نشوی.\n",
+      "commands": "show access-lists 50\nshow line vty 0 4\nshow running-config | section line vty\nshow users",
+      "examples": "Lab: ACL فقط Mgmt؛ از IP کاربر عادی SSH fail شود و log بخورد.\n",
+      "notes": "console را با همان سختی بدون مسیر بازگشت قفل نکن.\n",
+      "learning_objectives": ["access-class", "transport ssh"]
+    }
+  ]
+}
