@@ -232,7 +232,7 @@ def apply_packs():
     try:
         from core.pack_loader import apply_packs_to_db
         result = apply_packs_to_db(Path(db().path), overwrite=True)
-        db().set_meta("packs_applied", "v1")
+        db().set_meta("packs_applied", "v2")
         return jsonify(result)
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
@@ -248,7 +248,7 @@ def reseed():
         from core.pack_loader import apply_packs_to_db
         packs = apply_packs_to_db(Path(db().path), overwrite=True)
         result["packs"] = packs
-        db().set_meta("packs_applied", "v1")
+        db().set_meta("packs_applied", "v2")
     except Exception as e:
         result["packs_error"] = str(e)
     return jsonify(result)
@@ -354,14 +354,13 @@ def main():
     port = int(os.environ.get("NETENC_PORT", "5050"))
     print("init db / rich seed if needed...")
     d = db()
-    # محتوای واقعی پک‌های JSON را یک‌بار روی درس‌ها بنویس
     try:
-        if d.get_meta("packs_applied") != "v1":
+        if d.get_meta("packs_applied") != "v2":
             from core.pack_loader import apply_packs_to_db
             print("applying REAL JSON pack content into lessons...")
             res = apply_packs_to_db(Path(d.path), overwrite=True)
             print("pack apply:", res.get("updated"), "updated /", res.get("matched"), "matched")
-            d.set_meta("packs_applied", "v1")
+            d.set_meta("packs_applied", "v2")
     except Exception as e:
         print("pack apply skipped:", e)
     if register_study_routes:
