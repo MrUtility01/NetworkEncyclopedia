@@ -24,42 +24,40 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
-      - name: Install platform 34 + build-tools
+      - name: Install SDK packages
         run: |
           set -e
-          sdkmanager --install "platforms;android-34" "build-tools;34.0.0" "platform-tools" || true
+          sdkmanager --install "platforms;android-34" "build-tools;34.0.0" || true
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
-          echo "ANDROID_HOME=${ANDROID_HOME}"
-          ls "${ANDROID_HOME}/platforms" || true
-          ls "${ANDROID_HOME}/build-tools" || true
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls "$ANDROID_HOME/platforms" || true
+          ls "$ANDROID_HOME/build-tools" || true
 
       - name: Icons (safe)
         run: |
           python3 scripts/install_android_icon.py || echo "icons skip"
-          echo "icons ok"
 
-      - name: Curriculum export (keep existing asset on failure)
+      - name: Curriculum export
         run: |
           set +e
           python3 scripts/export_android_index.py
           code=$?
           set -e
           if [ "$code" -ne 0 ]; then
-            echo "WARN: export failed ($code) — using committed asset"
+            echo "WARN: using committed curriculum asset"
             test -f android/app/src/main/assets/curriculum_index.json.gz
           fi
-          python3 scripts/merge_content_packs_into_android.py || echo "WARN: merge skipped"
+          python3 scripts/merge_content_packs_into_android.py || true
 
-      - name: Write local.properties
+      - name: local.properties
         run: |
-          if [ -z "$ANDROID_HOME" ]; then
-            export ANDROID_HOME="${ANDROID_SDK_ROOT:-$HOME/android-sdk}"
-          fi
-          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          echo "sdk.dir=${ANDROID_HOME:-$ANDROID_SDK_ROOT}" > android/local.properties
           cat android/local.properties
 
-      - name: Ensure Gradle Wrapper
+      - name: Gradle wrapper
         working-directory: android
         run: |
           set -e
@@ -79,42 +77,28 @@ jobs:
             'distributionPath=wrapper/dists' \
             'distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-bin.zip' \
             'networkTimeout=120000' \
-            'validateDistributionUrl=true' \
             'zipStoreBase=GRADLE_USER_HOME' \
             'zipStorePath=wrapper/dists' \
             > gradle/wrapper/gradle-wrapper.properties
-          cat gradle/wrapper/gradle-wrapper.properties
-          ls -la gradlew gradle/wrapper/
 
       - name: Assemble Debug APK
         working-directory: android
         run: |
-          set -e
           ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee ../gradle-build.log
           exit ${PIPESTATUS[0]}
 
-      - name: Upload Gradle log
+      - name: Upload log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: gradle-build-log
           path: gradle-build.log
           if-no-files-found: ignore
-          retention-days: 7
 
-      - name: Collect APK
-        run: |
-          set -e
-          mkdir -p dist
-          find android -name "*.apk" -print
-          find android -name "*.apk" -exec cp -v {} dist/ \;
-          ls -lah dist/
-          test "$(ls -A dist/*.apk 2>/dev/null)"
-
-      - name: Upload APK
+      - name: Collect + Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: EngineerJokar-APK-v1
-          path: dist/*.apk
+          path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
