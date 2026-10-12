@@ -14,13 +14,15 @@ import androidx.appcompat.app.AppCompatActivity
 
 /**
  * ورود اجباری با رمز برنامه.
- * رمز پیش‌فرض: 09136555866
+ * رمز: engineerjokar
  */
 class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val prefs = getSharedPreferences("netenc", MODE_PRIVATE)
-        if (prefs.getBoolean("unlocked", false)) {
+        // اگر قبلاً با رمز قدیم unlock شده، با رمز جدید دوباره بخواهد
+        val savedToken = prefs.getString("token", "")
+        if (prefs.getBoolean("unlocked", false) && savedToken == APP_PASSWORD) {
             goMain()
             return
         }
@@ -78,6 +80,6 @@ class LoginActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val APP_PASSWORD = "09136555866"
+        const val APP_PASSWORD = "engineerjokar"
     }
 }

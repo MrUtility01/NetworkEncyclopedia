@@ -1,0 +1,97 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "v21 فوق‌عمیق همراه با رمز engineerjokar",
+  "lessons": [
+    {
+      "title_fa": "[L4] طراحی لبه اینترنت دو ISP بدون تک‌نقطه شکست",
+      "title_en": "Dual ISP Edge Design No Single Point of Failure",
+      "chapter_order": 14,
+      "summary": "BGP یا floating static، NAT، مانیتور و failover واقعی بین دو اینترنت.",
+      "full_content": "# لبه دو ISP — فوق‌عمیق\n\n## هدف\nقطع یک ISP نباید کل سازمان را بخواباند.\n\n## مدل‌ها\n| مدل | مناسب |\n|------|--------|\n| دو default با AD/metric | ساده، کنترل کمتر |\n| BGP dual-homed | کنترل ingress/egress |\n| SD-WAN health | شعب |\n\n## NAT\nهر ISP IP عمومی خودش؛ sessionهای موجود هنگام failover معمولاً می‌میرند — انتظار درست داشته باش.\n\n## تست\nقطع واقعی کابل/session و زمان بازیابی را اندازه بگیر.\n",
+      "commands": "show ip route\nshow ip bgp summary\nshow ip nat translations\nshow interfaces\nping\ntraceroute",
+      "examples": "Lab: دو خروجی؛ baseline؛ قطع ISP-A؛ اندازه‌گیری بازیابی؛ برگشت.\n",
+      "notes": "Failover بدون تست = فرضیه.\n",
+      "learning_objectives": ["مدل دو ISP", "NAT و session", "تست قطع"]
+    },
+    {
+      "title_fa": "[L4] معماری Zero Trust عملی در شبکه موجود",
+      "title_en": "Practical Zero Trust on Existing Network",
+      "chapter_order": 65,
+      "summary": "فازبندی روی شبکه تخت فعلی بدون توقف کسب‌وکار.",
+      "full_content": "# Zero Trust عملی — فازبندی\n\n## فاز ۰\nدارایی و جریان ترافیک را بشناس.\n\n## فاز ۱\nMgmt جدا + پرش jump + MFA برای ادمین.\n\n## فاز ۲\nسگمنت سرورهای حیاتی (مالی/DC).\n\n## فاز ۳\n802.1X در access.\n\n## فاز ۴\neast-west و هویت روی فایروال.\n\nهر فاز معیار موفقیت و rollback دارد.\n",
+      "commands": "show vlan brief\nshow access-lists\nshow authentication sessions\nshow firewall policy\nshow logging",
+      "examples": "برای شبکه خودت فاز ۰ و ۱ را روی کاغذ بنویس.\n",
+      "notes": "big-bang Zero Trust شکست می‌خورد.\n",
+      "learning_objectives": ["فازبندی", "دارایی اول", "معیار موفقیت"]
+    },
+    {
+      "title_fa": "[L3] عیب‌یابی پیشرفته NAT و Proxy همزمان",
+      "title_en": "Advanced NAT and Proxy Combined Troubleshooting",
+      "chapter_order": 12,
+      "summary": "وقتی هم NAT لبه هست هم proxy کاربر؛ جدا کردن لایه‌ها.",
+      "full_content": "# NAT + Proxy — RCA\n\n## ترتیب ذهنی\nکلاینت → (proxy؟) → NAT لبه → اینترنت.\n\nاگر proxy در مسیر است، IP منبع دیده‌شده سمت سرور = proxy است نه کلاینت.\n\n## علائم\n| علامت | احتمال |\n|--------|---------|
+| فقط مرورگر fail | proxy/PAC |\n| همه پروتکل‌ها fail | NAT/مسیر |\n| بعضی سایت‌ها | DNS یا SNI filter |\n",
+      "commands": "show ip nat translations\ncurl -v https://example.com\nGet-Proxy\nnscurl\nipconfig /all",
+      "examples": "Lab: با/بدون proxy؛ translations را مقایسه کن.\n",
+      "notes": "لاگ فایروال را با IP کلاینت اشتباه نگیر وقتی proxy هست.\n",
+      "learning_objectives": ["ترتیب لایه", "اثر proxy روی IP", "جداسازی"]
+    },
+    {
+      "title_fa": "[L3] طراحی VLAN برای OT/IoT جدا از IT",
+      "title_en": "VLAN Design OT IoT Separated from IT",
+      "chapter_order": 11,
+      "summary": "سگمنت دوربین، حسگر و اتوماسیون صنعتی با حداقل دسترسی.",
+      "full_content": "# OT/IoT Segmentation\n\n## اصل\nدستگاه‌های IoT نباید به VLAN کاربران یا DC آزادانه وصل باشند.\n\n## الگو\n| سگمنت | دسترسی |\n|--------|---------|
+| IoT | فقط اینترنت محدود یا فقط جمع‌کننده |\n| OT | فقط سرورهای OT |\n| IT | جدا |\n\n## فایروال بین IT و OT\ndeny پیش‌فرض؛ اجازه صریح.\n",
+      "commands": "show vlan brief\nshow access-lists\nshow mac address-table\nshow interfaces trunk",
+      "examples": "Lab: دوربین فقط به NVR؛ از PC کاربر مستقیم fail.\n",
+      "notes": "IoT روی Wi-Fi مهمان بدون ایزوله = خطر.\n",
+      "learning_objectives": ["جدا OT/IT", "حداقل دسترسی", "deny پیش‌فرض"]
+    },
+    {
+      "title_fa": "[L3] مانیتورینگ مصنوعی (Synthetic Monitoring) شبکه",
+      "title_en": "Synthetic Monitoring for Networks",
+      "chapter_order": 25,
+      "summary": "Probeهای دائمی قبل از تیکت کاربر.",
+      "full_content": "# Synthetic Monitoring\n\nاز نقاط مختلف: ping، DNS، HTTP، TCP port.\n\nآستانه و اعلان؛ بدون سیل آلارم.\n\nمکمل NetFlow و Syslog است نه جایگزین.\n",
+      "commands": "ping\ncurl -w \"%{time_total}\\n\" -o /dev/null -s https://app.local\ndig\nTest-NetConnection -Port 443\nshow ip sla statistics",
+      "examples": "سه probe: DNS داخلی، VPN portal، اپ اصلی — هر ۱ دقیقه.\n",
+      "notes": "Probe از خود سرور اپ گمراه‌کننده است؛ از کلاینت‌مانند بسنج.\n",
+      "learning_objectives": ["probe", "آستانه", "نقطه اندازه‌گیری"]
+    },
+    {
+      "title_fa": "[L2] مستندسازی ماتریس فایروال",
+      "title_en": "Firewall Matrix Documentation",
+      "chapter_order": 22,
+      "summary": "جدول از→به→پورت→توضیح برای هر policy مهم.",
+      "full_content": "# ماتریس فایروال\n\nستون‌ها: #، From، To، Port/App، Action، Owner، تاریخ.\n\nهر change ماتریس را به‌روز کند.\n\nهدف: ممیزی و RCA سریع.\n",
+      "commands": "show firewall policy\nshow access-lists\nexport",
+      "examples": "۱۰ rule اول را در جدول Markdown بنویس.\n",
+      "notes": "ماتریس قدیمی‌تر از کانفیگ = خطرناک.\n",
+      "learning_objectives": ["قالب ماتریس", "مالکیت rule", "همگام با change"]
+    },
+    {
+      "title_fa": "[L3] همگام‌سازی زمان و امنیت — وابستگی‌های پنهان",
+      "title_en": "Time Sync and Security Hidden Dependencies",
+      "chapter_order": 5,
+      "summary": "گواهی، لاگ، Kerberos و failover همه به زمان وابسته‌اند.",
+      "full_content": "# زمان و امنیت\n\nانحراف ساعت → شکست TLS، لاگ غیرقابل‌اعتماد، مشکل AD.\n\nNTP سلسله‌مراتبی؛ مانیتور unsync.\n",
+      "commands": "show clock\nshow ntp status\nshow ntp associations\nw32tm /query /status",
+      "examples": "Lab: ساعت را جلو ببر؛ اثر روی cert را ببین؛ NTP را درست کن.\n",
+      "notes": "اول NTP بعد تحلیل لاگ حادثه.\n",
+      "learning_objectives": ["وابستگی امنیت به زمان", "مانیتور NTP"]
+    },
+    {
+      "title_fa": "[L2] آماده‌سازی تحویل پروژه شبکه به تیم عملیات",
+      "title_en": "Network Project Handover to Operations",
+      "chapter_order": 5,
+      "summary": "چک‌لیست تحویل: دسترسی، سند، مانیتور، backup، آموزش.",
+      "full_content": "# Handover\n\n1. دیاگرام و IP\n2. حساب‌ها و vault\n3. مانیتورینگ و آلارم\n4. backup و restore تست‌شده\n5. runbook حوادث رایج\n6. مسیر پشتیبانی فروشنده\n\nبدون این‌ها پروژه «تمام» نشده است.\n",
+      "commands": "show version\nshow running-config\nshow inventory\nshow logging",
+      "examples": "برای یک سایت فرضی چک‌لیست تحویل یک‌صفحه‌ای بنویس.\n",
+      "notes": "آموزش ۳۰دقیقه‌ای حضوری بهتر از PDF صد صفحه‌ای است.\n",
+      "learning_objectives": ["چک‌لیست تحویل", "restore تست‌شده", "runbook"]
+    }
+  ]
+}

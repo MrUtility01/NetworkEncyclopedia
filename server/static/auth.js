@@ -1,4 +1,4 @@
-const APP_PASSWORD = "09136555866";
+const APP_PASSWORD = "engineerjokar";
 const AUTH_KEY = "netenc_unlocked_v1";
 const TOKEN_KEY = "netenc_token_v1";
 
