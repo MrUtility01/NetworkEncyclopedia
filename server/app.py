@@ -86,8 +86,7 @@ def db() -> WebDB:
     if _db is None:
         _db = WebDB()
         if not _db.is_seeded():
-            print("seed curriculum (fast)...")
-            os.environ.setdefault("NETENC_FAST_SEED", "1")
+            print("seed curriculum (rich content) — may take a few minutes...")
             print(_db.seed_full(force=True))
         _db.ensure_sync_columns()
     return _db
@@ -151,8 +150,6 @@ def health():
         "stats": st,
     })
 
-
-# —— فهرست دروس: عمومی ——
 
 @app.get("/api/stats")
 def api_stats():
@@ -221,13 +218,9 @@ def reseed():
     denied = require_token()
     if denied:
         return denied
-    global _db
-    os.environ.setdefault("NETENC_FAST_SEED", "1")
     result = db().seed_full(force=True)
     return jsonify(result)
 
-
-# —— Sync با توکن ——
 
 @app.get("/api/sync/hello")
 def sync_hello():
@@ -327,7 +320,7 @@ def sync_push():
 def main():
     host = BIND_HOST
     port = int(os.environ.get("NETENC_PORT", "5050"))
-    print("init db / fast seed if needed...")
+    print("init db / rich seed if needed...")
     db()
     if register_study_routes:
         try:
