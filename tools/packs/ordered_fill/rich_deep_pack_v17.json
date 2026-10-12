@@ -1,0 +1,117 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "ادامه v17 — غنی و عمیق، هر درس فقط موضوع خودش",
+  "lessons": [
+    {
+      "title_fa": "[L3] OTV — امتداد لایه ۲ بین دیتاسنترها",
+      "title_en": "OTV Overlay Transport Virtualization",
+      "chapter_order": 16,
+      "summary": "کشیدن VLAN بین سایت‌ها روی شبکه IP بدون گسترش STP خام.",
+      "full_content": "# OTV — عمیق\n\n## مشکل\nگاهی باید لایه ۲ بین دو DC امتداد یابد (migration زنده، cluster). امتداد خام VLAN روی WAN معمولاً STP و broadcast را خراب می‌کند.\n\n## ایده OTV\nMAC را روی حمل‌کننده IP کپسوله می‌کند و مرز را در لبه سایت نگه می‌دارد.\n\n## مفاهیم\n| مفهوم | نقش |\n|--------|-----|\n| Edge Device | نقطه ورود/خروج OTV |\n| Join Interface | ارتباط با transport IP |\n| Internal Interface | سمت VLAN داخلی |\n| Overlay | تونل منطقی بین سایت‌ها |\n\n## در برابر VXLAN/EVPN\nOTV بیشتر در سناریوی DCI سیسکو مطرح است؛ VXLAN/EVPN در fabric مدرن رایج‌تر است. انتخاب به اکوسیستم بستگی دارد.\n\n## طراحی\n- از امتداد VLANهای غیرضروری خودداری کن\n- ARP/broadcast را محدود کن\n- FHRP localization را بشناس\n\n## RCA\nسایت‌ها L2 نمی‌بینند: adjacency اورلی، route به site-id، اجازه multicast/unicast control.\n",
+      "commands": "show otv\nshow otv adjacency\nshow otv vlan\nshow otv route\nshow otv site\nshow mac address-table\nshow ip route",
+      "examples": "Lab مفهومی:\n1) دو سایت با transport IP\n2) فقط VLANهای لازم را extend کن\n3) MAC را دو طرف ببین\n4) transport را قطع کن → L2 قطع می‌شود نه لزوماً L3 داخلی",
+      "notes": "هر VLAN را به‌خاطر عادت extend نکن.\n",
+      "learning_objectives": ["نقش OTV", "Edge Device", "محدود کردن blast radius"]
+    },
+    {
+      "title_fa": "[L3] LISP — جداسازی Identity و Location",
+      "title_en": "LISP Locator Identity Separation",
+      "chapter_order": 16,
+      "summary": "جدا کردن هویت endpoint از محل اتصال برای تحرک و مقیاس.",
+      "full_content": "# LISP — عمیق\n\n## ایده\nآدرس هویت (EID) از آدرس مکان (RLOC) جدا می‌شود. وقتی دستگاه جابه‌جا می‌شود، هویت ثابت می‌ماند و فقط mapping مکان عوض می‌شود.\n\n## نقش‌ها\n| نقش | کار |\n|------|-----|\n| ITR | کپسوله‌کننده سمت ورود |\n| ETR | خارج‌کننده سمت مقصد |\n| Map-Server / Map-Resolver | پایگاه نگاشت |\n\n## کاربرد\n- mobility\n- مقیاس جدول در لبه\n- برخی طراحی‌های SD-Access / fabric\n\n## مسیر یادگیری\nاول مفهوم EID/RLOC → بعد registration → بعد encapsulation → Verify map-cache.\n\n## RCA\nترافیک نمی‌رسد: map-cache خالی، RLOC unreachable، ثبت ETR.\n",
+      "commands": "show lisp\nshow ip lisp\nshow ip lisp map-cache\nshow ip lisp database\nshow lisp site\nshow ip route",
+      "examples": "Lab مفهومی:\n1) دو site با RLOC\n2) EID داخلی\n3) map-cache بعد از ترافیک\n4) RLOC را قطع کن و علامت را ببین",
+      "notes": "LISP را با NAT یا VPN ساده اشتباه نگیر؛ مدل متفاوت است.\n",
+      "learning_objectives": ["EID vs RLOC", "ITR/ETR", "map-cache"]
+    },
+    {
+      "title_fa": "[L3] FlexVPN و GETVPN — مدل‌های پیشرفته IPsec",
+      "title_en": "FlexVPN GETVPN Advanced IPsec Models",
+      "chapter_order": 57,
+      "summary": "تفاوت VPNهای مبتنی بر تونل نقطه به نقطه با مدل group-key.",
+      "full_content": "# FlexVPN و GETVPN — عمیق\n\n## FlexVPN\nچارچوب IKEv2 سیسکو برای جمع‌کردن سناریوهای remote-access و site-to-site زیر یک مدل واحد (virtual-template، interface مجازی).\n\n## GETVPN\nبرای محیطهای private WAN (MPLS) که می‌خواهند any-to-any رمز شود بدون تونل‌های زیاد point-to-point. از Group Domain of Interpretation (GDOI) و key server استفاده می‌کند.\n\n## مقایسه\n| | Site-to-Site کلاسیک | FlexVPN | GETVPN |\n|--|---------------------|---------|--------|\n| کلید/سیاست | per-peer | یکپارچه‌تر | group key |\n| any-to-any | سخت | متوسط | عالی روی private WAN |\n| اینترنت عمومی | رایج | رایج | معمولاً نه |\n\n## RCA\nGETVPN: ثبت member با key server، ACL جالب‌ترافیک، همگامی زمان.\nFlexVPN: IKEv2 proposal، identity، virtual-access.\n",
+      "commands": "show crypto ikev2 sa\nshow crypto session\nshow crypto gdoi\nshow crypto gdoi ks members\nshow crypto ipsec sa\nshow ip interface brief | include Virtual",
+      "examples": "Lab مسیر:\n1) ابتدا site-to-site ساده\n2) همان سیاست را در مدل IKEv2/Flex مفهومی بازطراحی کن\n3) برای any-to-any روی backbone خصوصی مدل group را روی کاغذ بکش",
+      "notes": "GETVPN جایگزین طراحی اینترنت ناامن نمی‌شود.\n",
+      "learning_objectives": ["FlexVPN ایده", "GETVPN group key", "انتخاب مدل"]
+    },
+    {
+      "title_fa": "[L2] IPFIX و تله‌متری جریانی — فراتر از NetFlow کلاسیک",
+      "title_en": "IPFIX Streaming Telemetry Beyond Classic NetFlow",
+      "chapter_order": 25,
+      "summary": "استانداردسازی flow export و حرکت به model-driven telemetry.",
+      "full_content": "# IPFIX و Telemetry — عمیق\n\n## NetFlow در برابر IPFIX\nIPFIX (IP Flow Information Export) استاندارد IETF مبتنی بر تجربه NetFlow v9 است؛ قالب انعطاف‌پذیرتر.\n\n## Streaming Telemetry\nبه‌جای SNMP poll، دستگاه داده‌ها را push می‌کند (gRPC/gNMI/Kafka و غیره). تأخیر کمتر، مقیاس بهتر.\n\n## طراحی جمع‌آوری\n1. چه فیلدی لازم است؟\n2. نمونه‌برداری چقدر؟\n3. مسیر امن تا collector\n4. نگه‌داری و حریم خصوصی\n\n## RCA\nداده نمی‌آید: ACL به collector، نسخه پروتکل، بار CPU، قالب template.\n",
+      "commands": "show ip flow export\nshow flow exporter\nshow flow monitor\nshow sampled flow\nshow telemetry\nshow running-config | include flow|telemetry",
+      "examples": "Lab:\n1) export به collector\n2) ترافیک تولید کن\n3) template/flow را ببین\n4) sampling را تغییر بده و CPU را مقایسه کن",
+      "notes": "هرچه فیلد بیشتر، هزینه بیشتر — فقط آنچه لازم است.\n",
+      "learning_objectives": ["IPFIX", "sampling", "telemetry push"]
+    },
+    {
+      "title_fa": "[L2] gNMI/gRPC Telemetry — جمع‌آوری مدرن کانفیگ و وضعیت",
+      "title_en": "gNMI gRPC Telemetry Modern Collection",
+      "chapter_order": 51,
+      "summary": "مدل باز YANG، subscribe به pathها و اتوماسیون مبتنی بر رویداد.",
+      "full_content": "# gNMI / gRPC — عمیق\n\n## ایده\nبه‌جای parse کردن خروجی show متنی، با مدل داده‌ای (YANG) مقدار را می‌خوانی یا subscribe می‌کنی.\n\n## عملیات\n| RPC | کار |\n|-----|-----|\n| Get | خواندن لحظه‌ای |\n| Set | تغییر کانفیگ |\n| Subscribe | جریان به‌روزرسانی |\n\n## مزیت\nساختارمند، مناسب pipeline، کمتر شکننده از regex روی show.\n\n## مسیر یادگیری\n1. مدل YANG مسیر موردنظر\n2. اتصال TLS به دستگاه\n3. Get یک path\n4. Subscribe به interface counters\n\n## امنیت\nگواهی، RBAC، جدا شبکه مدیریت.\n",
+      "commands": "# ابزار نمونه اکوسیستم:\ngnmi_get --help\ngnmi_subscribe --help\n# روی دستگاه (بسته به OS):\nshow grpc status\nshow yang\nshow running-config | include grpc|gnmi",
+      "examples": "Lab:\n1) یک path شمارنده اینترفیس\n2) Get\n3) Subscribe و تولید ترافیک\n4) رویداد را در collector ببین",
+      "notes": "بدون مدل درست، Subscribe فقط نویز می‌دهد.\n",
+      "learning_objectives": ["Get/Set/Subscribe", "YANG path", "مزیت بر show متنی"]
+    },
+    {
+      "title_fa": "[L2] RBAC عملیاتی روی تجهیزات و پنل‌ها",
+      "title_en": "Operational RBAC on Devices and Panels",
+      "chapter_order": 65,
+      "summary": "حداقل دسترسی برای نقش‌ها: ناظر، اپراتور، ادمین.",
+      "full_content": "# RBAC شبکه — عمیق\n\n## نقش‌های پیشنهادی\n| نقش | مثال دسترسی |\n|------|-------------|\n| Viewer | فقط show / داشبورد |\n| Operator | clear counters، ریبوت با تأیید |\n| Admin | کانفیگ کامل |\n| Auditor | لاگ و گزارش |\n\n## پیاده‌سازی\n- TACACS+ command authorization\n- privilege levels / user roles روی OS\n- پنل فایروال با admin profile\n- جدا حساب انسان و اتوماسیون\n\n## ضدالگو\nهمه با admin مشترک؛ رمز یکسان روی همه دستگاه‌ها.\n\n## Verify\nبا کاربر Operator سعی کن کانفیگ حساس بزنی → باید deny + log شود.\n",
+      "commands": "show privilege\nshow aaa\nshow running-config | include privilege|username|tacacs\nshow users\ntest aaa group tacacs+ operator OpPass local",
+      "examples": "Lab:\n1) سه کاربر با نقش متفاوت\n2) Operator نتواند interface را no shutdown خارج از پنجره کند (سیاست)\n3) لاگ deny را پیدا کن",
+      "notes": "RBAC بدون لاگ accounting نصف کار است.\n",
+      "learning_objectives": ["نقش‌ها", "command authorization", "حساب جدا اتوماسیون"]
+    },
+    {
+      "title_fa": "[L2] Jump Host و دسترسی مدیریتی امن",
+      "title_en": "Jump Host Secure Administrative Access",
+      "chapter_order": 65,
+      "summary": "ورود غیرمستقیم به تجهیزات از یک میزبان کنترل‌شده.",
+      "full_content": "# Jump Host — عمیق\n\n## ایده\nادمین مستقیماً از لپ‌تاپ به همه روترها SSH نزند. اول به jump host (bastion) در VLAN مدیریت، بعد به هدف.\n\n## مزیت\n- نقطه لاگ متمرکز\n- سخت‌سازی یک‌جا\n- کاهش سطح حمله\n- همراهی با MFA روی bastion\n\n## الگو\n```\nLaptop --VPN/MFA--> Jump --SSH--> Network devices\n```\n\n## سخت‌سازی\n- فقط SSH\n- allowlist کاربران\n- session recording در صورت امکان\n- بدون internet browsing از روی jump\n\n## RCA\nدسترسی fail: ACL Mgmt، کلید SSH، زمان MFA، route به jump.\n",
+      "commands": "ssh jump.example.local\nssh admin@10.255.255.1\nshow users\nshow access-lists\nshow logging | include SSH\|LOGIN",
+      "examples": "Lab:\n1) ACL طوری که فقط jump به VTY دستگاه‌ها برسد\n2) از لپ‌تاپ مستقیم fail\n3) از jump OK\n4) لاگ را روی jump و دستگاه مقایسه کن",
+      "notes": "Jump را تبدیل به workstation عمومی نکن.\n",
+      "learning_objectives": ["bastion", "ACL Mgmt", "لاگ متمرکز"]
+    },
+    {
+      "title_fa": "[L2] مدیریت Secrets — رمز، کلید، vault",
+      "title_en": "Secrets Management Passwords Keys Vault",
+      "chapter_order": 51,
+      "summary": "نگه‌نداشتن رمز در Git و اسکریپت؛ گردش رازها.",
+      "full_content": "# Secrets — عمیق\n\n## ضدالگو\n- رمز در فایل inventory ساده\n- کلید خصوصی در چت\n- یک رمز برای همه دستگاه‌ها\n\n## الگوهای درست\n| روش | کاربرد |\n|------|--------|\n| Vault (HashiCorp و مشابه) | مرکزی با audit |\n| Ansible Vault | رمزنگاری فایل‌های playbook |\n| env / CI secret store | pipeline |\n| سخت‌افزار/توکن | ادمین انسانی |\n\n## گردش\nچرخش دوره‌ای، revoke فوری هنگام خروج نیرو، حداقل scope.\n\n## شبکه\nSNMP community، PSK تونل، enable secret، API token — همه secret هستند.\n",
+      "commands": "ansible-vault encrypt group_vars/all.yml\nansible-vault view group_vars/all.yml\nprintenv | grep -i token\n# هرگز:\n# echo password > secrets.txt",
+      "examples": "Lab:\n1) یک playbook با رمز plaintext\n2) به vault منتقل کن\n3) از CI با secret injection اجرا کن\n4) اسکن repo برای الگوی password=",
+      "notes": "اگر secret لو رفت، rotate کن نه فقط «پاک کردن از چت».\n",
+      "learning_objectives": ["vault", "چرخش", "عدم commit رمز"]
+    },
+    {
+      "title_fa": "[L2] Out-of-Band Management — وقتی شبکه اصلی مرده",
+      "title_en": "Out of Band Management When Production is Down",
+      "chapter_order": 5,
+      "summary": "مسیر مدیریت مستقل برای نجات در قطعی بزرگ.",
+      "full_content": "# OOB Management — عمیق\n\n## مشکل\nاگر فقط in-band مدیریت کنی، همان خرابی production دسترسی‌ات را هم قطع می‌کند.\n\n## گزینه‌ها\n| روش | توضیح |\n|------|--------|\n| پورت مدیریت اختصاصی | Mgmt VRF / interface |\n| کنسول سرور / terminal server | دسترسی سریال جمعی |\n| LTE/مodem اضطراری | آخرین راه |\n| شبکه OOB جدا | سوئیچ مجزا |\n\n## طراحی\n- VRF مدیریت جدا\n- مسیر به jump از OOB\n- تست ماهانه ورود OOB\n\n## ضدالگو\nOOB روی همان uplink production بدون استقلال واقعی.\n",
+      "commands": "show ip interface brief\nshow vrf\nshow console\nshow line\nshow running-config | include vrf|mgmt",
+      "examples": "Lab/tabletop:\n1) فرض کن routing production شکسته\n2) از OOB به کنسول/مدیریت وصل شو\n3) کانفیگ را اصلاح کن\n4) برگرد و in-band را Verify کن",
+      "notes": "OOB بدون تمرین، در شب حادثه پیدا نمی‌شود.\n",
+      "learning_objectives": ["استقلال مسیر مدیریت", "console server", "تست دوره‌ای"]
+    },
+    {
+      "title_fa": "[L2] Documentation به‌عنوان کد — دیاگرام و منبع حقیقت",
+      "title_en": "Documentation as Code Diagrams Source of Truth",
+      "chapter_order": 5,
+      "summary": "نقشه شبکه، addressing و runbook در Git با نسخه.",
+      "full_content": "# Documentation as Code — عمیق\n\n## چه چیزهایی باید نسخه داشته باشند\n- دیاگرام منطقی/فیزیکی\n- جدول IP/VLAN\n- استاندارد کانفیگ\n- runbook\n- ماتریس فایروال\n\n## ابزار\nGit + Markdown + diagrams (draw.io xml، mermaid) + تولید خودکار از کانفیگ در صورت امکان.\n\n## قانون\nاگر با واقعیت شبکه فرق دارد، یا سند غلط است یا شبکه — یکی را سریع اصلاح کن.\n\n## حداقل صفحه برای هر سایت\n1. تماس اضطراری\n2. دیاگرام یک‌صفحه‌ای\n3. IP کلیدی\n4. مسیر OOB\n5. لینک به backup\n",
+      "commands": "git status\ngit log --oneline -5\ngit diff\n# تولید از دستگاه:\nshow running-config\nshow inventory\nshow version",
+      "examples": "تمرین:\n1) یک سایت را در Markdown توصیف کن\n2) جدول VLAN/IP\n3) commit\n4) change ساختگی و به‌روزرسانی سند در همان PR",
+      "notes": "سند بدون تاریخ و مالک به‌سرعت می‌میرد.\n",
+      "learning_objectives": ["منبع حقیقت", "نسخه در Git", "حداقل سند سایت"]
+    }
+  ]
+}
