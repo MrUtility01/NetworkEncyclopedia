@@ -1,0 +1,293 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "v26 — حداکثر غنی‌سازی فصل‌های باقی‌مانده در یک بسته",
+  "lessons": [
+    {
+      "title_fa": "[L2] مدل OSI و TCP/IP عملیاتی — از تئوری تا RCA",
+      "title_en": "OSI and TCPIP Operational Model for RCA",
+      "chapter_order": 1,
+      "summary": "لایه‌ها را برای عیب‌یابی واقعی به کار ببر نه حفظ طوطی‌وار.",
+      "full_content": "# OSI/TCP-IP عملیاتی\n\n## نقشه سریع\n| مشکل | لایه محتمل | ابزار |\n|-------|------------|-------|\n| لینک down | L1/L2 | show interface, کابل |\n| ARP/MAC | L2 | show mac, show arp |\n| ping با IP نه با نام | L3/DNS | ping, Resolve-DnsName |\n| پورت بسته | L4 | Test-NetConnection |\n| اپ خراب با شبکه سالم | L7 | لاگ اپ |\n\n## قانون\nاز پایین به بالا برو مگر شواهد واضح لایه بالاتر داشته باشی.\n",
+      "commands": "show interfaces\nshow ip interface brief\nshow arp\nping\ntraceroute\nTest-NetConnection\nResolve-DnsName",
+      "examples": "سه علامت بده و بگو اول کدام لایه را می‌بینی.\n",
+      "notes": "OSI نقشه ذهنی است نه پروتکل واقعی روی سیم.\n",
+      "learning_objectives": ["نگاشت مشکل به لایه", "ترتیب RCA"]
+    },
+    {
+      "title_fa": "[L2] اترنت، Collision و Broadcast Domain",
+      "title_en": "Ethernet Collision and Broadcast Domains",
+      "chapter_order": 2,
+      "summary": "دامنه برخورد در سوئیچ مدرن و دامنه پخش با VLAN.",
+      "full_content": "# Collision vs Broadcast\n\nسوئیچ هر پورت را collision domain جدا می‌کند.\nBroadcast domain با VLAN/روتر شکسته می‌شود.\n\nطراحی: VLAN زیاد بی‌دلیل = پیچیدگی؛ یک VLAN تخت بزرگ = طوفان و امنیت ضعیف.\n",
+      "commands": "show vlan brief\nshow mac address-table\nshow interfaces status\nshow spanning-tree",
+      "examples": "دو PC در یک VLAN؛ broadcast را با capture مفهومی توضیح بده.\n",
+      "notes": "Hub تاریخ است؛ مبنای ذهنی را روی سوئیچ بگذار.\n",
+      "learning_objectives": ["collision domain", "broadcast domain"]
+    },
+    {
+      "title_fa": "[L2] ARP عمیق و حملات مسموم‌سازی",
+      "title_en": "Deep ARP and Poisoning Awareness",
+      "chapter_order": 3,
+      "summary": "جدول ARP، ناکام بودن ارتباط L3 روی LAN، و DAI.",
+      "full_content": "# ARP\n\nIP→MAC روی سگمنت محلی.\nعلائم خرابی: ping ناقص، gateway اشتباه.\n\nدفاع: DHCP snooping + DAI + محدود کردن دسترسی فیزیکی.\n",
+      "commands": "show ip arp\nshow arp\narp -a\nGet-NetNeighbor\nshow ip dhcp snooping\nshow ip arp inspection",
+      "examples": "gateway اشتباه در ARP را چگونه تشخیص می‌دهی؟\n",
+      "notes": "ARP روی L2 است؛ VPN و روتینگ را با آن قاطی نکن.\n",
+      "learning_objectives": ["ARP table", "poisoning", "DAI"]
+    },
+    {
+      "title_fa": "[L2] VLAN عملی از طراحی تا Troubleshoot",
+      "title_en": "Practical VLANs Design to Troubleshoot",
+      "chapter_order": 4,
+      "summary": "سگمنت منطقی، trunk، و چرا کلاینت IP نمی‌گیرد.",
+      "full_content": "# VLAN عملی\n\nAccess port = یک VLAN\nTrunk = چند VLAN با تگ\n\nRCA کلاینت بی‌شبکه:\n1) پورت access درست؟ 2) VLAN up؟ 3) trunk allowed؟ 4) DHCP helper؟\n",
+      "commands": "show vlan brief\nshow interfaces switchport\nshow interfaces trunk\nshow mac address-table\nshow running-config interface",
+      "examples": "کلاینت VLAN 20؛ trunk فقط 10,30 — نتیجه چیست؟\n",
+      "notes": "native VLAN دو طرف یکسان باشد.\n",
+      "learning_objectives": ["access/trunk", "allowed VLAN", "RCA"]
+    },
+    {
+      "title_fa": "[L3] STP سریع‌الخوان — Root، Block، Loop",
+      "title_en": "STP Rapid Read Root Block Loop",
+      "chapter_order": 6,
+      "summary": "جلوگیری از حلقه و پیدا کردن پورت مسدود.",
+      "full_content": "# STP\n\nیک root؛ بعضی پورت‌ها block.\nLoop = طوفان و CPU بالا.\n\nحفاظت access: BPDU Guard + PortFast.\n",
+      "commands": "show spanning-tree\nshow spanning-tree root\nshow spanning-tree blockedports\nshow interfaces status err-disabled",
+      "examples": "لینک موازی بدون EtherChannel؛ کدام پورت block می‌شود؟\n",
+      "notes": "اول loop را متوقف کن بعد تحلیل عمیق.\n",
+      "learning_objectives": ["root", "block", "BPDU Guard"]
+    },
+    {
+      "title_fa": "[L2] DHCP عمیق — Discover تا RCA",
+      "title_en": "DHCP Deep Discover to RCA",
+      "chapter_order": 7,
+      "summary": "DORA، helper-address و تعارض آدرس.",
+      "full_content": "# DHCP\n\nDiscover→Offer→Request→Ack\nسگمنت بدون سرور: ip helper-address\n\nRCA: APIPA 169.254، pool پر، relay، VLAN غلط.\n",
+      "commands": "show ip dhcp binding\nshow ip dhcp pool\nshow ip helper-address\nipconfig /all\nGet-DhcpServerv4Lease",
+      "examples": "کلاینت 169.254 است؛ چهار احتمال بنویس.\n",
+      "notes": "دو DHCP ناخواسته روی یک VLAN = هرج‌ومرج.\n",
+      "learning_objectives": ["DORA", "relay", "APIPA"]
+    },
+    {
+      "title_fa": "[L2] DNS عملیاتی از Resolve تا حادثه",
+      "title_en": "Operational DNS from Resolve to Incident",
+      "chapter_order": 8,
+      "summary": "نام کار نمی‌کند ولی IP کار می‌کند.",
+      "full_content": "# DNS عملی\n\nعلائم: مرورگر fail، ping به نام fail، ping به IP OK.\n\nچک: سرور DNS کلاینت، cache، zone، forwarder، firewall 53.\n",
+      "commands": "Resolve-DnsName\nnslookup\ndig\nGet-DnsClientServerAddress\nClear-DnsClientCache\nshow logging",
+      "examples": "فقط یک سایت resolve نمی‌شود؛ مسیر فکری را بنویس.\n",
+      "notes": "DNS خراب شبیه «اینترنت قطع» به نظر می‌رسد.\n",
+      "learning_objectives": ["جدا نام از IP", "cache", "forwarder"]
+    },
+    {
+      "title_fa": "[L3] مسیریابی استاتیک و جدول مسیر",
+      "title_en": "Static Routing and Routing Table",
+      "chapter_order": 9,
+      "summary": "خواندن show ip route و انتخاب next-hop.",
+      "full_content": "# Static Routing\n\nپیشوند + mask + next-hop/exit\nDefault route = آخرین راه خروج\n\nتله: next-hop غیرقابل دسترس؛ AD اشتباه.\n",
+      "commands": "show ip route\nshow ip route static\nip route\nGet-NetRoute",
+      "examples": "دو مسیر به یک شبکه با AD مختلف؛ کدام نصب می‌شود؟\n",
+      "notes": "استاتیک ساده است تا وقتی مقیاس بزرگ شود.\n",
+      "learning_objectives": ["جدول مسیر", "default", "AD"]
+    },
+    {
+      "title_fa": "[L3] OSPF همسایگی و Area در عمل",
+      "title_en": "OSPF Adjacency and Areas in Practice",
+      "chapter_order": 13,
+      "summary": "چرا Neighbor نمی‌آید و LSDB چه می‌گوید.",
+      "full_content": "# OSPF عملی\n\nشرایط همسایگی: subnet، area، timers، authentication، MTU\n\n`show ip ospf neighbor` و `database` ابزار اصلی.\n",
+      "commands": "show ip ospf neighbor\nshow ip ospf interface\nshow ip ospf database\nshow ip route ospf\ndebug ip ospf adj",
+      "examples": "area ناهمسان؛ چه می‌بینی؟\n",
+      "notes": "debug را کوتاه و هدفمند.\n",
+      "learning_objectives": ["adjacency", "area", "LSDB"]
+    },
+    {
+      "title_fa": "[L3] ACL گسترده تا عیب‌یابی",
+      "title_en": "ACL Extended to Troubleshooting",
+      "chapter_order": 17,
+      "summary": "ترتیب rule، implicit deny و اثر روی ترافیک.\n",
+      "full_content": "# ACL\n\nاز بالا به پایین؛ اول match برنده؛ آخر implicit deny.\n\nاستاندارد بر مبدا؛ گسترده مبدا/مقصد/پورت.\n\nVerify: counters و تست قبل/بعد.\n",
+      "commands": "show access-lists\nshow ip interface\nshow running-config | section access-list\nTest-NetConnection",
+      "examples": "permit بعد از deny کلی برای همان ترافیک — چرا اثر ندارد؟\n",
+      "notes": "ACL روی جهت اشتباه = ساعت‌ها اتلاف.\n",
+      "learning_objectives": ["ترتیب", "implicit deny", "direction"]
+    },
+    {
+      "title_fa": "[L3] NAT سازمانی PAT و Static",
+      "title_en": "Enterprise NAT PAT and Static",
+      "chapter_order": 12,
+      "summary": "اشتراک IPv4 و انتشار سرویس.\n",
+      "full_content": "# NAT\n\nPAT: چند داخل به یک عمومی\nStatic: یک‌به‌یک برای سرور\n\nRCA: pool تمام، ACL nat، مسیر برگشت.\n",
+      "commands": "show ip nat translations\nshow ip nat statistics\nshow running-config | section nat\ncurl ifconfig.me",
+      "examples": "سرور داخل با static NAT؛ از بیرون تست کن.\n",
+      "notes": "NAT مشکلات را مخفی می‌کند؛ لاگ را نگه دار.\n",
+      "learning_objectives": ["PAT", "static", "translation table"]
+    },
+    {
+      "title_fa": "[L3] VPN Site-to-Site IPsec چک‌لیست",
+      "title_en": "Site to Site IPsec Checklist",
+      "chapter_order": 57,
+      "summary": "Phase1/2، interest ترافیک و مسیر.\n",
+      "full_content": "# IPsec S2S\n\nPhase1 = کنترل؛ Phase2 = داده\nعلاقه ترافیک (ACL/selector) دو طرف یکسان\n\nRCA: PSK، proposal، NAT-T، فایروال UDP 500/4500.\n",
+      "commands": "show crypto isakmp sa\nshow crypto ipsec sa\nshow crypto session\nping\ntraceroute",
+      "examples": "Phase1 up و Phase2 down؛ کجا را می‌بینی؟\n",
+      "notes": "جدا کردن مشکل مسیر از مشکل تونل مهم است.\n",
+      "learning_objectives": ["P1/P2", "selector", "پورت‌ها"]
+    },
+    {
+      "title_fa": "[L3] فایروال Zone-Based ذهنی",
+      "title_en": "Zone Based Firewall Mental Model",
+      "chapter_order": 22,
+      "summary": "ترافيك از zone به zone با سیاست صریح.\n",
+      "full_content": "# Zone Model\n\nTrust / DMZ / Untrust\nپیش‌فرض: بین zoneها deny مگر allow\n\nهر rule: منبع، مقصد، سرویس، کاربر، لاگ.\n",
+      "commands": "show firewall policy\nshow zones\ndiagnose firewall session list\nshow access-lists",
+      "examples": "DMZ به LAN چرا باید خیلی محدود باشد؟\n",
+      "notes": "flat network ضد zone model است.\n",
+      "learning_objectives": ["zone", "default deny", "DMZ"]
+    },
+    {
+      "title_fa": "[L2] مانیتورینگ SNMP و Syslog حداقل عملی",
+      "title_en": "Minimum Practical SNMP and Syslog",
+      "chapter_order": 25,
+      "summary": "چه چیزی را حتماً بفرست و کجا نگه دار.\n",
+      "full_content": "# SNMP + Syslog\n\nSyslog: رویدادها\nSNMP: متریک و trap\n\nحداقل: link down، auth fail، config change، CPU بالا\nNTP اجباری.\n",
+      "commands": "show logging\nshow snmp\nshow run | include logging|snmp\nshow clock",
+      "examples": "سه رویداد که بدون لاگ RCA غیرممکن است.\n",
+      "notes": "لاگ بدون retention و زمان = شواهد ضعیف.\n",
+      "learning_objectives": ["حداقل رویداد", "NTP", "retention"]
+    },
+    {
+      "title_fa": "[L2] پشتیبان و بازیابی کانفیگ",
+      "title_en": "Configuration Backup and Restore",
+      "chapter_order": 5,
+      "summary": "نسخه قبل از change و تمرین restore.\n",
+      "full_content": "# Backup/Restore\n\nقبل از change: کپی running\nزمان‌بندی روزانه/هفتگی\nسال چندبار restore تست کن\n",
+      "commands": "show running-config\ncopy running-config tftp:\nshow archive\nconfigure replace",
+      "examples": "change خراب؛ مسیر برگشت ۱۰ دقیقه‌ای بنویس.\n",
+      "notes": "backup بدون تست = امید واهی.\n",
+      "learning_objectives": ["زمان‌بندی", "restore test"]
+    },
+    {
+      "title_fa": "[L3] امنیت نقطه پایانی شبکه — 802.1X دسترسی",
+      "title_en": "Network Edge 8021X Access Security",
+      "chapter_order": 65,
+      "summary": "پورت تا وقتی احراز نشود شبکه ندهد.\n",
+      "full_content": "# 802.1X Access\n\nSupplicant — Authenticator (سوئیچ) — RADIUS\n\nfail VLAN / MAB برای دستگاههای خاص\n\nRCA: certificate، secret، ساعت، روش EAP\n",
+      "commands": "show authentication sessions\nshow dot1x all\nshow aaa servers\nshow logging",
+      "examples": "پرینتر بدون 802.1X؛ چه گزینه‌ای امن‌تر از disable کردن کل پورت است؟\n",
+      "notes": "MAB بهتر از باز گذاشتن کامل است ولی هویت قوی نیست.\n",
+      "learning_objectives": ["سه نقش", "MAB", "RCA"]
+    },
+    {
+      "title_fa": "[L2] IPv6 حداقل عملی برای مهندس شبکه",
+      "title_en": "Minimum Practical IPv6 for Network Engineers",
+      "chapter_order": 12,
+      "summary": "آدرس‌ها، SLAAC و چرا خاموشی کور خطرناک است.\n",
+      "full_content": "# IPv6 حداقل\n\nLink-local fe80::/10 همیشه\nGUA جهانی؛ ULA داخلی\n\nDual-stack رایج است\nفایروال IPv6 جدا لازم است\n",
+      "commands": "show ipv6 interface brief\nshow ipv6 route\nping ipv6\nResolve-DnsName -Type AAAA",
+      "examples": "فقط AAAA fail؛ کجا را می‌بینی؟\n",
+      "notes": "ICMPv6 را کامل block نکن.\n",
+      "learning_objectives": ["انواع آدرس", "dual-stack", "ACL v6"]
+    },
+    {
+      "title_fa": "[L3] QoS حداقل روی لبه WAN",
+      "title_en": "Minimum WAN Edge QoS",
+      "chapter_order": 18,
+      "summary": "صوت را در صف اولویت بگذار و با counters بسنج.\n",
+      "full_content": "# QoS حداقل\n\nطبقه‌بندی → علامت → صف\nLLQ برای voice با سقف\nتست در congestion نه لینک خالی\n",
+      "commands": "show policy-map interface\nshow class-map\nshow interfaces",
+      "examples": "بدون mark یکسان end-to-end چه می‌شود؟\n",
+      "notes": "QoS جادوی پهنای باند نیست.\n",
+      "learning_objectives": ["class", "LLQ", "verify"]
+    },
+    {
+      "title_fa": "[L2] مستندسازی تغییر و CAB سبک",
+      "title_en": "Lightweight Change Documentation and CAB",
+      "chapter_order": 5,
+      "summary": "چه چیزی را قبل و بعد از change بنویسی.\n",
+      "full_content": "# Change سبک\n\nچرا، چه، ریسک، rollback، پنجره زمانی، نتیجه\nحتی تیم کوچک بدون سند change تکرار خطا می‌کند\n",
+      "commands": "show archive\nshow logging\ngit log -1",
+      "examples": "یک change VLAN جدید را در ۵ خط سند کن.\n",
+      "notes": "rollback نانوشته در شب حادثه پیدا نمی‌شود.\n",
+      "learning_objectives": ["قالب change", "rollback"]
+    },
+    {
+      "title_fa": "[L3] اتوماسیون اولیه با Ansible برای show",
+      "title_en": "Initial Ansible for Show Commands",
+      "chapter_order": 51,
+      "summary": "اول فقط خواندن؛ بعد change.\n",
+      "full_content": "# Ansible read-only\n\ninventory + playbook با ios_command/show\nهدف: پشتیبان و جمع‌آوری\nبعداً change با dry-run\n",
+      "commands": "ansible routers -m ping\nansible routers -m ios_command -a \"commands='show ip int brief'\"\nansible-playbook backup.yml --check",
+      "examples": "از ۵ روتر خروجی version را جمع کن.\n",
+      "notes": "اتوماسیون change بدون lab = خطر مقیاس‌پذیر.\n",
+      "learning_objectives": ["inventory", "read-only first"]
+    },
+    {
+      "title_fa": "[L2] Git حداقلی برای مهندس شبکه",
+      "title_en": "Minimum Git for Network Engineers",
+      "chapter_order": 64,
+      "summary": "نسخه‌بندی کانفیگ و سند.\n",
+      "full_content": "# Git حداقل\n\nclone، pull، status، diff، commit، push\nکانفیگ و دیاگرام در repo\nرمز را commit نکن\n",
+      "commands": "git status\ngit diff\ngit pull\ngit add .\ngit commit -m \"update\"\ngit push",
+      "examples": "تغییر یک ACL را commit پیام‌دار کن.\n",
+      "notes": "secret در Git عمومی فاجعه است.\n",
+      "learning_objectives": ["workflow پایه", "no secrets"]
+    },
+    {
+      "title_fa": "[L3] امنیت وایرلس مهمان و ایزوله‌سازی",
+      "title_en": "Guest Wireless Security and Isolation",
+      "chapter_order": 30,
+      "summary": "مهمان فقط اینترنت؛ نه lateral به داخلی.\n",
+      "full_content": "# Guest Wi-Fi\n\nVLAN جدا + ACL deny به LAN\nPortal اختیاری\nپهنای باند محدود\n",
+      "commands": "show wlan summary\nshow client summary\nshow access-lists\nshow vlan brief",
+      "examples": "مهمان به file server داخلی — کدام rule باید drop کند؟\n",
+      "notes": "SSID جدا بدون سگمنت واقعی کافی نیست.\n",
+      "learning_objectives": ["VLAN مهمان", "ACL", "isolation"]
+    },
+    {
+      "title_fa": "[L3] Active Directory از نگاه شبکه",
+      "title_en": "Active Directory from Network Perspective",
+      "chapter_order": 35,
+      "summary": "پورت‌ها، DNS و وابستگی احراز هویت.\n",
+      "full_content": "# AD و شبکه\n\nDNS ستون فقرات AD است\nNTP حیاتی است\nپورت‌های LDAP/Kerberos/SMB بین کلاینت و DC\n\nقطع DNS = قطع لاگین\n",
+      "commands": "Resolve-DnsName\nnltest /dsgetdc:\nTest-NetConnection dc01 -Port 389\nGet-NetIPConfiguration",
+      "examples": "کاربر لاگین نمی‌شود؛ شبکه ping دارد — سه احتمال AD/DNS.\n",
+      "notes": "اول DNS و time را چک کن.\n",
+      "learning_objectives": ["DNS-AD", "پورت‌ها", "time"]
+    },
+    {
+      "title_fa": "[L2] سخت‌سازی اولیه ویندوز سرور روی شبکه",
+      "title_en": "Initial Windows Server Network Hardening",
+      "chapter_order": 35,
+      "summary": "حداقل سطح حمله شبکه‌ای.\n",
+      "full_content": "# Windows Hardening شبکه\n\nفایروال on\nفقط پورت لازم\nRDP محدود به jump\nبه‌روزرسانی\nحساب محلی قوی\n",
+      "commands": "Get-NetFirewallProfile\nGet-NetTCPConnection -State Listen\nGet-Service\nTest-NetConnection",
+      "examples": "RDP از اینترنت مستقیم — سه خطر و جایگزین.\n",
+      "notes": "disable کردن فایروال برای «درست شدن» ضدالگو است.\n",
+      "learning_objectives": ["فایروال", "RDP محدود", "listen"]
+    },
+    {
+      "title_fa": "[L3] بکاپ نوار و ذخیره خارج از سایت از زاویه شبکه",
+      "title_en": "Offsite Backup from Network Angle",
+      "chapter_order": 5,
+      "summary": "مسیر بکاپ، پهنای باند و جداسازی.\n",
+      "full_content": "# Backup و شبکه\n\nپنجره زمانی، QoS/حد نرخ، لینک جدا یا زمان off-peak\nبکاپ باید از باج‌افزار reachable آسان نباشد\n",
+      "commands": "show interfaces\nshow policy-map interface\nTest-NetConnection backup-repo -Port 445",
+      "examples": "بکاپ شبانه لینک WAN را پر می‌کند؛ سه راه‌حل.\n",
+      "notes": "بکاپ روی همان VLAN production ریسک دارد.\n",
+      "learning_objectives": ["پنجره بکاپ", "جداسازی", "پهنای باند"]
+    },
+    {
+      "title_fa": "[L4] طراحی لایه به لایه یک سازمان ۲۰۰ نفره",
+      "title_en": "Layered Design for 200 Employee Organization",
+      "chapter_order": 5,
+      "summary": "جمع‌بندی عملی Campus + Edge + Server.\n",
+      "full_content": "# طراحی ۲۰۰ نفر\n\nAccess سوئیچ‌ها + uplink افزونه\nFirewall لبه + Internet دوگانه در صورت امکان\nServer VLAN جدا\nWi-Fi 802.1X\nMgmt جدا\nمانیتورینگ + backup\n\nسند IP و دیاگرام یک‌صفحه\n",
+      "commands": "show ip route\nshow vlan brief\nshow firewall policy\nshow ap summary",
+      "examples": "لیست VLAN و قانون east-west حداقلی بنویس.\n",
+      "notes": "اول نیاز کسب‌وکار بعد جعبه گران.\n",
+      "learning_objectives": ["جمع‌بندی طراحی", "سگمنت", "افزونگی"]
+    }
+  ]
+}
