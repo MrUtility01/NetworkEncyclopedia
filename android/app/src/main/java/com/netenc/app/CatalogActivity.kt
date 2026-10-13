@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.netenc.app.data.AppDatabase
+import com.netenc.app.data.OfflineSeeder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -38,11 +39,19 @@ class CatalogActivity : AppCompatActivity() {
         setContentView(root)
 
         lifecycleScope.launch {
+            title.text = "در حال بارگذاری…"
+            withContext(Dispatchers.IO) {
+                OfflineSeeder.ensureSeeded(this@CatalogActivity, force = false)
+            }
             val items = withContext(Dispatchers.IO) {
                 AppDatabase.get(this@CatalogActivity).lessonDao().allActive()
             }
             val filled = items.count { it.fullContent.length > 80 }
-            title.text = "فهرست — ${items.size} درس · محتوا $filled · ${items.map { it.chapterOrder }.toSet().size} فصل"
+            title.text = if (items.isEmpty()) {
+                "فهرست خالی — از صفحه اصلی بازسازی را بزن"
+            } else {
+                "فهرست — ${items.size} درس · محتوا $filled · ${items.map { it.chapterOrder }.toSet().size} فصل"
+            }
             val labels = items.map { e ->
                 val flag = if (e.fullContent.length > 80) "✓" else "○"
                 val ch = e.chapterTitle.ifBlank { "فصل ${e.chapterOrder}" }
@@ -56,10 +65,12 @@ class CatalogActivity : AppCompatActivity() {
                 labels
             )
             list.setOnItemClickListener { _, _, pos, _ ->
-                startActivity(
-                    Intent(this@CatalogActivity, LessonDetailActivity::class.java)
-                        .putExtra("uid", items[pos].uid)
-                )
+                if (pos in items.indices) {
+                    startActivity(
+                        Intent(this@CatalogActivity, LessonDetailActivity::class.java)
+                            .putExtra("uid", items[pos].uid)
+                    )
+                }
             }
         }
     }
