@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import socket
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -111,9 +112,18 @@ def db() -> WebDB:
     global _db
     if _db is None:
         _db = WebDB()
+        # اسکلت فهرست ۱–۶۸ سریع؛ enrich در پس‌زمینه
+        if _db.chapter_count() < 65:
+            print("skeleton chapters 1-68 (fast)...")
+            print(_db.seed_full(force=True, skeleton_only=True))
         if not _db.is_seeded():
-            print("seed curriculum (rich content) — may take a few minutes...")
-            print(_db.seed_full(force=True))
+            def _bg():
+                try:
+                    print("background rich enrich started...")
+                    print(_db.seed_full(force=True, skeleton_only=False))
+                except Exception as ex:
+                    print("background enrich error:", ex)
+            threading.Thread(target=_bg, daemon=True).start()
         _db.ensure_sync_columns()
     return _db
 
@@ -204,7 +214,8 @@ def api_stats():
 
 @app.get("/api/chapters")
 def chapters():
-    return jsonify(db().list_chapters())
+    rows = db().list_chapters()
+    return jsonify({"chapters": rows, "count": len(rows)})
 
 
 @app.get("/api/chapters/<int:chapter_id>/levels")
@@ -288,7 +299,14 @@ def reseed():
     denied = require_token()
     if denied:
         return denied
-    result = db().seed_full(force=True)
+    result = db().seed_full(force=True, skeleton_only=True)
+    def _bg():
+        try:
+            db().seed_full(force=True, skeleton_only=False)
+        except Exception as ex:
+            print("reseed enrich", ex)
+    threading.Thread(target=_bg, daemon=True).start()
+    result["enrich"] = "background"
     try:
         from core.pack_loader import apply_packs_to_db
         packs = apply_packs_to_db(Path(db().path), overwrite=True)
