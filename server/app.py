@@ -286,8 +286,8 @@ def apply_packs():
         return denied
     try:
         from core.pack_loader import apply_packs_to_db
-        result = apply_packs_to_db(Path(db().path), overwrite=True)
-        db().set_meta("packs_applied", "v33")
+        result = apply_packs_to_db(Path(db().path), overwrite=False)
+        db().set_meta("packs_applied", "v34")
         return jsonify(result)
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
@@ -308,9 +308,9 @@ def reseed():
     result["enrich"] = "background"
     try:
         from core.pack_loader import apply_packs_to_db
-        packs = apply_packs_to_db(Path(db().path), overwrite=True)
+        packs = apply_packs_to_db(Path(db().path), overwrite=False)
         result["packs"] = packs
-        db().set_meta("packs_applied", "v33")
+        db().set_meta("packs_applied", "v34")
     except Exception as e:
         result["packs_error"] = str(e)
     return jsonify(result)
@@ -415,12 +415,12 @@ def main():
     print("init db / rich seed if needed...")
     d = db()
     try:
-        if d.get_meta("packs_applied") != "v33":
+        if d.get_meta("packs_applied") != "v34":
             from core.pack_loader import apply_packs_to_db
-            print("applying REAL JSON pack content (strict topic match)...")
-            res = apply_packs_to_db(Path(d.path), overwrite=True)
-            print("pack apply:", res.get("updated"), "updated /", res.get("matched"), "matched")
-            d.set_meta("packs_applied", "v33")
+            print("applying packs (smart: never shrink rich content)...")
+            res = apply_packs_to_db(Path(d.path), overwrite=False)
+            print("pack apply:", res.get("updated"), "updated /", res.get("matched"), "matched", "skipped_shorter", res.get("skipped_shorter"))
+            d.set_meta("packs_applied", "v34")
     except Exception as e:
         print("pack apply skipped:", e)
     if register_study_routes:
