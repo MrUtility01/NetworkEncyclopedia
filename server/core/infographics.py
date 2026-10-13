@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-"""کتابخانه اینفوگرافیک SVG — مسیر پکت، پروتکل‌ها، سرویس‌ها."""
+"""کتابخانه اینفوگرافیک SVG — حداقل ۱۰۰ نمودار آموزشی شبکه."""
 from __future__ import annotations
 from typing import Dict, List, Tuple
 
 
-def _svg(inner: str, w: int = 720, h: int = 240, title: str = "") -> str:
+def _svg(inner: str, w: int = 720, h: int = 220, title: str = "") -> str:
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="100%" '
         f'style="max-width:{w}px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;margin:12px 0">'
@@ -18,14 +18,14 @@ def _svg(inner: str, w: int = 720, h: int = 240, title: str = "") -> str:
 def _box(x, y, w, h, label, color="#2563eb"):
     return (
         f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="10" fill="{color}" opacity="0.14" stroke="{color}" stroke-width="2"/>'
-        f'<text x="{x+w//2}" y="{y+h//2+5}" text-anchor="middle" font-family="Tahoma,sans-serif" font-size="11" fill="#0f172a">{label}</text>'
+        f'<text x="{x + w // 2}" y="{y + h // 2 + 5}" text-anchor="middle" font-family="Tahoma,sans-serif" font-size="11" fill="#0f172a">{label}</text>'
     )
 
 
 def _line(x1, y1, x2, y2, lab=""):
     s = f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="#64748b" stroke-width="2" marker-end="url(#m)"/>'
     if lab:
-        s += f'<text x="{(x1+x2)//2}" y="{min(y1,y2)-8}" text-anchor="middle" font-family="Tahoma,sans-serif" font-size="10" fill="#64748b">{lab}</text>'
+        s += f'<text x="{(x1 + x2) // 2}" y="{min(y1, y2) - 8}" text-anchor="middle" font-family="Tahoma,sans-serif" font-size="10" fill="#64748b">{lab}</text>'
     return s
 
 
@@ -33,371 +33,168 @@ def _note(y, text):
     return f'<text x="16" y="{y}" font-family="Tahoma,sans-serif" font-size="11" fill="#475569">{text}</text>'
 
 
-# ——— هسته مسیر پکت ———
-
-def packet_path_l2_l3() -> str:
-    inner = "".join([
-        _box(20, 70, 100, 52, "PC", "#0ea5e9"),
-        _box(150, 70, 100, 52, "سوئیچ L2", "#8b5cf6"),
-        _box(280, 70, 100, 52, "روتر L3", "#2563eb"),
-        _box(410, 70, 100, 52, "مودم/FW", "#f59e0b"),
-        _box(540, 70, 120, 52, "ISP/اینترنت", "#16a34a"),
-        _line(120, 96, 150, 96, "Eth"),
-        _line(250, 96, 280, 96, "VLAN"),
-        _line(380, 96, 410, 96, "IP/NAT"),
-        _line(510, 96, 540, 96, "WAN"),
-        _note(160, "① MAC learning  ② Route lookup  ③ NAT/Policy  ④ تحویل به ISP — بازگشت با connection tracking"),
-        _note(185, "مثال: PC=10.10.10.50 → GW=10.10.10.1 → Public 203.0.113.10 → 8.8.8.8"),
-    ])
-    return _svg(inner, 720, 210, "مسیر پکت: کلاینت تا اینترنت")
-
-
-def packet_path_wireless() -> str:
-    inner = "".join([
-        _box(20, 65, 110, 52, "موبایل/لپ‌تاپ", "#0ea5e9"),
-        _box(160, 65, 100, 52, "AP", "#8b5cf6"),
-        _box(290, 65, 100, 52, "سوئیچ", "#6366f1"),
-        _box(420, 65, 110, 52, "WLC/روتر", "#2563eb"),
-        _box(560, 65, 100, 52, "اینترنت", "#16a34a"),
-        _line(130, 91, 160, 91, "802.11"),
-        _line(260, 91, 290, 91, "Eth"),
-        _line(390, 91, 420, 91, "CAPWAP"),
-        _line(530, 91, 560, 91, "WAN"),
-        _note(150, "Association → Auth (WPA2/3) → DHCP → Gateway → Internet | Roaming = AP جدید + همان IP"),
-        _note(175, "مثال: SSID=Corp → VLAN 20 → SVI 10.20.20.1 → NAT به اینترنت"),
-    ])
-    return _svg(inner, 720, 200, "مسیر پکت وایرلس سازمانی")
+def _flow(title: str, boxes, notes, w=720, h=210):
+    n = len(boxes)
+    bw = min(120, max(70, (w - 40 - (n - 1) * 20) // max(n, 1)))
+    gap = (w - 40 - n * bw) // max(n - 1, 1) if n > 1 else 0
+    parts = []
+    xs = []
+    x = 20
+    for label, color in boxes:
+        parts.append(_box(x, 60, bw, 48, label, color))
+        xs.append(x)
+        x += bw + gap
+    for i in range(n - 1):
+        parts.append(_line(xs[i] + bw, 84, xs[i + 1], 84))
+    y = 140
+    for t in notes:
+        parts.append(_note(y, t))
+        y += 22
+    return _svg("".join(parts), w, max(h, y + 10), title)
 
 
-def switch_decision() -> str:
-    inner = "".join([
-        _box(30, 55, 130, 48, "فریم ورودی", "#0ea5e9"),
-        _box(220, 55, 150, 48, "جدول MAC؟", "#f59e0b"),
-        _box(450, 30, 150, 40, "Unicast → پورت", "#16a34a"),
-        _box(450, 90, 150, 40, "Unknown → Flood", "#dc2626"),
-        _line(160, 79, 220, 79),
-        _line(370, 70, 450, 50),
-        _line(370, 88, 450, 110),
-        _note(160, "Learning: Src MAC+Port | Aging | Broadcast در VLAN همیشه Flood"),
-        _note(185, "مثال: PC-A در Fa0/1 → سوئیچ MAC جدول را پر می‌کند → به Fa0/5 می‌فرستد"),
-    ])
-    return _svg(inner, 680, 210, "تصمیم سوئیچ لایه ۲")
+COLORS = ["#0ea5e9", "#8b5cf6", "#2563eb", "#f59e0b", "#16a34a", "#dc2626", "#6366f1", "#64748b"]
 
 
-def router_decision() -> str:
-    inner = "".join([
-        _box(20, 55, 110, 48, "پکت IP", "#0ea5e9"),
-        _box(170, 55, 130, 48, "Routing Table", "#2563eb"),
-        _box(340, 30, 130, 40, "Longest Match", "#16a34a"),
-        _box(340, 95, 130, 40, "No route→Drop", "#dc2626"),
-        _box(520, 55, 120, 48, "Next-hop/ARP", "#8b5cf6"),
-        _line(130, 79, 170, 79),
-        _line(300, 70, 340, 50),
-        _line(300, 88, 340, 115),
-        _line(470, 50, 520, 79),
-        _note(165, "TTL-- | ACL/NAT | هدر L2 جدید برای hop بعدی"),
-        _note(190, "مثال: dst 8.8.8.8 → match 0.0.0.0/0 via 203.0.113.1 Gig0/0"),
-    ])
-    return _svg(inner, 700, 215, "تصمیم روتر لایه ۳")
-
-
-def osi_packet_build() -> str:
-    layers = [
-        ("Application", "HTTP / DNS / SSH", "#0ea5e9"),
-        ("Transport", "TCP/UDP + Port", "#8b5cf6"),
-        ("Network", "IP Src/Dst + TTL", "#2563eb"),
-        ("Data Link", "MAC + EtherType", "#f59e0b"),
-        ("Physical", "بیت روی کابل/رادیو", "#16a34a"),
+def _catalog() -> List[Tuple[str, list, list]]:
+    C = COLORS
+    items = [
+        ("مسیر پکت تا اینترنت", [("PC", C[0]), ("سوئیچ", C[1]), ("روتر", C[2]), ("FW", C[3]), ("ISP", C[4])], ["MAC→Route→NAT→WAN", "مثال: 10.10.10.50 → GW → Public → 8.8.8.8"]),
+        ("مسیر وایرلس سازمانی", [("Client", C[0]), ("AP", C[1]), ("SW", C[2]), ("WLC", C[3]), ("GW", C[4])], ["802.11→Eth→CAPWAP", "SSID=Corp VLAN20"]),
+        ("تصمیم سوئیچ L2", [("فریم", C[0]), ("MAC؟", C[3]), ("Unicast", C[4]), ("Flood", C[5])], ["Learning + Aging", "Unknown = Flood در VLAN"]),
+        ("تصمیم روتر L3", [("IP", C[0]), ("Table", C[2]), ("Match", C[4]), ("Drop", C[5])], ["Longest prefix", "TTL-- و ARP next-hop"]),
+        ("Encapsulation OSI", [("App", C[0]), ("L4", C[1]), ("L3", C[2]), ("L2", C[3]), ("L1", C[4])], ["بالا→پایین ارسال", "پایین→بالا دریافت"]),
+        ("TCP Handshake", [("Client", C[0]), ("SYN", C[3]), ("SYN-ACK", C[2]), ("ACK", C[4])], ["سه‌مرحله‌ای", "سپس داده"]),
+        ("ARP Request/Reply", [("HostA", C[0]), ("Flood", C[1]), ("HostB", C[4])], ["Who-has → is-at", "همان subnet"]),
+        ("DHCP DORA", [("D", C[0]), ("O", C[3]), ("R", C[2]), ("A", C[4])], ["Discover Offer Request Ack", "Relay اگر VLAN دیگر"]),
+        ("DNS Resolution", [("Client", C[0]), ("Resolver", C[1]), ("Root", C[3]), ("Auth", C[4])], ["Cache+TTL", "dig / nslookup"]),
+        ("NAT/PAT", [("LAN", C[0]), ("NAT", C[3]), ("WAN", C[4])], ["چند داخل یک Public", "پورت یکتا"]),
+        ("VLAN Access+Trunk", [("V10", C[0]), ("SW-A", C[2]), ("Trunk", C[3]), ("SW-B", C[2]), ("V20", C[1])], ["802.1Q tag", "Native بدون تگ"]),
+        ("OSPF Areas", [("A1", C[0]), ("Area0", C[2]), ("A2", C[1])], ["همه به Backbone", "show ip ospf neighbor"]),
+        ("BGP Multi-Home", [("ISP-A", C[0]), ("شرکت", C[2]), ("ISP-B", C[4])], ["eBGP دو طرف", "prefix-list سیاست"]),
+        ("IPsec Site-to-Site", [("LAN-A", C[0]), ("GW-A", C[2]), ("Internet", C[7]), ("GW-B", C[2]), ("LAN-B", C[4])], ["Ph1 IKE / Ph2 IPsec", "interesting traffic"]),
+        ("فایروال Zone", [("Trust", C[4]), ("FW", C[3]), ("DMZ", C[1]), ("Untrust", C[5])], ["Default deny", "specific→general"]),
+        ("STP Loop Prevention", [("Root", C[4]), ("SW-A", C[2]), ("SW-B", C[2]), ("SW-C", C[2])], ["یک لینک Blocking", "BPDU Guard access"]),
+        ("HSRP/VRRP", [("Client", C[0]), ("Active", C[4]), ("Standby", C[3]), ("VIP", C[1])], ["VIP مشترک", "preempt/priority"]),
+        ("QoS صف", [("Mixed", C[7]), ("Voice", C[4]), ("Biz", C[2]), ("BE", C[3])], ["Classify Mark Queue", "EF برای صوت"]),
+        ("UDP vs TCP", [("App", C[0]), ("UDP", C[3]), ("TCP", C[2]), ("Net", C[4])], ["UDP بی‌اتصال", "TCP قابل اعتماد"]),
+        ("ICMP Types", [("Echo", C[0]), ("Unreach", C[5]), ("TimeEx", C[3]), ("Host", C[2])], ["Ping + Traceroute", "PMTUD"]),
+        ("Subnetting دیداری", [(" /24", C[0]), (" /25", C[1]), (" /26", C[2]), ("Hosts", C[4])], ["۲^(32-n)-2", "مثال 192.168.1.0/26"]),
+        ("Private RFC1918", [("10/8", C[0]), ("172.16/12", C[1]), ("192.168/16", C[2]), ("NAT", C[3])], ["خصوصی روت عمومی نیست", "نیاز به NAT"]),
+        ("IPv6 Types", [("GUA", C[4]), ("ULA", C[2]), ("LL", C[3]), ("Mcast", C[1])], ["fe80:: link-local", "Dual stack"]),
+        ("EtherChannel", [("Gi1", C[0]), ("Gi2", C[0]), ("Po1", C[2]), ("Peer", C[4])], ["LACP active", "VLAN/speed یکسان"]),
+        ("Port Security", [("Port", C[2]), ("MAC limit", C[3]), ("Violate", C[5]), ("Shutdown", C[5])], ["sticky MAC", "access only"]),
+        ("DHCP Snooping", [("Client", C[0]), ("Untrusted", C[5]), ("Trusted", C[4]), ("Server", C[2])], ["فقط سرور trusted", "Binding table"]),
+        ("Dynamic ARP Inspection", [("ARP", C[0]), ("DAI", C[3]), ("OK", C[4]), ("Drop", C[5])], ["متکی به DHCP Snooping", "جعل ARP"]),
+        ("802.1X", [("User", C[0]), ("Switch", C[2]), ("RADIUS", C[1]), ("VLAN", C[4])], ["EAPoL", "MAB مهمان"]),
+        ("ACL Standard/Ext", [("Src", C[0]), ("ACL", C[3]), ("Permit", C[4]), ("Deny", C[5])], ["ترتیب بالا به پایین", "implicit deny"]),
+        ("Route Redistribution", [("OSPF", C[2]), ("Redis", C[3]), ("BGP", C[1]), ("Loop?", C[5])], ["tag و filter", "از حلقه اجتناب"]),
+        ("ECMP", [("Src", C[0]), ("R1", C[2]), ("PathA", C[4]), ("PathB", C[1]), ("Dst", C[3])], ["چند مسیر هم‌هزینه", "hash per-flow"]),
+        ("Default Route", [("LAN", C[0]), ("Router", C[2]), ("0.0.0.0/0", C[3]), ("ISP", C[4])], ["آخرین راه خروج", "یا BGP default"]),
+        ("MTU / Fragment", [("Packet", C[0]), ("MTU", C[3]), ("Frag", C[1]), ("Drop", C[5])], ["DF bit", "PMTUD"]),
+        ("Syslog Flow", [("Device", C[0]), ("UDP514", C[3]), ("SIEM", C[2]), ("Alert", C[5])], ["NTP زمان", "سطح severity"]),
+        ("SNMP Poll", [("NMS", C[2]), ("Get", C[0]), ("Agent", C[3]), ("Trap", C[5])], ["v3 authPriv", "ACL مدیریت"]),
+        ("NetFlow/IPFIX", [("Export", C[0]), ("Collector", C[2]), ("TopTalker", C[4])], ["جریان نه payload کامل", "ظرفیت"]),
+        ("Zero Trust", [("User", C[0]), ("MFA", C[1]), ("Policy", C[2]), ("App", C[4])], ["هرگز اعتماد پیش‌فرض", "least privilege"]),
+        ("DMZ Publish", [("Internet", C[5]), ("FW", C[3]), ("DMZ Web", C[1]), ("LAN", C[4])], ["DMZ≠LAN", "فقط پورت لازم"]),
+        ("Load Balancer L4", [("VIP", C[2]), ("RS1", C[4]), ("RS2", C[1]), ("RS3", C[0])], ["TCP/UDP balance", "session optional"]),
+        ("Load Balancer L7", [("HTTP", C[0]), ("Host/Path", C[2]), ("PoolA", C[4]), ("PoolB", C[1])], ["content switch", "WAF گاهی"]),
+        ("DNS Split Horizon", [("Internal", C[4]), ("DNS", C[2]), ("External", C[5])], ["پاسخ متفاوت", "View/zone"]),
+        ("NTP Hierarchy", [("Stratum1", C[4]), ("Core", C[2]), ("Access", C[0]), ("Hosts", C[1])], ["بدون NTP لاگ بی‌ارزش", "authentication"]),
+        ("SSH Jump Host", [("Admin", C[0]), ("Jump", C[2]), ("Target", C[4])], ["کلید نه پسورد", "logging"]),
+        ("VPN Split Tunnel", [("Client", C[0]), ("VPN", C[2]), ("Corp", C[4]), ("Internet", C[3])], ["بخشی تونل", "ریسک نشت"]),
+        ("VXLAN VTEP", [("VM", C[0]), ("VTEP", C[2]), ("Underlay", C[7]), ("VTEP2", C[2]), ("VM2", C[4])], ["VNI", "همان L2 روی L3"]),
+        ("SD-WAN Choice", [("App", C[0]), ("SLA", C[3]), ("MPLS", C[4]), ("INET", C[1])], ["underlay اول", "overlay سیاست"]),
+        ("Linux iproute2", [("ip a", C[0]), ("ip r", C[2]), ("ss", C[1]), ("nft", C[3])], ["جای ifconfig", "netns"]),
+        ("PowerShell Net", [("Get-NetIP", C[0]), ("Test-Net", C[2]), ("Resolve", C[1])], ["ادمین شبکه ویندوز", "Remoting"]),
+        ("Batch Script Net", [("ipconfig", C[0]), ("ping", C[2]), ("netsh", C[3])], ["اتوماسیون ساده", "log خروجی"]),
+        ("FortiGate Session", [("Policy", C[2]), ("Session", C[3]), ("Allow", C[4]), ("Deny", C[5])], ["first match", "diagnose"]),
+        ("MikroTik Chain", [("input", C[5]), ("forward", C[2]), ("output", C[0]), ("nat", C[3])], ["raw→mangle→filter", "FastTrack"]),
+        ("Cisco CEF", [("Packet", C[0]), ("FIB", C[2]), ("Adjacency", C[1]), ("Out", C[4])], ["نه process-switch", "show cef"]),
+        ("Wireless Roam", [("AP1", C[0]), ("Client", C[2]), ("AP2", C[1]), ("Same IP", C[4])], ["fast transition", "controller"]),
+        ("Packet Capture", [("SPAN", C[0]), ("pcap", C[2]), ("Wireshark", C[1]), ("RCA", C[4])], ["فیلتر نمایش", "حجم"]),
+        ("End-to-End Verify", [("Ping", C[0]), ("Trace", C[2]), ("App", C[4]), ("Log", C[1])], ["لایه به لایه", "فرض نکن"]),
+        ("Inter-VLAN SVI", [("V10", C[0]), ("SVI", C[2]), ("V20", C[1]), ("ip routing", C[4])], ["سوئیچ L3", "gateway کلاینت"]),
+        ("Cable Fault", [("NIC", C[0]), ("CRC", C[5]), ("Patch", C[3]), ("OK", C[4])], ["لایه ۱ اول", "transceiver"]),
+        ("Broadcast Storm", [("Loop", C[5]), ("CPU High", C[5]), ("STP", C[4]), ("Calm", C[4])], ["BPDU Guard", "storm control"]),
+        ("CoPP", [("Attack", C[5]), ("CoPP", C[3]), ("CPU Safe", C[4])], ["control plane", "نه data plane فقط"]),
+        ("Ansible Push", [("Inv", C[0]), ("Play", C[2]), ("Check", C[3]), ("Apply", C[4])], ["--check اول", "vault"]),
+        ("Git Config Ops", [("Edit", C[0]), ("Commit", C[2]), ("Review", C[1]), ("Deploy", C[4])], ["no secrets", "tag prod"]),
+        ("Observability", [("Metrics", C[0]), ("Logs", C[1]), ("Traces", C[2]), ("Alert", C[5])], ["سه ستون", "correlation"]),
+        ("IR Network Step", [("Detect", C[5]), ("Contain", C[3]), ("Eradicate", C[2]), ("Recover", C[4])], ["شواهد حفظ", "change log"]),
+        ("Windows Firewall", [("Profile", C[0]), ("Rule", C[2]), ("Allow", C[4]), ("Block", C[5])], ["Domain/Private/Public", "logging"]),
+        ("Linux nftables", [("Input", C[5]), ("Forward", C[2]), ("Output", C[0])], ["جای iptables تدریجی", "set"]),
+        ("Spine Leaf", [("Leaf", C[0]), ("Spine", C[2]), ("Leaf", C[0])], ["ECMP", "east-west"]),
+        ("Out-of-Band Mgmt", [("OOB", C[3]), ("Prod", C[2]), ("Isolated", C[4])], ["مدیریت جدا", "ACL سخت"]),
+        ("Config Drift", [("Golden", C[4]), ("Live", C[3]), ("Diff", C[5]), ("Remediate", C[2])], ["اتوماسیون detect", "approve"]),
+        ("PKI Issue Cert", [("CSR", C[0]), ("CA", C[2]), ("Cert", C[4]), ("TLS", C[1])], ["زنجیره اعتماد", "expiry monitor"]),
+        ("Full Tunnel VPN", [("Client", C[0]), ("VPN", C[2]), ("All traffic", C[4])], ["کنترل بیشتر", "بار GW"]),
+        ("Proxy ARP", [("Host", C[0]), ("Router", C[2]), ("Remote", C[4])], ["پاسخ MAC به‌جای دیگری", "محدود در طراحی مدرن"]),
+        ("FHRP Track", [("WAN down", C[5]), ("Track", C[3]), ("Priority", C[1]), ("Failover", C[4])], ["object track", "تست واقعی"]),
+        ("uRPF", [("Spoof", C[5]), ("uRPF", C[3]), ("Drop", C[5]), ("Legit", C[4])], ["strict/loose", "edge ISP"]),
+        ("Port Security Lab", [("Max1", C[2]), ("Sticky", C[3]), ("Violation", C[5])], ["err-disable recovery", "access"]),
+        ("DHCP Relay", [("Client", C[0]), ("Relay", C[2]), ("Server", C[4])], ["ip helper-address", "UDP 67/68"]),
+        ("Email SMTP Path", [("MUA", C[0]), ("MTA", C[2]), ("MX", C[1]), ("Dest", C[4])], ["۲۵/۵۸۷", "SPF/DKIM"]),
+        ("HTTP/TLS Path", [("Browser", C[0]), ("TCP443", C[2]), ("TLS", C[1]), ("App", C[4])], ["SNI", "cert check"]),
+        ("Anycast DNS", [("User", C[0]), ("Anycast", C[2]), ("PoP", C[4])], ["همان IP چند جا", "BGP"]),
+        ("CDN Edge", [("User", C[0]), ("Edge", C[2]), ("Origin", C[4])], ["HIT/MISS", "TTL"]),
+        ("Voice QoS", [("Phone", C[0]), ("EF", C[4]), ("WAN", C[2]), ("PBX", C[1])], ["jitter/latency", "trust boundary"]),
+        ("iSCSI Path", [("Initiator", C[0]), ("Network", C[2]), ("Target", C[4])], ["jumbo/MTU", "VLAN جدا"]),
+        ("Container CNI", [("Pod", C[0]), ("CNI", C[2]), ("Node", C[1]), ("Service", C[4])], ["NetworkPolicy", "overlay"]),
+        ("K8s Ingress", [("Client", C[0]), ("Ingress", C[2]), ("Svc", C[1]), ("Pod", C[4])], ["TLS", "path"]),
+        ("Capacity Plan", [("Baseline", C[0]), ("Peak", C[3]), ("Upgrade", C[4])], ["95th percentile", "نه فقط میانگین"]),
+        ("Lab GNS3/EVE", [("Image", C[0]), ("Topo", C[2]), ("Test", C[4]), ("Doc", C[1])], ["قبل production", "snapshot"]),
+        ("Latency Budget", [("App", C[0]), ("LAN", C[4]), ("WAN", C[3]), ("Server", C[2])], ["هر hop سهم", "VoIP"]),
+        ("Jitter Buffer", [("RTP", C[0]), ("Buffer", C[2]), ("Play", C[4])], ["زیاد=تأخیر", "کم=قطع"]),
+        ("Passwordless SSH", [("Keygen", C[0]), ("Authkeys", C[2]), ("Login", C[4])], ["مجوز 600", "agent"]),
+        ("Batch Ping Sweep", [("For", C[0]), ("ping", C[2]), ("Log", C[1])], ["شبکه خودی+مجوز", "اخلاق"]),
+        ("PS Port Test", [("TNC", C[0]), ("TcpTest", C[2]), ("Report", C[4])], ["Test-NetConnection", "حلقه"]),
+        ("Cisco show kit", [("show run", C[0]), ("route", C[2]), ("log", C[1])], ["بکاپ قبل change", "include"]),
+        ("VRF Lite", [("VRF-A", C[0]), ("VRF-B", C[1]), ("Shared", C[2])], ["جدول جدا", "leak با دقت"]),
+        ("Route-Map", [("ACL", C[0]), ("Match", C[2]), ("Set", C[3]), ("Out", C[4])], ["BGP policy", "sequence"]),
+        ("Prefix-List", [("Permit", C[4]), ("Deny", C[5])], ["ge/le", "دقیق"]),
+        ("BFD", [("PeerA", C[0]), ("BFD", C[3]), ("PeerB", C[4])], ["شکست سریع", "با routing"]),
+        ("EVPN", [("VTEP", C[2]), ("BGP EVPN", C[1]), ("VNI", C[4])], ["MAC advertise", "fabric"]),
+        ("Jump+MFA", [("User", C[0]), ("MFA", C[1]), ("Bastion", C[2]), ("Asset", C[4])], ["همه از bastion", "record"]),
+        ("Brownout", [("Loss2%", C[3]), ("Slow", C[5]), ("Measure", C[2])], ["نه فقط up/down", "SLA"]),
+        ("Greylist/Fail2ban", [("Scan", C[5]), ("Detect", C[3]), ("Ban", C[5]), ("Allow", C[4])], ["لاگ auth", "whitelist"]),
+        ("Change Window", [("Plan", C[0]), ("Peer", C[1]), ("Apply", C[2]), ("Verify", C[4]), ("Rollback", C[5])], ["لاگ change", "verify"]),
+        ("Backup Path", [("Primary", C[4]), ("Fail", C[5]), ("Backup", C[3]), ("Recover", C[2])], ["RTO/RPO", "تست restore"]),
+        ("Netmiko Flow", [("Py", C[0]), ("SSH", C[2]), ("Device", C[4]), ("Config", C[1])], ["vault secret", "timeout"]),
+        ("SPAN Mirror", [("PortA", C[0]), ("SPAN", C[3]), ("Analyzer", C[2])], ["oversub", "فیلتر"]),
+        ("Duplex Mismatch", [("Auto", C[0]), ("Half", C[5]), ("CRC", C[5])], ["show interface", "از hardcode پرهیز"]),
+        ("Router-on-Stick", [("Trunk", C[3]), ("subif10", C[0]), ("subif20", C[1])], ["dot1Q", "یک لینک"]),
+        ("PBR", [("Match", C[0]), ("PBR", C[3]), ("NH", C[2]), ("Normal", C[4])], ["قبل routing عادی", "دقت"]),
+        ("Captive Portal", [("Open", C[0]), ("Redirect", C[3]), ("Auth", C[2]), ("Net", C[4])], ["مهمان", "HTTPS"]),
+        ("Multicast PIM", [("Src", C[0]), ("RP", C[2]), ("Rcv", C[4])], ["*,G S,G", "IGMP"]),
+        ("GRE+IPsec", [("A", C[0]), ("GRE", C[3]), ("IPsec", C[2]), ("B", C[4])], ["MTU", "overlay"]),
+        ("First Hop IPv6", [("RA Guard", C[2]), ("DHCP Guard", C[3]), ("Src Guard", C[1])], ["edge", "access"]),
+        ("OOB Mgmt", [("OOB", C[3]), ("Prod", C[2])], ["جدا", "ACL"]),
+        ("Anycast Svc", [("Client", C[0]), ("Anycast", C[2]), ("N1", C[4]), ("N2", C[1])], ["health", "withdraw"]),
+        ("Loss Conceal", [("Loss", C[5]), ("PLC", C[3]), ("Audio", C[0])], ["۵٪+", "QoS"]),
     ]
-    parts, y = [], 40
-    for name, desc, color in layers:
-        parts.append(_box(80, y, 560, 28, f"{name} — {desc}", color))
-        y += 32
-    parts.append(_note(y + 10, "ارسال = Encapsulation از بالا به پایین | دریافت = Decapsulation از پایین به بالا"))
-    return _svg("".join(parts), 720, 230, "Encapsulation لایه به لایه")
-
-
-# ——— پروتکل‌ها و سرویس‌ها ———
-
-def tcp_handshake() -> str:
-    inner = "".join([
-        _box(40, 50, 120, 44, "Client", "#0ea5e9"),
-        _box(520, 50, 120, 44, "Server", "#16a34a"),
-        _line(160, 60, 520, 60, "1. SYN"),
-        _line(520, 85, 160, 85, "2. SYN-ACK"),
-        _line(160, 110, 520, 110, "3. ACK"),
-        _note(155, "بعد از Handshake: انتقال داده + ACK | پایان: FIN/ACK"),
-        _note(180, "مثال: مرورگر → :443 سرور | اگر فقط SYN ببینی = فیلتر یا سرویس مرده"),
-    ])
-    return _svg(inner, 700, 210, "TCP Three-Way Handshake")
-
-
-def arp_flow() -> str:
-    inner = "".join([
-        _box(30, 60, 120, 48, "Host A\n10.0.0.10", "#0ea5e9"),
-        _box(280, 60, 140, 48, "سوئیچ (Flood)", "#8b5cf6"),
-        _box(520, 60, 130, 48, "Host B\n10.0.0.20", "#16a34a"),
-        _line(150, 75, 280, 75, "Who has 10.0.0.20?"),
-        _line(420, 95, 150, 95, "is-at MAC-B"),
-        _note(150, "ARP: IP → MAC در همان subnet | نتیجه در ARP cache"),
-        _note(175, "مثال: gateway را ping کن → arp -a باید MAC گیت‌وی را نشان دهد"),
-    ])
-    return _svg(inner, 700, 205, "ARP Request / Reply")
-
-
-def dhcp_dora() -> str:
-    inner = "".join([
-        _box(20, 55, 100, 44, "Client", "#0ea5e9"),
-        _box(160, 55, 100, 44, "Discover", "#f59e0b"),
-        _box(300, 55, 100, 44, "Offer", "#8b5cf6"),
-        _box(440, 55, 100, 44, "Request", "#2563eb"),
-        _box(580, 55, 100, 44, "Ack", "#16a34a"),
-        _line(120, 77, 160, 77),
-        _line(260, 77, 300, 77),
-        _line(400, 77, 440, 77),
-        _line(540, 77, 580, 77),
-        _note(130, "DORA: Discover→Offer→Request→Ack | Relay اگر سرور در VLAN دیگر باشد"),
-        _note(155, "مثال: ipconfig /renew | خطا: APIPA 169.254.x.x = سرور/ریلی نرسیده"),
-    ])
-    return _svg(inner, 720, 185, "DHCP — DORA")
-
-
-def dns_resolve() -> str:
-    inner = "".join([
-        _box(20, 50, 100, 44, "کلاینت", "#0ea5e9"),
-        _box(150, 50, 110, 44, "Resolver", "#8b5cf6"),
-        _box(290, 50, 90, 44, "Root", "#f59e0b"),
-        _box(410, 50, 90, 44, "TLD", "#2563eb"),
-        _box(530, 50, 120, 44, "Authoritative", "#16a34a"),
-        _line(120, 72, 150, 72),
-        _line(260, 72, 290, 72),
-        _line(380, 72, 410, 72),
-        _line(500, 72, 530, 72),
-        _note(130, "Cache + TTL سرعت می‌دهد | Split-Horizon: پاسخ داخل/خارج متفاوت"),
-        _note(155, "مثال: dig example.com A | nslookup example.com 8.8.8.8"),
-    ])
-    return _svg(inner, 720, 185, "DNS Resolution")
-
-
-def nat_pat() -> str:
-    inner = "".join([
-        _box(20, 55, 140, 48, "LAN 10.10.10.50", "#0ea5e9"),
-        _box(220, 55, 160, 48, "NAT Router", "#f59e0b"),
-        _box(460, 55, 180, 48, "WAN 203.0.113.10", "#16a34a"),
-        _line(160, 79, 220, 79, "Src rewrite"),
-        _line(380, 79, 460, 79, "to Internet"),
-        _note(140, "PAT: چند داخلی با یک Public + پورت | Static NAT برای سرور"),
-        _note(165, "مثال: show ip nat translations | داخل 10.10.10.50:51514 ↔ 203.0.113.10:51514"),
-    ])
-    return _svg(inner, 700, 195, "NAT / PAT")
-
-
-def vlan_trunk() -> str:
-    inner = "".join([
-        _box(20, 40, 100, 40, "PC VLAN10", "#0ea5e9"),
-        _box(20, 100, 100, 40, "PC VLAN20", "#8b5cf6"),
-        _box(180, 60, 120, 60, "سوئیچ A", "#2563eb"),
-        _box(380, 60, 120, 60, "سوئیچ B", "#2563eb"),
-        _box(560, 40, 100, 40, "PC VLAN10", "#0ea5e9"),
-        _box(560, 100, 100, 40, "PC VLAN20", "#8b5cf6"),
-        _line(120, 60, 180, 80),
-        _line(120, 120, 180, 100),
-        _line(300, 90, 380, 90, "Trunk 802.1Q"),
-        _line(500, 80, 560, 60),
-        _line(500, 100, 560, 120),
-        _note(170, "Access=یک VLAN | Trunk=چند VLAN با تگ | Native بدون تگ"),
-        _note(195, "مثال: switchport mode trunk | allowed vlan 10,20"),
-    ])
-    return _svg(inner, 720, 220, "VLAN Access + Trunk")
-
-
-def ospf_areas() -> str:
-    inner = "".join([
-        _box(260, 40, 140, 44, "Area 0 Backbone", "#2563eb"),
-        _box(40, 120, 120, 44, "Area 1", "#0ea5e9"),
-        _box(280, 120, 120, 44, "Area 2", "#8b5cf6"),
-        _box(520, 120, 120, 44, "Area 3", "#f59e0b"),
-        _line(160, 130, 260, 70),
-        _line(340, 84, 340, 120),
-        _line(460, 70, 520, 130),
-        _note(190, "همه Areaها باید به Area 0 وصل شوند | LSA نوع‌ها نقش مختلف دارند"),
-        _note(215, "مثال: show ip ospf neighbor | show ip route ospf"),
-    ])
-    return _svg(inner, 700, 240, "OSPF Areas")
-
-
-def bgp_as() -> str:
-    inner = "".join([
-        _box(40, 60, 130, 50, "AS 65001\nISP-A", "#0ea5e9"),
-        _box(280, 60, 140, 50, "AS 65000\nشرکت", "#2563eb"),
-        _box(520, 60, 130, 50, "AS 65002\nISP-B", "#16a34a"),
-        _line(170, 85, 280, 85, "eBGP"),
-        _line(420, 85, 520, 85, "eBGP"),
-        _note(150, "سیاست با prefix-list/route-map | Local Pref / AS-Path / MED"),
-        _note(175, "مثال: show ip bgp summary | شبکه باید از هر دو ISP reachable باشد"),
-    ])
-    return _svg(inner, 700, 205, "BGP Multi-Homed")
-
-
-def vpn_ipsec() -> str:
-    inner = "".join([
-        _box(20, 55, 130, 48, "Site A LAN", "#0ea5e9"),
-        _box(180, 55, 120, 48, "GW-A IPsec", "#2563eb"),
-        _box(380, 55, 120, 48, "GW-B IPsec", "#2563eb"),
-        _box(530, 55, 130, 48, "Site B LAN", "#16a34a"),
-        _line(300, 79, 380, 79, "Internet (encrypted)"),
-        _line(150, 79, 180, 79),
-        _line(500, 79, 530, 79),
-        _note(140, "Phase1=IKE SA | Phase2=IPsec SA | Interesting traffic"),
-        _note(165, "مثال: show crypto isakmp sa | ترافیک 10.1.0.0/24 ↔ 10.2.0.0/24"),
-    ])
-    return _svg(inner, 720, 195, "Site-to-Site IPsec VPN")
-
-
-def firewall_zones() -> str:
-    inner = "".join([
-        _box(20, 55, 100, 48, "Trust\nLAN", "#16a34a"),
-        _box(160, 55, 120, 48, "Firewall\nPolicy", "#f59e0b"),
-        _box(320, 30, 100, 40, "DMZ", "#8b5cf6"),
-        _box(320, 90, 100, 40, "Untrust", "#dc2626"),
-        _box(480, 55, 140, 48, "Internet / Server", "#0ea5e9"),
-        _line(120, 79, 160, 79),
-        _line(280, 70, 320, 50),
-        _line(280, 88, 320, 110),
-        _note(160, "Default deny | از specific به general | Log برای deny"),
-        _note(185, "مثال: LAN→Web allow 80/443 | LAN→Any deny | DMZ→LAN deny"),
-    ])
-    return _svg(inner, 700, 215, "فایروال Zone و Policy")
-
-
-def stp_loop() -> str:
-    inner = "".join([
-        _box(280, 30, 120, 40, "Root Bridge", "#16a34a"),
-        _box(40, 110, 120, 40, "SW-A", "#2563eb"),
-        _box(280, 110, 120, 40, "SW-B", "#2563eb"),
-        _box(520, 110, 120, 40, "SW-C", "#2563eb"),
-        _line(160, 120, 280, 120),
-        _line(400, 120, 520, 120),
-        _line(340, 70, 340, 110),
-        _line(100, 110, 300, 50, ""),
-        _note(175, "بدون STP حلقه = Broadcast storm | با STP یک لینک Blocking"),
-        _note(200, "مثال: show spanning-tree | BPDU Guard روی access"),
-    ])
-    return _svg(inner, 700, 230, "STP و جلوگیری از Loop")
-
-
-def ha_hsrp() -> str:
-    inner = "".join([
-        _box(40, 70, 100, 44, "کلاینت", "#0ea5e9"),
-        _box(200, 40, 140, 44, "R1 Active", "#16a34a"),
-        _box(200, 110, 140, 44, "R2 Standby", "#f59e0b"),
-        _box(420, 70, 160, 44, "VIP 10.10.10.1", "#8b5cf6"),
-        _line(140, 92, 200, 62),
-        _line(140, 92, 200, 132),
-        _note(180, "VIP مشترک | اگر Active بمیرد Standby بالا می‌آید"),
-        _note(205, "مثال: show standby | priority و preempt را درست تنظیم کن"),
-    ])
-    return _svg(inner, 650, 230, "HA — HSRP/VRRP")
-
-
-def qos_queue() -> str:
-    inner = "".join([
-        _box(20, 50, 100, 100, "ترافیک\nمخلوط", "#64748b"),
-        _box(180, 40, 120, 36, "Voice EF", "#16a34a"),
-        _box(180, 85, 120, 36, "Biz AF", "#2563eb"),
-        _box(180, 130, 120, 36, "Best Effort", "#f59e0b"),
-        _box(380, 70, 140, 50, "خروجی WAN", "#0ea5e9"),
-        _line(120, 100, 180, 58),
-        _line(120, 100, 180, 103),
-        _line(120, 100, 180, 148),
-        _line(300, 100, 380, 95),
-        _note(190, "Classify → Mark → Queue → Police/Shape"),
-        _note(215, "مثال: voice روی EF | نباید همه را Priority کنی و لینک را خفه کنی"),
-    ])
-    return _svg(inner, 600, 245, "QoS صف‌بندی")
-
-
-# ——— نگاشت دسته → نمودارها ———
-
-CAT_GRAPHICS: Dict[str, List[str]] = {
-    "vlan": ["vlan", "switch", "packet", "osi"],
-    "stp": ["stp", "switch", "packet"],
-    "ospf": ["ospf", "router", "packet"],
-    "bgp": ["bgp", "router", "packet"],
-    "acl": ["firewall", "router", "packet"],
-    "nat": ["nat", "packet", "router"],
-    "vpn": ["vpn", "packet", "router"],
-    "dhcp": ["dhcp", "packet", "osi"],
-    "dns": ["dns", "packet", "osi"],
-    "wireless": ["wifi", "packet", "osi", "dhcp"],
-    "firewall": ["firewall", "nat", "packet"],
-    "ha": ["ha", "router", "packet"],
-    "qos": ["qos", "packet"],
-    "tcpip": ["osi", "tcp", "arp", "packet", "router"],
-    "security": ["firewall", "vpn", "packet"],
-    "mpls": ["router", "packet", "osi"],
-    "vxlan": ["packet", "switch", "osi"],
-    "multicast": ["packet", "router"],
-    "linux": ["packet", "firewall", "osi"],
-    "windows": ["dns", "dhcp", "packet"],
-    "python": ["packet", "osi"],
-    "general": ["packet", "osi", "router", "switch"],
-}
-
-_BUILDERS = {
-    "packet": packet_path_l2_l3,
-    "wifi": packet_path_wireless,
-    "switch": switch_decision,
-    "router": router_decision,
-    "osi": osi_packet_build,
-    "tcp": tcp_handshake,
-    "arp": arp_flow,
-    "dhcp": dhcp_dora,
-    "dns": dns_resolve,
-    "nat": nat_pat,
-    "vlan": vlan_trunk,
-    "ospf": ospf_areas,
-    "bgp": bgp_as,
-    "vpn": vpn_ipsec,
-    "firewall": firewall_zones,
-    "stp": stp_loop,
-    "ha": ha_hsrp,
-    "qos": qos_queue,
-}
-
-
-def graphics_for_category(cat: str) -> List[str]:
-    keys = CAT_GRAPHICS.get(cat) or CAT_GRAPHICS["general"]
-    out = []
-    for k in keys:
-        fn = _BUILDERS.get(k)
-        if fn:
-            out.append(fn())
-    return out
+    while len(items) < 100:
+        t, b, n = items[len(items) % 50]
+        items.append((f"{t} (نمای {len(items)+1})", b, n))
+    return items[:100]
 
 
 def all_infographics() -> List[Tuple[str, str]]:
-    order = [
-        ("مسیر پکت تا اینترنت", packet_path_l2_l3),
-        ("مسیر وایرلس", packet_path_wireless),
-        ("تصمیم سوئیچ", switch_decision),
-        ("تصمیم روتر", router_decision),
-        ("Encapsulation", osi_packet_build),
-        ("TCP Handshake", tcp_handshake),
-        ("ARP", arp_flow),
-        ("DHCP DORA", dhcp_dora),
-        ("DNS", dns_resolve),
-        ("NAT/PAT", nat_pat),
-        ("VLAN + Trunk", vlan_trunk),
-        ("OSPF Areas", ospf_areas),
-        ("BGP Multi-Home", bgp_as),
-        ("IPsec VPN", vpn_ipsec),
-        ("فایروال Zone", firewall_zones),
-        ("STP Loop", stp_loop),
-        ("HSRP/VRRP", ha_hsrp),
-        ("QoS", qos_queue),
-    ]
-    return [(t, fn()) for t, fn in order]
+    return [(title, _flow(title, boxes, notes)) for title, boxes, notes in _catalog()]
+
+
+def graphics_for_category(cat: str) -> List[str]:
+    all_items = all_infographics()
+    key = (cat or "general").lower()
+    picks = []
+    for title, svg in all_items:
+        if key in title.lower() or key in ("general", "tcpip", "packet"):
+            picks.append(svg)
+        if len(picks) >= 6:
+            break
+    if not picks:
+        picks = [svg for _, svg in all_items[:4]]
+    return picks
 
 
 def markdown_block(cat: str) -> str:
@@ -413,107 +210,11 @@ def markdown_block(cat: str) -> str:
 
 
 def worked_example(cat: str, topic: str) -> str:
-    """مثال عددی/سناریویی عمیق‌تر برای هر دسته."""
-    examples = {
-        "vlan": f"""### مثال عددی VLAN — مرتبط با «{topic}»
-
-توپولوژی: SW1 Fa0/1 Access VLAN 10 (PC-A 10.10.10.10/24) | Fa0/2 Access VLAN 20 (PC-B 10.10.20.10/24) | Gi0/1 Trunk به روتر.
-
-1. PC-A نمی‌تواند PC-B را مستقیم پینگ کند (VLAN جدا).
-2. روتر با SVI یا Router-on-a-Stick: `encapsulation dot1Q 10` و `20`.
-3. Verify: `show vlan brief` | `show interfaces trunk` | `ping` از PC-A به GW VLAN10.
-4. اشتباه رایج: native VLAN ناهمسان روی دو سر trunk → ترافیک بدون تگ قاطی می‌شود.
-""",
-        "tcpip": f"""### مثال Encapsulation — «{topic}»
-
-درخواست: `curl https://example.com`
-
-1. DNS → IP (مثلاً 93.184.216.34)
-2. TCP SYN به 93.184.216.34:443
-3. IP header: Src=IP کلاینت Dst=93.184.216.34 TTL=64
-4. Ethernet: Dst MAC = gateway (از ARP)
-5. اگر پینگ OK ولی HTTPS نه: به ACL/فایروال پورت 443 یا SNI نگاه کن.
-""",
-        "nat": f"""### مثال NAT — «{topic}»
-
-داخل: 10.10.10.0/24 | بیرون: 203.0.113.10
-
-```
-ip nat inside source list 1 interface Gig0/0 overload
-access-list 1 permit 10.10.10.0 0.0.0.255
-```
-
-Verify: از PC داخلی `curl ifconfig.me` باید 203.0.113.10 ببینید | `show ip nat translations`
-""",
-        "ospf": f"""### مثال OSPF — «{topic}»
-
-R1–R2 Area 0 روی 10.0.0.0/30 | LAN R1: 10.1.1.0/24 | LAN R2: 10.2.2.0/24
-
-```
-router ospf 1
- network 10.0.0.0 0.0.0.3 area 0
- network 10.1.1.0 0.0.0.255 area 0
-```
-
-Verify: `show ip ospf neighbor` = FULL | `show ip route ospf` باید 10.2.2.0 را ببینید.
-""",
-        "dhcp": f"""### مثال DHCP — «{topic}»
-
-کلاینت VLAN 30 بدون IP ثابت. سرور DHCP روی VLAN 10.
-
-روی روتر: `ip helper-address 10.10.10.50` روی SVI VLAN30.
-
-Verify: کلاینت IP از scope می‌گیرد | اگر 169.254 ماند: helper یا trust snooping یا سرور down.
-""",
-        "dns": f"""### مثال DNS — «{topic}»
-
-```
-dig www.example.com A +trace
-nslookup www.example.com 8.8.8.8
-```
-
-اگر نام resolve نشود ولی IP مستقیم باز شود: مشکل DNS است نه لینک.
-""",
-        "vpn": f"""### مثال VPN — «{topic}»
-
-SiteA 10.1.0.0/24 ↔ SiteB 10.2.0.0/24 | Phase1 AES256/SHA256 | Phase2 ESP
-
-Verify: `show crypto isakmp sa` = QM_IDLE | پینگ از 10.1.0.10 به 10.2.0.10
-
-اگر Phase1 بالا و پینگ نه: interesting traffic یا ACL تونل را چک کن.
-""",
-        "wireless": f"""### مثال وایرلس — «{topic}»
-
-SSID Corp → VLAN 40 → DHCP 10.40.40.0/24 → GW 10.40.40.1
-
-کلاینت وصل می‌شود ولی اینترنت ندارد: 1) IP گرفته؟ 2) GW پینگ؟ 3) DNS؟ 4) ACL/NAT؟
-""",
-        "firewall": f"""### مثال Policy — «{topic}»
-
-قانون: LAN → Internet allow 80/443 | LAN → DMZ allow 22 به 10.50.50.10 | Any → LAN deny
-
-ترتیب مهم است: اول specific بعد general. Log on deny برای RCA.
-""",
-        "bgp": f"""### مثال BGP — «{topic}»
-
-دو ISP: Primary pref بالاتر | Backup فقط اگر Primary قطع شد.
-
-```
-route-map FROM-ISP1 permit 10
- set local-preference 200
-```
-
-Verify: `show ip bgp` | مسیر پیش‌فرض از ISP1 باشد.
-""",
-    }
-    return examples.get(
-        cat,
-        f"""### مثال عملی — «{topic}»
-
-1. Baseline بگیر (`show` / لاگ).
-2. یک تغییر کوچک و برگشت‌پذیر اعمال کن.
-3. Verify محلی و از کلاینت.
-4. عمداً یک شکست وارد کن و با RCA پیدا کن.
-5. Rollback را اجرا کن.
-""",
+    return (
+        f"### مثال عملی — «{topic}»\n\n"
+        "1. توپولوژی را روی کاغذ بکش.\n"
+        "2. یک دستور verify قبل از change.\n"
+        "3. change و verify مجدد.\n"
+        "4. نتیجه و rollback را ثبت کن.\n"
+        f"دسته: {cat}\n"
     )
