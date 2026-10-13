@@ -1,0 +1,271 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "v27 — ادامه غنی‌سازی فصل‌های تخصصی و باقی‌مانده",
+  "lessons": [
+    {
+      "title_fa": "[L3] BGP Path Selection در ۲۰ دقیقه",
+      "title_en": "BGP Path Selection in 20 Minutes",
+      "chapter_order": 14,
+      "summary": "ترتیب تصمیم BGP برای انتخاب بهترین مسیر.",
+      "full_content": "# BGP Path Selection\n\nWeight (سیسکو) → Local Pref → Local → AS-Path → Origin → MED → eBGP>iBGP → IGP metric → …\n\nبرای TE خروجی: Local Pref\nبرای TE ورودی: prepend / community / اعلام انتخابی\n",
+      "commands": "show ip bgp\nshow ip bgp 0.0.0.0\nshow ip bgp neighbors\nshow ip route bgp",
+      "examples": "دو مسیر با AS-Path مختلف؛ کدام برنده است اگر بقیه برابر باشند؟\n",
+      "notes": "یک متغیر را در هر change لمس کن.\n",
+      "learning_objectives": ["ترتیب تصمیم", "Local Pref", "AS-Path"]
+    },
+    {
+      "title_fa": "[L3] Redistribution با Route-Map ایمن",
+      "title_en": "Safe Redistribution with Route Maps",
+      "chapter_order": 14,
+      "summary": "تزریق کنترل‌شده بین پروتکل‌ها بدون حلقه.\n",
+      "full_content": "# Redistribution\n\nخطر: حلقه و جدول متورم\nهمیشه filter با route-map/prefix-list\nseed metric آگاهانه\n",
+      "commands": "show ip route\nshow route-map\nshow ip protocols\nshow running-config | section redistribute",
+      "examples": "OSPF→BGP فقط یک پیشوند داخلی؛ route-map بنویس.\n",
+      "notes": "redistribute full بدون فیلتر در production ممنوع ذهنی.\n",
+      "learning_objectives": ["filter", "metric", "loop risk"]
+    },
+    {
+      "title_fa": "[L3] DMVPN مفهوم و فاز عیب‌یابی",
+      "title_en": "DMVPN Concept and Troubleshoot Phases",
+      "chapter_order": 57,
+      "summary": "Hub-spoke، NHRP و تونل پویا.\n",
+      "full_content": "# DMVPN\n\nHub مرکزی؛ spokeها با NHRP یکدیگر را می‌یابند\nفازها: mGRE up → NHRP → IPsec → مسیریابی\n\nRCA: mapping NHRP، crypto، split-horizon\n",
+      "commands": "show dmvpn\nshow ip nhrp\nshow crypto session\nshow ip route",
+      "examples": "spoke به spoke مستقیم نمی‌رود؛ اول کجا را می‌بینی؟\n",
+      "notes": "زمان را همگام نگه دار.\n",
+      "learning_objectives": ["NHRP", "hub-spoke", "فازها"]
+    },
+    {
+      "title_fa": "[L3] SSL VPN دسترسی از راه دور",
+      "title_en": "SSL VPN Remote Access",
+      "chapter_order": 57,
+      "summary": "پورتال، تونل کامل در برابر split، و MFA.\n",
+      "full_content": "# SSL VPN\n\nمزیت: عبور بهتر از NAT/فایروال مشتری\nsplit-tunnel در برابر full-tunnel trade-off امنیتی/عملکرد\nMFA تقریباً اجباری\n",
+      "commands": "get vpn ssl monitor\ndiagnose vpn ssl list\nTest-NetConnection portal -Port 443\nshow firewall policy",
+      "examples": "کاربر وصل است ولی فایل سرور نه؛ سه احتمال.\n",
+      "notes": "split-tunnel بدون کنترل endpoint ریسک دارد.\n",
+      "learning_objectives": ["portal", "split vs full", "MFA"]
+    },
+    {
+      "title_fa": "[L3] High Availability فایروال Active/Passive",
+      "title_en": "Firewall HA Active Passive",
+      "chapter_order": 22,
+      "summary": "Heartbeat، session sync و تست failover.\n",
+      "full_content": "# HA A/P\n\nیک دستگاه فعال؛ دیگری آماده\nsession sync برای حفظ اتصال\nلینک HA جدا و قابل اعتماد\n\nبدون تست failover، HA نمایشی است\n",
+      "commands": "get sys ha status\ndiagnose sys ha status\ndiagnose firewall session list\nshow chassis cluster status",
+      "examples": "failover عمدی؛ SSH طولانی زنده ماند؟\n",
+      "notes": "مسیر نامتقارن دشمن session است.\n",
+      "learning_objectives": ["heartbeat", "session sync", "تست"]
+    },
+    {
+      "title_fa": "[L3] IPS/IDS در لبه — جای درست نه همه‌جا",
+      "title_en": "Edge IPS IDS Right Placement",
+      "chapter_order": 65,
+      "summary": "امضا، false positive و عملکرد.\n",
+      "full_content": "# IPS/IDS\n\nIDS = آشکارسازی؛ IPS = جلوگیری\nروی مسیر حیاتی با پروفایل مناسب\nابتدا monitor/detect بعد enforce\n",
+      "commands": "show ips\ndiagnose ips status\nshow firewall policy\nget system performance status",
+      "examples": "اپ داخلی بعد از IPS می‌شکند؛ قدم اول؟\n",
+      "notes": "signature قدیمی = امنیت نمایشی.\n",
+      "learning_objectives": ["IDS vs IPS", "false positive", "phased enforce"]
+    },
+    {
+      "title_fa": "[L2] Email Security در لبه شبکه",
+      "title_en": "Email Security at Network Edge",
+      "chapter_order": 45,
+      "summary": "MX، SPF/DKIM/DMARC و پورت‌های SMTP.\n",
+      "full_content": "# Email لبه\n\nDNS: MX + SPF + DKIM + DMARC\nمسیر: اینترنت → gateway → داخلی\nکلاینت‌ها معمولاً نباید مستقیم SMTP به اینترنت داشته باشند\n",
+      "commands": "dig MX example.com\ndig TXT example.com\nTest-NetConnection mx -Port 25\nshow logging",
+      "examples": "ایمیل به spam می‌رود؛ سه چک DNS.\n",
+      "notes": "open relay فاجعه است.\n",
+      "learning_objectives": ["MX", "SPF/DKIM/DMARC", "SMTP path"]
+    },
+    {
+      "title_fa": "[L3] Proxy و فیلتر وب سازمانی",
+      "title_en": "Enterprise Web Proxy Filtering",
+      "chapter_order": 40,
+      "summary": "پروتکل صریح/شفاف، هویت و SSL inspection.\n",
+      "full_content": "# Web Proxy\n\nکنترل URL/اپ، لاگ کاربر، گاهی بازرسی SSL\ntrade-off حریم خصوصی و سازگاری اپ\n\nRCA: PAC اشتباه، auth، bypass لازم برای آپدیت\n",
+      "commands": "curl -x http://proxy:8080 https://example.com\nGet-Proxy\nTest-NetConnection proxy -Port 8080\nshow firewall policy",
+      "examples": "فقط یک اپ شکست؛ چگونه proxy را اثبات/رد می‌کنی؟\n",
+      "notes": "SSL inspection بدون استثناهای درست اپ‌ها را می‌شکند.\n",
+      "learning_objectives": ["explicit vs transparent", "PAC", "SSL inspect"]
+    },
+    {
+      "title_fa": "[L3] Load Balancer L4/L7",
+      "title_en": "Load Balancer L4 and L7",
+      "chapter_order": 40,
+      "summary": "توزیع بار، health-check و persistence.\n",
+      "full_content": "# Load Balancing\n\nL4: پورت/IP؛ L7: URL/هدر\nhealth-check باید اپ را بسنجد نه فقط TCP\nsticky برای sessionهای حساس\n",
+      "commands": "haproxy -c -f /etc/haproxy/haproxy.cfg\ncurl -I http://vip/\nshow server\nTest-NetConnection vip -Port 443",
+      "examples": "یک backend down؛ VIP هنوز 200 می‌دهد؟ چرا؟\n",
+      "notes": "health ضعیف = ترافیک به مرده.\n",
+      "learning_objectives": ["L4 vs L7", "health", "persistence"]
+    },
+    {
+      "title_fa": "[L2] Storage شبکه NFS/SMB از نگاه شبکه",
+      "title_en": "NFS SMB Storage from Network View",
+      "chapter_order": 40,
+      "summary": "پورت‌ها، تأخیر و سگمنت.\n",
+      "full_content": "# NAS و شبکه\n\nSMB/NFS به تأخیر و loss حساس‌اند\nترجیح VLAN ذخیره یا QoS\nدسترسی فقط از subnet لازم\n",
+      "commands": "Test-NetConnection nas -Port 445\nshow mount\nping -c 50 nas\nGet-SmbConnection",
+      "examples": "کپی فایل کند با ping خوب؛ چه چیزی را اندازه می‌گیری؟\n",
+      "notes": "ذخیره را روی Guest VLAN نگذار.\n",
+      "learning_objectives": ["پورت‌ها", "latency", "سگمنت"]
+    },
+    {
+      "title_fa": "[L3] مجازی‌سازی شبکه — vSwitch و Uplink",
+      "title_en": "Virtualization Networking vSwitch Uplink",
+      "chapter_order": 16,
+      "summary": "از VM تا سوئیچ فیزیکی.\n",
+      "full_content": "# vSwitch\n\nVM → vSwitch/vNIC → uplink تیمی → سوئیچ فیزیکی\nVLAN tagging در مجازی‌ساز یا guest\nافزونگی uplink ضروری\n",
+      "commands": "# وابسته به hypervisor\nesxcli network vswitch standard list\nGet-VMNetworkAdapter\nshow mac address-table\nshow interfaces trunk",
+      "examples": "VM به VLAN 50 نیست؛ سه نقطه شکست.\n",
+      "notes": "MTU و trunk فیزیکی باید با مجازی‌ساز هم‌خوان باشد.\n",
+      "learning_objectives": ["مسیر VM", "uplink", "VLAN"]
+    },
+    {
+      "title_fa": "[L3] کانتینر و شبکه — CNI ذهنی",
+      "title_en": "Container Networking CNI Mental Model",
+      "chapter_order": 51,
+      "summary": "Pod/Service و عبور از فایروال.\n",
+      "full_content": "# Container Net\n\nهر pod آدرس؛ service نقطه پایدار\nCNI مسئول اتصال\nNetworkPolicy شبیه فایروال east-west\n\nRCA: DNS خوشه، policy، node route\n",
+      "commands": "kubectl get pods -o wide\nkubectl get svc\nkubectl get networkpolicy\nping\ncurl",
+      "examples": "سرویس ClusterIP از بیرون باز نیست؛ چرا طبیعی است؟\n",
+      "notes": "کانتینر قوانین شبکه فیزیکی را لغو نمی‌کند.\n",
+      "learning_objectives": ["pod/service", "CNI", "NetworkPolicy"]
+    },
+    {
+      "title_fa": "[L2] گواهی TLS و خطای زمان/زنجیره",
+      "title_en": "TLS Certificates Time and Chain Errors",
+      "chapter_order": 65,
+      "summary": "چرا مرورگر خطا می‌دهد و شبکه چه نقشی دارد.\n",
+      "full_content": "# TLS\n\nزنجیره اعتماد، تاریخ انقضا، نام (SAN)\nساعت غلط = شکست TLS\n interception پروکسی هم گواهی را عوض می‌کند\n",
+      "commands": "openssl s_client -connect host:443 -servername host\nshow clock\nResolve-DnsName\ncurl -vI https://host",
+      "examples": "فقط یک کلاینت خطا دارد؛ سه احتمال.\n",
+      "notes": "اول ساعت و DNS را چک کن.\n",
+      "learning_objectives": ["chain", "time", "SAN"]
+    },
+    {
+      "title_fa": "[L3] RADIUS عملی برای شبکه و وای‌فای",
+      "title_en": "Practical RADIUS for Network and WiFi",
+      "chapter_order": 65,
+      "summary": "secret، پورت 1812 و لاگ احراز.\n",
+      "full_content": "# RADIUS\n\nتجهیز = client؛ سرور = NPS/FreeRADIUS\nsecret یکسان\nپورت 1812 auth، 1813 accounting\n\nRCA: IP client، secret، policy، UDP\n",
+      "commands": "show aaa servers\nshow radius\nTest-NetConnection nps -Port 1812\neventvwr (NPS logs)\nshow logging",
+      "examples": "وای‌فای fail؛ wired 802.1X OK؛ کجا را جدا می‌کنی؟\n",
+      "notes": "secret را در چت نفرست.\n",
+      "learning_objectives": ["client/server", "secret", "ports"]
+    },
+    {
+      "title_fa": "[L2] NTP عملیاتی و وابستگی‌ها",
+      "title_en": "Operational NTP and Dependencies",
+      "chapter_order": 5,
+      "summary": "لاگ، گواهی، AD و failover همه به زمان وابسته‌اند.\n",
+      "full_content": "# NTP\n\nسلسله‌مراتب stratum\nمانیتور unsync\nمنبع داخلی برای کلاینت‌ها\n",
+      "commands": "show ntp status\nshow ntp associations\nw32tm /query /status\nshow clock",
+      "examples": "دو دستگاه ۵ دقیقه اختلاف؛ چه سرویس‌هایی می‌شکنند؟\n",
+      "notes": "قبل از RCA لاگ، ساعت را درست کن.\n",
+      "learning_objectives": ["sync", "وابستگی‌ها"]
+    },
+    {
+      "title_fa": "[L3] NetFlow/IPFIX برای پیدا کردن Top Talker",
+      "title_en": "NetFlow IPFIX Top Talkers",
+      "chapter_order": 25,
+      "summary": "چه کسی پهنا را می‌خورد.\n",
+      "full_content": "# Flow\n\nنمونه جریان‌ها به collector\nTop talker، اسکن، اگزفیل مشکوک\nsampling سبک‌تر است ولی دقیق‌تر نه\n",
+      "commands": "show ip flow export\nshow flow monitor\nshow ip cache flow\nshow interfaces",
+      "examples": "لینک 90٪؛ با flow سه گفتگوکننده برتر را پیدا کن.\n",
+      "notes": "بدون NTP همبستگی flow و log سخت است.\n",
+      "learning_objectives": ["export", "top talker", "sampling"]
+    },
+    {
+      "title_fa": "[L3] SD-WAN ذهنی برای مهندس سنتی",
+      "title_en": "SD-WAN Mental Model for Traditional Engineers",
+      "chapter_order": 57,
+      "summary": "اندازه‌گیری لینک و سیاست اپ به‌جای فقط مسیر استاتیک.\n",
+      "full_content": "# SD-WAN\n\nچند لینک؛ امتیاز latency/loss\nسیاست: voice روی بهترين لینک\nکنترل مرکزی\n\nجایگزین کامل دانش مسیریابی نیست\n",
+      "commands": "show sdwan\nshow ip route\nping\ntraceroute\nshow interfaces",
+      "examples": "لینک ارزان پرلاگ؛ voice باید کجا برود؟\n",
+      "notes": "بدون visibility، سیاست SD-WAN کور است.\n",
+      "learning_objectives": ["sla probe", "app policy"]
+    },
+    {
+      "title_fa": "[L2] مستندسازی IP Plan و استاندارد نام",
+      "title_en": "IP Plan and Naming Standard Docs",
+      "chapter_order": 5,
+      "summary": "جدول آدرس و نام دستگاه یکنواخت.\n",
+      "full_content": "# IP Plan\n\nsite-role-unit\nVLAN و subnet مستند\nنام: site-role-number\nدر Git\n",
+      "commands": "show ip interface brief\nshow vlan brief\nshow running-config | include hostname",
+      "examples": "برای ۲ سایت جدول VLAN 10/20/30 بنویس.\n",
+      "notes": "استاندارد شفاهی دوام ندارد.\n",
+      "learning_objectives": ["schema", "naming"]
+    },
+    {
+      "title_fa": "[L4] Capstone — قطعی سراسری اینترنت",
+      "title_en": "Capstone Organization Wide Internet Outage",
+      "chapter_order": 5,
+      "summary": "از علائم تا تفکیک لبه/DNS/ISP.\n",
+      "full_content": "# Capstone: اینترنت نیست\n\n1. فقط یک سایت یا همه؟\n2. DNS یا IP خام؟\n3. default route؟\n4. NAT/فایروال؟\n5. ISP؟\n\nزمان‌خط و شواهد جمع کن\n",
+      "commands": "ping 8.8.8.8\nping 1.1.1.1\nResolve-DnsName\nshow ip route\nshow interfaces\nshow firewall policy\ntraceroute",
+      "examples": "همه سایت‌ها؛ ping به 8.8.8.8 fail — قدم بعدی؟\n",
+      "notes": "اول scope را مشخص کن.\n",
+      "learning_objectives": ["scope", "جدا DNS", "لبه vs ISP"]
+    },
+    {
+      "title_fa": "[L4] Capstone — کندی بین دو سایت",
+      "title_en": "Capstone Slow Between Two Sites",
+      "chapter_order": 5,
+      "summary": "پهنای باند، تأخیر، QoS و مسیر.\n",
+      "full_content": "# Capstone: کندی بین‌سایت\n\nmtr/ping آماری\nutilization لینک\nمسیر و تغییر اخیر\nبکاپ/replication همزمان؟\n",
+      "commands": "ping -c 50\nmtr\nshow interfaces\nshow policy-map interface\nshow ip route\nshow ip sla statistics",
+      "examples": "latency بالا loss صفر؛ محتمل‌ترین لایه؟\n",
+      "notes": "کندی همیشه «نیاز به لینک بیشتر» نیست.\n",
+      "learning_objectives": ["latency vs loss", "utilization", "path"]
+    },
+    {
+      "title_fa": "[L4] Capstone — نفوذ مشکوک داخلی",
+      "title_en": "Capstone Suspected Internal Intrusion",
+      "chapter_order": 65,
+      "summary": "ایزوله‌سازی، شواهد و جلوگیری از گسترش.\n",
+      "full_content": "# Capstone: نفوذ داخلی\n\nisolate سگمنت\nحفظ لاگ/flow\nقطع اشتراک ادمین\nبازگشت تدریجی\n\nبدون قهرمان‌بازی روی سیستم آلوده\n",
+      "commands": "show access-lists\nshow mac address-table\nshow logging\ndiagnose firewall session list\nshow interfaces status",
+      "examples": "یک PC ترافیک SMB غیرعادی؛ سه اقدام اول.\n",
+      "notes": "اول گسترش را متوقف کن.\n",
+      "learning_objectives": ["isolate", "شواهد", "containment"]
+    },
+    {
+      "title_fa": "[L3] FortiGate NAT و VIP",
+      "title_en": "FortiGate NAT and VIP",
+      "chapter_order": 22,
+      "summary": "انتشار سرویس و SNAT خروجی.\n",
+      "full_content": "# FortiGate NAT\n\nVIP برای inbound\nSNAT/IP pool برای outbound\npolicy باید VIP را اجازه دهد\n\nRCA: object اشتباه، پورت، مسیر برگشت\n",
+      "commands": "show firewall vip\nshow firewall policy\ndiagnose firewall session list\ndiagnose sniffer packet",
+      "examples": "VIP تعریف شده ولی از بیرون timeout؛ سه چک.\n",
+      "notes": "VIP بدون policy = هیچ.\n",
+      "learning_objectives": ["VIP", "SNAT", "policy"]
+    },
+    {
+      "title_fa": "[L3] MikroTik Routing و ECMP",
+      "title_en": "MikroTik Routing and ECMP",
+      "chapter_order": 20,
+      "summary": "مسیر چندگانه و علامت فاصله.\n",
+      "full_content": "# MikroTik Routes\n\n/ip route با distance\nچند gateway = ECMP در صورت تنظیم\n\nRCA: scope/target-scope، distance، reachability\n",
+      "commands": "/ip route print\n/ip route print detail\n/ip address print\n/ping\n/traceroute",
+      "examples": "دو ISP با distance 1 و 2؛ پیش‌فرض کدام است؟\n",
+      "notes": "failover بدون check-gateway ممکن است کور باشد.\n",
+      "learning_objectives": ["distance", "ECMP", "check-gateway"]
+    },
+    {
+      "title_fa": "[L2] پنل عملیات روزانه مهندس شبکه",
+      "title_en": "Network Engineer Daily Ops Panel",
+      "chapter_order": 5,
+      "summary": "چک صبحگاهی ۱۵ دقیقه‌ای.\n",
+      "full_content": "# Daily Ops\n\n1. لینک‌های WAN\n2. CPU/حافظه لبه\n3. VPN تونل‌ها\n4. بکاپ دیشب\n5. تیکت‌های باز\n6. آلارم‌های جدید\n\nکوتاه و تکراری بهتر از گزارش ماهانه فقط\n",
+      "commands": "show interfaces\nshow ip bgp summary\nshow crypto session\nshow logging\nget system performance status",
+      "examples": "چک‌لیست صبحگاهی خودت را برای محیطت بنویس.\n",
+      "notes": "اگر چک‌لیست نداری، حادثه خبرت می‌کند.\n",
+      "learning_objectives": ["ritual عملیاتی", "پیشگیری"]
+    }
+  ]
+}
