@@ -107,8 +107,6 @@ def load_lessons_from_file(path: Path) -> List[Dict[str, str]]:
                             merged["title_fa"] = les.get("title_fa") or ""
                         add(merged)
 
-    # commands encyclopedia: فقط اگر عنوان دسته مشخص باشد — نه پاشیدن روی همه درس‌ها
-    # این نوع پک‌ها را فقط وقتی title دقیق دارند استفاده می‌کنیم (از بالا در lessons)
     return out
 
 
@@ -130,14 +128,12 @@ def find_pack_files() -> List[Path]:
                 continue
             if p.name.upper().startswith("README"):
                 continue
-            # فایل‌های فقط دستورات خام بدون lessons را رد نکن اگر lessons دارند
             seen.add(key)
             found.append(p)
     return sorted(found)
 
 
 def _score(pack_title: str, db_title: str) -> float:
-    """امتیاز شباهت عنوان — پایین = قاطی شدن ممنوع."""
     a = _norm_title(pack_title)
     b = _norm_title(db_title)
     if not a or not b:
@@ -145,7 +141,6 @@ def _score(pack_title: str, db_title: str) -> float:
     if a == b:
         return 1.0
     if a in b or b in a:
-        # subsumption فقط اگر طول معقول
         shorter, longer = (a, b) if len(a) <= len(b) else (b, a)
         if len(shorter) >= 6:
             return 0.92
@@ -155,7 +150,6 @@ def _score(pack_title: str, db_title: str) -> float:
     inter = ta & tb
     if not inter:
         return 0.0
-    # حداقل یک توکن تخصصی مشترک با طول >=4
     strong = {t for t in inter if len(t) >= 4}
     if not strong:
         return 0.0
@@ -165,7 +159,6 @@ def _score(pack_title: str, db_title: str) -> float:
 
 
 def match_lesson_id(conn: sqlite3.Connection, title: str) -> Optional[int]:
-    """فقط match سخت‌گیرانه — از match شل تک‌کلمه‌ای خبری نیست."""
     title = (title or "").strip()
     if not title:
         return None
@@ -173,19 +166,15 @@ def match_lesson_id(conn: sqlite3.Connection, title: str) -> Optional[int]:
     if len(bare) < 4:
         return None
 
-    # 1) exact / contains روی عنوان نرمال
     rows = conn.execute(
         "SELECT id, title_fa FROM lessons WHERE title_fa LIKE ? LIMIT 30",
-        (f"%{bare[:80]}%",
-        ),
+        (f"%{bare[:80]}%",),
     ).fetchall()
 
-    # 2) اگر خالی، کاندیدا با توکن‌های قوی
     if not rows:
         strong_toks = [t for t in _tokens(title) if len(t) >= 4][:4]
         if not strong_toks:
             return None
-        # AND-like: همه توکن‌های قوی باید در عنوان باشند
         q = "SELECT id, title_fa FROM lessons WHERE " + " AND ".join(
             ["title_fa LIKE ?"] * len(strong_toks)
         ) + " LIMIT 40"
@@ -201,7 +190,6 @@ def match_lesson_id(conn: sqlite3.Connection, title: str) -> Optional[int]:
             best_score = sc
             best_id = rid
 
-    # آستانه سخت: زیر 0.55 یعنی موضوع احتمالاً قاطی است
     if best_score >= 0.55:
         return best_id
     return None
@@ -216,7 +204,7 @@ def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
     now = datetime.now(timezone.utc).isoformat()
-    matched = missing = updated = skipped_weak = 0
+    matched = missing = updated = skipped_weak = skipped_shorter = 0
     details = []
 
     for pack in packs:
@@ -227,20 +215,24 @@ def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
             if lid is None:
                 x += 1
                 continue
-            # تأیید نهایی: عنوان DB باید با موضوع پک هم‌پوشانی داشته باشد
             row = conn.execute("SELECT title_fa FROM lessons WHERE id=?", (lid,)).fetchone()
             db_title = row["title_fa"] if row else ""
             if _score(les["title_fa"], db_title) < 0.55:
                 skipped_weak += 1
                 continue
             m += 1
-            if not overwrite:
-                cur = conn.execute(
-                    "SELECT length(COALESCE(full_content,'')) n FROM lessons WHERE id=?",
-                    (lid,),
-                ).fetchone()
-                if cur and int(cur["n"] or 0) > len(les["full_content"]):
-                    continue
+            # هرگز محتوای غنی‌تر را با کوتاه‌تر عوض نکن
+            cur = conn.execute(
+                "SELECT length(COALESCE(full_content,'')) n FROM lessons WHERE id=?",
+                (lid,),
+            ).fetchone()
+            cur_n = int(cur["n"] or 0) if cur else 0
+            new_n = len(les.get("full_content") or "")
+            if cur_n > 0 and new_n + 200 < cur_n:
+                skipped_shorter += 1
+                continue
+            if not overwrite and cur_n >= new_n:
+                continue
             conn.execute(
                 """UPDATE lessons SET
                     summary=?, full_content=?, commands=?, examples=?, notes=?,
@@ -283,5 +275,6 @@ def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
         "updated": updated,
         "missing": missing,
         "skipped_weak": skipped_weak,
+        "skipped_shorter": skipped_shorter,
         "details": details,
     }
