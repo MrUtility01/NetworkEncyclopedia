@@ -92,7 +92,8 @@ class TreeCatalogActivity : AppCompatActivity() {
                     textSize = 16f
                     typeface = Ui.persianTypeface()
                 }
-                tv.text = "${tree[g].order}. ${tree[g].title}"
+                val n = tree[g].subs.sumBy { it.lessons.size }
+                tv.text = "فصل ${tree[g].order} — ${tree[g].title}  ($n درس)"
                 tv.setTextColor(Ui.TEXT)
                 tv.setBackgroundColor(Ui.CARD)
                 return tv
@@ -105,14 +106,14 @@ class TreeCatalogActivity : AppCompatActivity() {
                     setBackgroundColor(Ui.BG)
                 }
                 box.addView(TextView(this@TreeCatalogActivity).apply {
-                    text = "${sub.title} (${sub.lessons.size})"
+                    text = "گروه: ${sub.title}  —  ${sub.lessons.size} درس"
                     setTextColor(Ui.ACCENT)
                     textSize = 14f
                     typeface = Ui.persianTypeface()
                 })
-                sub.lessons.take(80).forEach { les ->
+                sub.lessons.take(120).forEach { les ->
                     box.addView(TextView(this@TreeCatalogActivity).apply {
-                        text = "  · ${les.titleFa}"
+                        text = "    درس: ${les.titleFa}"
                         setTextColor(Ui.TEXT)
                         textSize = 13f
                         setPadding(8, 10, 8, 10)
