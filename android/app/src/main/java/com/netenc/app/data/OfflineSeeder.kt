@@ -8,8 +8,7 @@ import java.io.BufferedInputStream
 import java.util.zip.GZIPInputStream
 
 object OfflineSeeder {
-    /** هر بار منطق seed عوض شد این را بالا ببر تا روی گوشی دوباره از asset بخواند */
-    private const val META_SEEDED = "offline_seeded_v20"
+    private const val META_SEEDED = "offline_seeded_v21"
 
     suspend fun ensureSeeded(context: Context, force: Boolean = false): Int = withContext(Dispatchers.IO) {
         val dao = AppDatabase.get(context).lessonDao()
@@ -60,8 +59,8 @@ object OfflineSeeder {
                             commands = les.optString("commands"),
                             examples = les.optString("examples"),
                             notes = les.optString("notes"),
-                            lastUpdated = "2026-10-13T12:00:00Z",
-                            contentHash = "offline-v20",
+                            lastUpdated = "2026-10-13T14:00:00Z",
+                            contentHash = "offline-v21",
                             deviceId = "android-offline",
                             chapterOrder = chOrder,
                             chapterTitle = chTitle,
@@ -80,6 +79,7 @@ object OfflineSeeder {
         dao.putMeta(SyncMetaEntity(META_SEEDED, "1"))
         dao.putMeta(SyncMetaEntity("offline_seeded_v11", "0"))
         dao.putMeta(SyncMetaEntity("offline_seeded_v13", "0"))
+        dao.putMeta(SyncMetaEntity("offline_seeded_v20", "0"))
         dao.countActive()
     }
 
