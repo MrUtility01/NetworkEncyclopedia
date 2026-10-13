@@ -1,0 +1,40 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "v34 — پل دانشنامه دستورات Linux/PowerShell/Batch",
+  "lessons": [
+    {
+      "title_fa": "[L2] دانشنامه دستورات لینوکس شبکه",
+      "title_en": "Linux Network Commands Encyclopedia",
+      "chapter_order": 5,
+      "summary": "ip، ss، dig، tcpdump، nft",
+      "full_content": "# لینوکس شبکه\n\nمسیر یادگیری: interface → route → DNS → firewall → capture.\n\nابزار اصلی در پک `tools/packs/commands_encyclopedia/linux.json` با آرگومان و فلش‌کارت.\n\n```\nip -br a\nip r\nss -lntup\ndig example.com\ntcpdump -ni eth0 port 53\n```\n",
+      "commands": "ip -br a\nip r\nss -lntup\ndig\nnft list ruleset\ntcpdump",
+      "examples": "Lab: قبل/بعد از تغییر route با ip r مقایسه کن.\n",
+      "notes": "دستورات با اثر بالا را در production با change window بزن.\n",
+      "learning_objectives": ["iproute2", "ss", "tcpdump"]
+    },
+    {
+      "title_fa": "[L2] دانشنامه PowerShell شبکه",
+      "title_en": "PowerShell Network Commands Encyclopedia",
+      "chapter_order": 35,
+      "summary": "Get-Net* و Test-NetConnection",
+      "full_content": "# PowerShell شبکه\n\n```\nGet-NetIPAddress -AddressFamily IPv4\nTest-NetConnection 8.8.8.8 -Port 443\nResolve-DnsName example.com\nGet-NetTCPConnection -State Listen\n```\n\nفایروال: New-NetFirewallRule برای پورت ۸۳ برنامه.\n",
+      "commands": "Get-NetIPAddress\nTest-NetConnection\nResolve-DnsName\nNew-NetFirewallRule",
+      "examples": "Lab: TNC به سرور داخلی روی ۴۴۵ و ۳۳۸۹.\n",
+      "notes": "Remoting فقط روی کانال امن.\n",
+      "learning_objectives": ["Get-Net*", "TNC", "Firewall"]
+    },
+    {
+      "title_fa": "[L1] دانشنامه Batch/CMD شبکه",
+      "title_en": "Batch CMD Network Commands Encyclopedia",
+      "chapter_order": 35,
+      "summary": "ipconfig ping tracert netsh",
+      "full_content": "# CMD / Batch\n\n```\nipconfig /all\nping -n 4 8.8.8.8\ntracert -d 1.1.1.1\nnetstat -ano\nnetsh advfirewall firewall show rule name=all\n```\n\nاسکریپت for فقط در شبکه مجاز.\n",
+      "commands": "ipconfig\nping\ntracert\nnetstat\nnetsh",
+      "examples": "Lab: خروجی ipconfig را قبل/بعد از /renew ذخیره کن.\n",
+      "notes": "Batch برای اتوماسیون سنگین جایگزین PS نیست.\n",
+      "learning_objectives": ["ipconfig", "netsh", "netstat"]
+    }
+  ]
+}

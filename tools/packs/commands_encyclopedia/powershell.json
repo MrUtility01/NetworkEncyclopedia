@@ -1,0 +1,20 @@
+{
+  "package_schema_version": 1,
+  "vendor": "powershell",
+  "title_fa": "دستورات PowerShell شبکه",
+  "categories": ["automation", "dns", "firewall", "interface", "routing", "troubleshoot"],
+  "commands": [
+    {"name": "Get-NetIPAddress", "syntax": "Get-NetIPAddress [-AddressFamily IPv4]", "arguments": [{"name": "-AddressFamily", "desc": "IPv4/IPv6"}], "explanation_fa": "آدرس‌های IP ویندوز.", "example": "Get-NetIPAddress -AddressFamily IPv4", "category": "interface", "level": "L1", "flashcards": [{"q": "دیدن IP در PS؟", "a": "Get-NetIPAddress"}]},
+    {"name": "Get-NetRoute", "syntax": "Get-NetRoute", "arguments": [], "explanation_fa": "جدول مسیر ویندوز.", "example": "Get-NetRoute | Format-Table -AutoSize", "category": "routing", "level": "L1", "flashcards": [{"q": "مسیرها در PS؟", "a": "Get-NetRoute"}]},
+    {"name": "Test-NetConnection", "syntax": "Test-NetConnection -ComputerName H -Port P", "arguments": [{"name": "-Port", "desc": "پورت TCP"}, {"name": "-Traceroute", "desc": "ردیابی"}], "explanation_fa": "تست پورت و مسیر.", "example": "Test-NetConnection 8.8.8.8 -Port 443", "category": "troubleshoot", "level": "L1", "flashcards": [{"q": "تست پورت ۴۴۳؟", "a": "Test-NetConnection -Port 443"}]},
+    {"name": "Resolve-DnsName", "syntax": "Resolve-DnsName NAME [-Type A]", "arguments": [{"name": "-Server", "desc": "DNS"}, {"name": "-Type", "desc": "نوع"}], "explanation_fa": "DNS در PowerShell.", "example": "Resolve-DnsName example.com -Type A", "category": "dns", "level": "L1", "flashcards": [{"q": "DNS در PS؟", "a": "Resolve-DnsName"}]},
+    {"name": "Clear-DnsClientCache", "syntax": "Clear-DnsClientCache", "arguments": [], "explanation_fa": "پاک کش DNS کلاینت.", "example": "Clear-DnsClientCache", "category": "dns", "level": "L1", "flashcards": [{"q": "پاک کردن کش DNS؟", "a": "Clear-DnsClientCache"}]},
+    {"name": "Get-NetTCPConnection", "syntax": "Get-NetTCPConnection -State Listen", "arguments": [], "explanation_fa": "اتصالات TCP.", "example": "Get-NetTCPConnection -State Listen", "category": "troubleshoot", "level": "L1", "flashcards": [{"q": "پورت‌های Listen؟", "a": "Get-NetTCPConnection -State Listen"}]},
+    {"name": "New-NetFirewallRule", "syntax": "New-NetFirewallRule -DisplayName N -Direction Inbound -Protocol TCP -LocalPort P -Action Allow", "arguments": [{"name": "-LocalPort", "desc": "پورت"}], "explanation_fa": "قانون فایروال ویندوز.", "example": "New-NetFirewallRule -DisplayName 'NetEnc 83' -Direction Inbound -Protocol TCP -LocalPort 83 -Action Allow", "category": "firewall", "level": "L2", "flashcards": [{"q": "باز کردن پورت ۸۳؟", "a": "New-NetFirewallRule ... LocalPort 83"}]},
+    {"name": "Get-NetAdapter", "syntax": "Get-NetAdapter", "arguments": [], "explanation_fa": "کارت شبکه و لینک.", "example": "Get-NetAdapter | Format-Table Name,Status,LinkSpeed", "category": "interface", "level": "L1", "flashcards": [{"q": "وضعیت کارت؟", "a": "Get-NetAdapter"}]},
+    {"name": "Restart-NetAdapter", "syntax": "Restart-NetAdapter -Name 'Ethernet'", "arguments": [], "explanation_fa": "ری‌استارت کارت.", "example": "Restart-NetAdapter -Name 'Ethernet'", "category": "interface", "level": "L2", "flashcards": [{"q": "ری‌استارت NIC؟", "a": "Restart-NetAdapter"}]},
+    {"name": "Invoke-Command", "syntax": "Invoke-Command -ComputerName H -ScriptBlock {}", "arguments": [], "explanation_fa": "اجرای از راه دور.", "example": "Invoke-Command -ComputerName srv1 -ScriptBlock { Get-NetIPAddress }", "category": "automation", "level": "L2", "flashcards": [{"q": "Remoting؟", "a": "Invoke-Command"}]},
+    {"name": "Get-WinEvent", "syntax": "Get-WinEvent -LogName System -MaxEvents 20", "arguments": [], "explanation_fa": "رویدادها برای RCA.", "example": "Get-WinEvent -LogName System -MaxEvents 20", "category": "troubleshoot", "level": "L2", "flashcards": [{"q": "لاگ سیستم؟", "a": "Get-WinEvent"}]},
+    {"name": "ipconfig", "syntax": "ipconfig /all", "arguments": [{"name": "/flushdns", "desc": "پاک کش"}], "explanation_fa": "ابزار کلاسیک IP.", "example": "ipconfig /all", "category": "interface", "level": "L0", "flashcards": [{"q": "جزئیات IP؟", "a": "ipconfig /all"}]}
+  ]
+}

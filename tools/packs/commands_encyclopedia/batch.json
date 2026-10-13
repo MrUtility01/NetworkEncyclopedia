@@ -1,0 +1,18 @@
+{
+  "package_schema_version": 1,
+  "vendor": "batch",
+  "title_fa": "دستورات Batch/CMD شبکه",
+  "categories": ["automation", "dns", "firewall", "interface", "routing", "troubleshoot"],
+  "commands": [
+    {"name": "ipconfig", "syntax": "ipconfig [/all|/release|/renew|/flushdns]", "arguments": [{"name": "/all", "desc": "کامل"}, {"name": "/flushdns", "desc": "DNS cache"}], "explanation_fa": "نمایش و تمدید IP در CMD.", "example": "ipconfig /all", "category": "interface", "level": "L0", "flashcards": [{"q": "دیدن IP در CMD؟", "a": "ipconfig /all"}]},
+    {"name": "ping", "syntax": "ping [-n N] HOST", "arguments": [{"name": "-n", "desc": "تعداد"}], "explanation_fa": "ICMP از CMD.", "example": "ping -n 4 8.8.8.8", "category": "troubleshoot", "level": "L0", "flashcards": [{"q": "۴ پینگ؟", "a": "ping -n 4"}]},
+    {"name": "tracert", "syntax": "tracert [-d] HOST", "arguments": [{"name": "-d", "desc": "بدون resolve"}], "explanation_fa": "ردیابی مسیر ویندوز.", "example": "tracert -d 1.1.1.1", "category": "troubleshoot", "level": "L1", "flashcards": [{"q": "trace در ویندوز؟", "a": "tracert"}]},
+    {"name": "nslookup", "syntax": "nslookup NAME [server]", "arguments": [], "explanation_fa": "DNS ساده.", "example": "nslookup example.com 8.8.8.8", "category": "dns", "level": "L1", "flashcards": [{"q": "DNS CMD؟", "a": "nslookup"}]},
+    {"name": "netstat", "syntax": "netstat -ano", "arguments": [{"name": "-a", "desc": "همه"}, {"name": "-o", "desc": "PID"}], "explanation_fa": "اتصالات و پورت‌ها.", "example": "netstat -ano | findstr LISTENING", "category": "troubleshoot", "level": "L1", "flashcards": [{"q": "پورت و PID؟", "a": "netstat -ano"}]},
+    {"name": "netsh interface", "syntax": "netsh interface ip show config", "arguments": [], "explanation_fa": "پیکربندی اینترفیس.", "example": "netsh interface ip show config", "category": "interface", "level": "L1", "flashcards": [{"q": "کانفیگ IP با netsh؟", "a": "netsh interface ip show config"}]},
+    {"name": "netsh advfirewall", "syntax": "netsh advfirewall firewall add rule ...", "arguments": [], "explanation_fa": "قانون فایروال از CMD.", "example": "netsh advfirewall firewall add rule name=NetEnc83 dir=in action=allow protocol=TCP localport=83", "category": "firewall", "level": "L2", "flashcards": [{"q": "باز کردن پورت با netsh؟", "a": "netsh advfirewall firewall add rule"}]},
+    {"name": "arp", "syntax": "arp -a", "arguments": [], "explanation_fa": "جدول ARP.", "example": "arp -a", "category": "troubleshoot", "level": "L1", "flashcards": [{"q": "دیدن ARP؟", "a": "arp -a"}]},
+    {"name": "route", "syntax": "route print|add|delete", "arguments": [], "explanation_fa": "جدول مسیر CMD.", "example": "route print", "category": "routing", "level": "L1", "flashcards": [{"q": "مسیرها در CMD؟", "a": "route print"}]},
+    {"name": "for ping sweep", "syntax": "for /L %i in (1,1,10) do @ping -n 1 -w 200 192.168.1.%i", "arguments": [], "explanation_fa": "اسکن ساده بازه IP (فقط شبکه خودی و با مجوز).", "example": "for /L %i in (1,1,10) do @ping -n 1 192.168.1.%i", "category": "automation", "level": "L2", "flashcards": [{"q": "حلقه پینگ Batch؟", "a": "for /L %i in ..."}]}
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "package_schema_version": 1,
+  "vendor": "linux",
+  "title_fa": "دستورات لینوکس شبکه",
+  "categories": ["dns", "firewall", "interface", "routing", "troubleshoot"],
+  "commands": [
+    {"name": "ip address", "syntax": "ip [-br] address show [dev IF]", "arguments": [{"name": "-br", "desc": "خروجی خلاصه"}, {"name": "dev", "desc": "اینترفیس"}], "explanation_fa": "نمایش/تنظیم آدرس IP روی اینترفیس (جای ifconfig).", "example": "ip -br a", "category": "interface", "level": "L1", "flashcards": [{"q": "کاربرد ip address؟", "a": "نمایش/تنظیم IP"}, {"q": "جایگزین ifconfig؟", "a": "ip -br a"}]},
+    {"name": "ip route", "syntax": "ip route show|add|del", "arguments": [{"name": "add", "desc": "افزودن مسیر"}, {"name": "default", "desc": "پیش‌فرض"}], "explanation_fa": "جدول مسیریابی کرنل.", "example": "ip r", "category": "routing", "level": "L1", "flashcards": [{"q": "دیدن مسیرها؟", "a": "ip r"}]},
+    {"name": "ss", "syntax": "ss -lntup", "arguments": [{"name": "-l", "desc": "listening"}, {"name": "-p", "desc": "process"}], "explanation_fa": "سوکت‌های گوش‌دهنده (جای netstat).", "example": "ss -lntup", "category": "troubleshoot", "level": "L1", "flashcards": [{"q": "جای netstat؟", "a": "ss -lntup"}]},
+    {"name": "ping", "syntax": "ping -c N HOST", "arguments": [{"name": "-c", "desc": "تعداد"}], "explanation_fa": "ICMP echo.", "example": "ping -c 4 8.8.8.8", "category": "troubleshoot", "level": "L0", "flashcards": [{"q": "تست رسیدن host؟", "a": "ping"}]},
+    {"name": "traceroute", "syntax": "traceroute HOST", "arguments": [{"name": "-n", "desc": "بدون DNS"}], "explanation_fa": "مسیر hop به hop.", "example": "traceroute -n 1.1.1.1", "category": "troubleshoot", "level": "L1", "flashcards": [{"q": "دیدن hopها؟", "a": "traceroute"}]},
+    {"name": "dig", "syntax": "dig [@server] NAME TYPE", "arguments": [{"name": "TYPE", "desc": "A/AAAA/MX"}], "explanation_fa": "DNS پیشرفته.", "example": "dig example.com A", "category": "dns", "level": "L1", "flashcards": [{"q": "DNS CLI؟", "a": "dig"}]},
+    {"name": "nft", "syntax": "nft list ruleset", "arguments": [], "explanation_fa": "فایروال nftables.", "example": "nft list ruleset", "category": "firewall", "level": "L2", "flashcards": [{"q": "دیدن قوانین nft؟", "a": "nft list ruleset"}]},
+    {"name": "iptables", "syntax": "iptables -L -n -v", "arguments": [{"name": "-L", "desc": "list"}], "explanation_fa": "فایروال netfilter سنتی.", "example": "iptables -L -n -v", "category": "firewall", "level": "L2", "flashcards": [{"q": "لیست iptables؟", "a": "iptables -L -n -v"}]},
+    {"name": "tcpdump", "syntax": "tcpdump -i IF host HOST", "arguments": [{"name": "-i", "desc": "اینترفیس"}, {"name": "-n", "desc": "numeric"}], "explanation_fa": "کپچر پکت.", "example": "tcpdump -ni eth0 port 53", "category": "troubleshoot", "level": "L2", "flashcards": [{"q": "کپچر CLI؟", "a": "tcpdump"}]},
+    {"name": "nmcli", "syntax": "nmcli device|connection", "arguments": [], "explanation_fa": "NetworkManager CLI.", "example": "nmcli dev status", "category": "interface", "level": "L1", "flashcards": [{"q": "وضعیت NM؟", "a": "nmcli dev status"}]},
+    {"name": "journalctl", "syntax": "journalctl -u UNIT -n N", "arguments": [{"name": "-u", "desc": "unit"}, {"name": "-f", "desc": "follow"}], "explanation_fa": "لاگ systemd.", "example": "journalctl -u NetworkManager -n 50", "category": "troubleshoot", "level": "L1", "flashcards": [{"q": "لاگ سرویس؟", "a": "journalctl -u"}]},
+    {"name": "sysctl", "syntax": "sysctl net.ipv4.ip_forward", "arguments": [], "explanation_fa": "پارامتر کرنل شبکه.", "example": "sysctl net.ipv4.ip_forward", "category": "routing", "level": "L2", "flashcards": [{"q": "فعال کردن forward؟", "a": "net.ipv4.ip_forward=1"}]},
+    {"name": "ethtool", "syntax": "ethtool IF", "arguments": [], "explanation_fa": "سرعت/duplex کارت.", "example": "ethtool eth0", "category": "interface", "level": "L2", "flashcards": [{"q": "دیدن duplex؟", "a": "ethtool"}]},
+    {"name": "bridge", "syntax": "bridge fdb show", "arguments": [], "explanation_fa": "FDB پل لینوکس.", "example": "bridge fdb show", "category": "interface", "level": "L2", "flashcards": [{"q": "جدول MAC bridge؟", "a": "bridge fdb show"}]},
+    {"name": "resolvectl", "syntax": "resolvectl query NAME", "arguments": [], "explanation_fa": "systemd-resolved.", "example": "resolvectl query example.com", "category": "dns", "level": "L1", "flashcards": [{"q": "query با resolved؟", "a": "resolvectl query"}]}
+  ]
+}

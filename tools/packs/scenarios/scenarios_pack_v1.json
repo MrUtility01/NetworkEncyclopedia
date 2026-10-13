@@ -1,0 +1,25 @@
+{
+  "package_schema_version": 1,
+  "scenarios": [
+    {"code": "SCN-NET-001", "title_fa": "قطع کامل اینترنت شعبه", "business_context": "فقط یک ISP از کار افتاده؛ BGP/default را بررسی کن.\nمسیر RCA: علائم → scope → لایه ۱ تا ۷ → evidence → fix → verify.", "tasks": "۱) علائم\n۲) سه فرضیه\n۳) دستورات verify\n۴) اقدام و rollback", "difficulty": "L2"},
+    {"code": "SCN-NET-002", "title_fa": "یک VLAN بدون DHCP", "business_context": "APIPA روی کلاینت‌ها؛ pool و relay.", "tasks": "pool، helper-address، فایروال UDP67/68", "difficulty": "L2"},
+    {"code": "SCN-NET-003", "title_fa": "VPN برقرار ولی ترافیک نه", "business_context": "Phase2 و interesting traffic و route.", "tasks": "crypto sa، route، ACL interest", "difficulty": "L3"},
+    {"code": "SCN-NET-004", "title_fa": "صدای یک‌طرفه SIP", "business_context": "NAT/RTP و ALG.", "tasks": "پورت RTP، fixup/ALG، capture", "difficulty": "L3"},
+    {"code": "SCN-NET-005", "title_fa": "لینک flapping", "business_context": "لایه ۱ و STP و log.", "tasks": "show interface، log، STP", "difficulty": "L2"},
+    {"code": "SCN-NET-006", "title_fa": "DNS داخلی resolve نمی‌شود", "business_context": "forwarder و firewall 53.", "tasks": "nslookup، فایروال، forwarder", "difficulty": "L2"},
+    {"code": "SCN-NET-007", "title_fa": "بعد از change ACL قطعی", "business_context": "ترتیب ACL و implicit deny.", "tasks": "show access-list، rollback", "difficulty": "L2"},
+    {"code": "SCN-NET-008", "title_fa": "HSRP جابه‌جا نمی‌شود", "business_context": "priority preempt track.", "tasks": "show standby، track", "difficulty": "L3"},
+    {"code": "SCN-NET-009", "title_fa": "AP به WLC وصل نمی‌شود", "business_context": "DHCP option و ACL CAPWAP.", "tasks": "option 43، ACL، NTP", "difficulty": "L3"},
+    {"code": "SCN-NET-010", "title_fa": "مصرف ۱۰۰٪ یک پورت", "business_context": "top talker و loop.", "tasks": "interface counter، STP، NetFlow", "difficulty": "L2"},
+    {"code": "SCN-NET-011", "title_fa": "ویندوز به share نمی‌رسد", "business_context": "DNS نام و فایروال 445.", "tasks": "Resolve-DnsName، TNC 445", "difficulty": "L2"},
+    {"code": "SCN-NET-012", "title_fa": "لینوکس forward نمی‌کند", "business_context": "ip_forward و nft.", "tasks": "sysctl، nft list", "difficulty": "L2"},
+    {"code": "SCN-NET-013", "title_fa": "گواهی TLS منقضی", "business_context": "زنجیره و تاریخ NTP.", "tasks": "openssl s_client، NTP", "difficulty": "L2"},
+    {"code": "SCN-NET-014", "title_fa": "Dual stack شکسته", "business_context": "AAAA و route v6.", "tasks": "ping6، route -6", "difficulty": "L3"},
+    {"code": "SCN-NET-015", "title_fa": "Ansible نصف hostها fail", "business_context": "inventory و SSH key.", "tasks": "ansible -m ping، known_hosts", "difficulty": "L3"},
+    {"code": "SCN-NET-016", "title_fa": "MikroTik NAT کاربران جدید fail", "business_context": "connection tracking پر.", "tasks": "/ip firewall connection print", "difficulty": "L3"},
+    {"code": "SCN-NET-017", "title_fa": "FortiGate policy hit نمی‌خورد", "business_context": "shadow rule و ترتیب.", "tasks": "policy lookup diagnose", "difficulty": "L3"},
+    {"code": "SCN-NET-018", "title_fa": "حمله brute force SSH", "business_context": "fail2ban و allowlist.", "tasks": "لاگ auth، ban، MFA", "difficulty": "L2"},
+    {"code": "SCN-NET-019", "title_fa": "MTU مشکل VPN", "business_context": "fragment و clamp.", "tasks": "ping -f -l، tcp clamp", "difficulty": "L3"},
+    {"code": "SCN-NET-020", "title_fa": "Capstone بازیابی بعد از حادثه شبکه", "business_context": "isolate segment restore.", "tasks": "contain، restore config، verify، postmortem", "difficulty": "L4"}
+  ]
+}
