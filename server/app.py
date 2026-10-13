@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""سرور وب + API همگام‌سازی LAN — bind روی 0.0.0.0 برای دسترسی شبکه."""
+"""سرور وب + API همگام‌سازی LAN — bind روی 0.0.0.0 — پورت پیش‌فرض 83."""
 from __future__ import annotations
 
 import hashlib
@@ -75,7 +75,7 @@ DEFAULT_DEV_TOKEN = "engineerjokar"
 SYNC_TOKEN = os.environ.get("NETENC_TOKEN", DEFAULT_DEV_TOKEN)
 DEVICE_ID = os.environ.get("NETENC_DEVICE", socket.gethostname() or "windows-host")
 BIND_HOST = os.environ.get("NETENC_HOST", "0.0.0.0")
-BIND_PORT = int(os.environ.get("NETENC_PORT", "5050"))
+BIND_PORT = int(os.environ.get("NETENC_PORT", "83"))
 
 if SYNC_TOKEN == DEFAULT_DEV_TOKEN:
     print("WARNING: using default NETENC_TOKEN — set env NETENC_TOKEN for production")
@@ -112,7 +112,6 @@ def db() -> WebDB:
     global _db
     if _db is None:
         _db = WebDB()
-        # اسکلت فهرست ۱–۶۸ سریع؛ enrich در پس‌زمینه
         if _db.chapter_count() < 65:
             print("skeleton chapters 1-68 (fast)...")
             print(_db.seed_full(force=True, skeleton_only=True))
@@ -174,7 +173,7 @@ def api_lan():
         "lan_ip": ips[0],
         "lan_ips": ips,
         "urls": [f"http://{ip}:{port}" for ip in ips],
-        "hint_fa": "اگر از سیستم دیگر باز نشد: فایروال ویندوز پورت 5050 را باز کنید و NETENC_HOST=0.0.0.0 باشد.",
+        "hint_fa": "اگر از سیستم دیگر باز نشد: فایروال ویندوز پورت 83 را باز کنید و NETENC_HOST=0.0.0.0 باشد.",
     })
 
 
@@ -288,7 +287,7 @@ def apply_packs():
     try:
         from core.pack_loader import apply_packs_to_db
         result = apply_packs_to_db(Path(db().path), overwrite=True)
-        db().set_meta("packs_applied", "v21")
+        db().set_meta("packs_applied", "v33")
         return jsonify(result)
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
@@ -311,7 +310,7 @@ def reseed():
         from core.pack_loader import apply_packs_to_db
         packs = apply_packs_to_db(Path(db().path), overwrite=True)
         result["packs"] = packs
-        db().set_meta("packs_applied", "v21")
+        db().set_meta("packs_applied", "v33")
     except Exception as e:
         result["packs_error"] = str(e)
     return jsonify(result)
@@ -416,12 +415,12 @@ def main():
     print("init db / rich seed if needed...")
     d = db()
     try:
-        if d.get_meta("packs_applied") != "v21":
+        if d.get_meta("packs_applied") != "v33":
             from core.pack_loader import apply_packs_to_db
             print("applying REAL JSON pack content (strict topic match)...")
             res = apply_packs_to_db(Path(d.path), overwrite=True)
             print("pack apply:", res.get("updated"), "updated /", res.get("matched"), "matched")
-            d.set_meta("packs_applied", "v21")
+            d.set_meta("packs_applied", "v33")
     except Exception as e:
         print("pack apply skipped:", e)
     if register_study_routes:
@@ -435,7 +434,8 @@ def main():
     print(f"NetEnc listening on http://{host}:{port}")
     for ip in ips:
         print(f"  LAN URL: http://{ip}:{port}")
-    print("  If other PCs cannot open: allow TCP 5050 in Windows Firewall (see docs/LAN_ACCESS_FA.md)")
+    print("  If other PCs cannot open: allow TCP 83 in Windows Firewall (see docs/LAN_ACCESS_FA.md)")
+    print("  Note: port 83 may need Administrator on Windows")
     app.run(host=host, port=port, debug=False, threaded=True)
 
 

@@ -1,4 +1,4 @@
-/* LAN IP + Sync status bar — IP از /api/lan بدون توکن */
+/* LAN IP + Sync status bar — IP از /api/lan بدون توکن — پورت پیش‌فرض 83 */
 async function loadLanAndSync() {
   const lanEl = document.getElementById("lanIp");
   const hintEl = document.getElementById("androidHint");
@@ -8,7 +8,7 @@ async function loadLanAndSync() {
     const r = await fetch("/api/lan");
     const data = await r.json();
     const ip = data.lan_ip || (data.lan_ips && data.lan_ips[0]) || "127.0.0.1";
-    const port = data.port || 5050;
+    const port = data.port || 83;
     lanEl.textContent = ip;
     if (hintEl) hintEl.textContent = "http://" + ip + ":" + port;
     if (statusEl) {
@@ -25,7 +25,7 @@ async function loadLanAndSync() {
 
 document.getElementById("btnCopyIp")?.addEventListener("click", async () => {
   const ip = document.getElementById("lanIp")?.textContent || "";
-  const hint = document.getElementById("androidHint")?.textContent || ("http://" + ip + ":5050");
+  const hint = document.getElementById("androidHint")?.textContent || ("http://" + ip + ":83");
   try {
     await navigator.clipboard.writeText(hint);
     const st = document.getElementById("syncStatus");
