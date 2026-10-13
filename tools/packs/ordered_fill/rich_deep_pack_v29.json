@@ -1,0 +1,271 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "v29 — ادامه غنی‌سازی عمیق فصل‌های باقی‌مانده",
+  "lessons": [
+    {
+      "title_fa": "[L3] EIGRP همسایگی و متریک عملی",
+      "title_en": "EIGRP Adjacency and Practical Metric",
+      "chapter_order": 13,
+      "summary": "شرایط neighbor، Feasible Successor و متریک مرکب.",
+      "full_content": "# EIGRP عملی\n\n## همسایگی\nAS یکسان، subnet مشترک، K-values یکسان، احراز در صورت فعال.\n\n## متریک\nعمدتاً bandwidth و delay؛ بقیه Kها معمولاً صفر.\n\n## FS\nشرط امکان‌پذیری از loop جلوگیری می‌کند.\n\n## RCA\n```\nshow ip eigrp neighbors\nshow ip eigrp topology\nshow ip protocols\n```\n",
+      "commands": "show ip eigrp neighbors\nshow ip eigrp topology\nshow ip eigrp interfaces\nshow ip route eigrp\ndebug eigrp packets",
+      "examples": "K-value ناهمسان؛ چه علامتی در neighbor می‌بینی؟\n",
+      "notes": "debug را کوتاه نگه دار.\n",
+      "learning_objectives": ["adjacency", "FS", "metric"]
+    },
+    {
+      "title_fa": "[L3] Route Summarization عملی OSPF/BGP",
+      "title_en": "Practical Route Summarization OSPF BGP",
+      "chapter_order": 14,
+      "summary": "کاهش جدول و کنترل تبلیغ با خلاصه‌سازی.\n",
+      "full_content": "# Summarization\n\nمرز مناسب: ABR در OSPF؛ aggregate در BGP\nخلاصه‌سازی غلط = blackhole\nهمیشه مسیر backup/null0 آگاهانه\n",
+      "commands": "show ip route\nshow ip ospf border-routers\nshow ip bgp\nshow running-config | section area|aggregate",
+      "examples": "چهار /24 پشت سر هم؛ خلاصه مناسب چیست؟\n",
+      "notes": "خلاصه بدون پوشش واقعی پیشوندها خطرناک است.\n",
+      "learning_objectives": ["مرز خلاصه", "blackhole risk"]
+    },
+    {
+      "title_fa": "[L3] Policy-Based Routing موارد واقعی",
+      "title_en": "Policy Based Routing Real Cases",
+      "chapter_order": 14,
+      "summary": "انتخاب مسیر بر اساس مبدا/اپ نه فقط مقصد.\n",
+      "full_content": "# PBR\n\nمثال: ترافیک مهمان از ISP ارزان؛ ERP از لینک بهتر\nترتیب ACL + route-map + apply روی interface\n\nVerify با traceroute از مبدا واقعی\n",
+      "commands": "show route-map\nshow access-lists\nshow ip policy\ntraceroute\nshow ip route",
+      "examples": "فقط subnet 10.20.0.0/16 از ISP-B برود؛ اسکلت route-map.\n",
+      "notes": "PBR پیچیده را مستند کن وگرنه RCA بعدی جهنم است.\n",
+      "learning_objectives": ["use-case", "route-map", "verify"]
+    },
+    {
+      "title_fa": "[L2] IPv4 Subnetting سریع عملیاتی",
+      "title_en": "Fast Operational IPv4 Subnetting",
+      "chapter_order": 7,
+      "summary": "از نیاز host تا mask بدون ماشین حساب.\n",
+      "full_content": "# Subnetting عملی\n\nنیاز host → نزدیک‌ترین توان ۲ → mask\nاندازه شبکه و broadcast را بنویس\nبرای VLAN کاربر /24 رایج؛ نقطه به نقطه /30 یا /31\n",
+      "commands": "ipcalc 10.10.10.0/22\nshow ip interface brief\nGet-NetIPAddress",
+      "examples": "۶۰ host؛ کوچک‌ترین mask چیست و چرا؟\n",
+      "notes": "رشد آینده را در sizing ببین.\n",
+      "learning_objectives": ["host→mask", "point-to-point"]
+    },
+    {
+      "title_fa": "[L3] DHCP Snooping و IP Source Guard",
+      "title_en": "DHCP Snooping and IP Source Guard",
+      "chapter_order": 11,
+      "summary": "جلوگیری از DHCP جعلی و IP spoofing در access.\n",
+      "full_content": "# DHCP Snooping\n\nپورت trust فقط به سمت سرور/آپلینک\nbinding table پایه DAI و IPSG\n\nاشتباه: trust نکردن آپلینک = کلاینت IP نمی‌گیرد\n",
+      "commands": "show ip dhcp snooping\nshow ip dhcp snooping binding\nshow ip verify source\nshow ip arp inspection",
+      "examples": "بعد از فعال‌سازی snooping کسی IP نگرفت؛ اولین چک؟\n",
+      "notes": "ترتیب: snooping → DAI/IPSG.\n",
+      "learning_objectives": ["trust", "binding", "IPSG"]
+    },
+    {
+      "title_fa": "[L3] Port-Security عملی",
+      "title_en": "Practical Port Security",
+      "chapter_order": 11,
+      "summary": "محدود کردن MAC روی پورت access.\n",
+      "full_content": "# Port-Security\n\nmax MAC، violation (protect/restrict/shutdown)\nsticky برای یادگیری\n\nRCA: err-disabled → cause و clear\n",
+      "commands": "show port-security\nshow port-security interface\nshow interfaces status err-disabled\nclear port-security sticky",
+      "examples": "کاربر hub کوچک زد و پورت down شد؛ چه دیدی؟\n",
+      "notes": "روی uplink port-security نگذار مگر طراحی خاص.\n",
+      "learning_objectives": ["max MAC", "violation", "sticky"]
+    },
+    {
+      "title_fa": "[L3] GRE Tunnel همراه با IPsec",
+      "title_en": "GRE Tunnel with IPsec",
+      "chapter_order": 57,
+      "summary": "حمل multicast/routing روی تونل رمزشده.\n",
+      "full_content": "# GRE + IPsec\n\nGRE انعطاف؛ IPsec محرمانگی\nسربار بیشتر؛ MTU/MSS را تنظیم کن\n\nRCA: tunnel up ولی recurse route؛ ACL جالب ترافیک\n",
+      "commands": "show interfaces tunnel\nshow ip route\nshow crypto session\nping\ntraceroute",
+      "examples": "OSPF روی GRE بالا نمی‌آید؛ سه احتمال.\n",
+      "notes": "بدون تنظیم MTU تکه تکه شدن دردسر می‌سازد.\n",
+      "learning_objectives": ["GRE role", "IPsec", "MTU"]
+    },
+    {
+      "title_fa": "[L3] IKEv2 در برابر IKEv1 ذهنی",
+      "title_en": "IKEv2 vs IKEv1 Mental Model",
+      "chapter_order": 57,
+      "summary": "چرا پروژه جدید ترجیح IKEv2 دارد.\n",
+      "full_content": "# IKEv2\n\nسریع‌تر، مقاوم‌تر در برابر برخی حملات، MOBIKE در سناریوهای خاص\nپیشنهاد رمزنگاری مدرن\n\nهنوز دو طرف باید proposal مشترک داشته باشند\n",
+      "commands": "show crypto ikev2 sa\nshow crypto isakmp sa\nshow crypto session\nshow logging",
+      "examples": "Phase1 fail با proposal mismatch؛ کجا Verify؟\n",
+      "notes": "نسخه IKE را در هر دو طرف مستند کن.\n",
+      "learning_objectives": ["IKE versions", "proposal"]
+    },
+    {
+      "title_fa": "[L2] SIEM حداقل برای تیم شبکه کوچک",
+      "title_en": "Minimum SIEM for Small Network Team",
+      "chapter_order": 25,
+      "summary": "چه لاگ‌هایی حتماً متمرکز شوند.\n",
+      "full_content": "# SIEM حداقل\n\nمنابع: فایروال، VPN، AD/DNS، سوئیچ‌های مهم\nهشدار: brute-force، تغییر کانفیگ، تونل جدید غیرمنتظره\nمالک و runbook برای هر هشدار مهم\n",
+      "commands": "show logging\nshow crypto session\nshow users\nGet-EventLog -LogName Security -Newest 20",
+      "examples": "سه هشدار که بدون SIEM دیر کشف می‌شوند.\n",
+      "notes": "هشدار بدون پاسخ‌دهنده = نویز.\n",
+      "learning_objectives": ["منابع لاگ", "هشدار مفید"]
+    },
+    {
+      "title_fa": "[L3] Packet Capture هوشمند نه همیشگی",
+      "title_en": "Smart Packet Capture Not Always On",
+      "chapter_order": 25,
+      "summary": "فیلتر، زمان کوتاه و حفظ حریم.\n",
+      "full_content": "# Capture\n\nفقط host/پورت مشکوک\nمدت محدود\nذخیره امن\n\nابزار: tcpdump، Wireshark، ERSPAN در صورت نیاز\n",
+      "commands": "tcpdump -ni any host 10.1.1.10 and port 443\nshow monitor capture\nwireshark\nGet-NetTCPConnection",
+      "examples": "شک به DNS؛ فیلتر capture چه باشد؟\n",
+      "notes": "capture روی لینک شلوغ بدون فیلتر دیسک را پر می‌کند.\n",
+      "learning_objectives": ["filter", "window", "privacy"]
+    },
+    {
+      "title_fa": "[L3] MikroTik Queue و محدودیت پهنا",
+      "title_en": "MikroTik Queue Bandwidth Limits",
+      "chapter_order": 20,
+      "summary": "Simple queue برای کاربر/سگمنت.\n",
+      "full_content": "# MikroTik Queues\n\nsimple queue برای محدودیت سریع\nparent/child برای سلسله\n\nVerify با /queue simple print stats\n",
+      "commands": "/queue simple print\n/queue simple print stats\n/interface print\n/tool torch",
+      "examples": "Guest حداکثر ۱۰M؛ rule ساده بنویس.\n",
+      "notes": "صف بدون mark/شناسایی ترافیک گاهی بی‌اثر است.\n",
+      "learning_objectives": ["simple queue", "stats"]
+    },
+    {
+      "title_fa": "[L3] MikroTik VPN WireGuard سریع",
+      "title_en": "MikroTik WireGuard VPN Quick",
+      "chapter_order": 20,
+      "summary": "تونل مدرن سبک برای مدیریت/کاربر.\n",
+      "full_content": "# WireGuard روی MikroTik\n\nکلید عمومی/خصوصی\nallowed-address دقیق\nپورت UDP\n\nفایروال input برای پورت WG\n",
+      "commands": "/interface wireguard print\n/interface wireguard peers print\n/ip route print\n/ping",
+      "examples": "فقط subnet مدیریت از تونل route شود.\n",
+      "notes": "کلید خصوصی را در تیکت نگذار.\n",
+      "learning_objectives": ["keys", "allowed-address", "route"]
+    },
+    {
+      "title_fa": "[L3] FortiGate SD-WAN اعضای لینک",
+      "title_en": "FortiGate SD-WAN Link Members",
+      "chapter_order": 22,
+      "summary": "اعضا، SLA و سیاست.\n",
+      "full_content": "# FortiGate SD-WAN\n\nعضو لینک + معیار latency/jitter/loss\nقانون: کدام اپ از کدام عضو\n\nمانیتور member status\n",
+      "commands": "show system sdwan\ndiagnose sys sdwan member\ndiagnose sys sdwan service\nget router info routing-table all",
+      "examples": "Voice روی لینک با loss کمتر؛ منطق rule.\n",
+      "notes": "بدون probe درست، انتخاب لینک تصادفی می‌شود.\n",
+      "learning_objectives": ["member", "SLA", "service rule"]
+    },
+    {
+      "title_fa": "[L2] IPv6 Addressing طرح سازمانی کوچک",
+      "title_en": "Small Enterprise IPv6 Addressing Plan",
+      "chapter_order": 12,
+      "summary": "از prefix واگذارشده تا /64 برای LAN.\n",
+      "full_content": "# طرح IPv6\n\nISP prefix → برش سایت/سرویس → /64 برای هر LAN\nULA برای آزمایش داخلی\nمستند مثل IPv4 ضروری است\n",
+      "commands": "show ipv6 interface brief\nshow ipv6 route\nshow ipv6 neighbors",
+      "examples": "یک /48؛ دو سایت را چگونه برش می‌دهی؟\n",
+      "notes": "/64 را بدون دلیل کوچکتر نکن برای LAN کلاسیک.\n",
+      "learning_objectives": ["prefix plan", "/64"]
+    },
+    {
+      "title_fa": "[L3] Anycast DNS مفهوم عملی",
+      "title_en": "Practical Anycast DNS Concept",
+      "chapter_order": 8,
+      "summary": "یک IP از چند نقطه؛ نزدیک‌ترین پاسخ.\n",
+      "full_content": "# Anycast DNS\n\nچند سرور یک آدرس را اعلام می‌کنند\nمسیریابی به نزدیک‌ترین\n\nRCA: مسیر، سلامت instance، anycast flap\n",
+      "commands": "dig @resolver example.com\ntraceroute\nshow ip route\nResolve-DnsName",
+      "examples": "چرا 1.1.1.1 از دو شهر مسیر مختلف دارد؟\n",
+      "notes": "stateful session روی anycast سخت‌تر است.\n",
+      "learning_objectives": ["anycast idea", "DNS use"]
+    },
+    {
+      "title_fa": "[L2] مستند Runbook تعویض سوئیچ خراب",
+      "title_en": "Runbook Replacing Failed Switch",
+      "chapter_order": 5,
+      "summary": "از انبار تا برگشت سرویس.\n",
+      "full_content": "# تعویض سوئیچ\n\n1. کانفیگ backup\n2. عکس/برچسب کابل\n3. سخت‌افزار جایگزین\n4. بارگذاری کانفیگ\n5. تست uplink و چند access\n6. مانیتور ۳۰ دقیقه\n",
+      "commands": "show running-config\nshow vlan brief\nshow interfaces status\nshow cdp neighbors",
+      "examples": "بدون backup کانفیگ؛ حداقل چه چیزی را از سوئیچ مرده می‌خواهی؟\n",
+      "notes": "برچسب کابل نصف جنگ است.\n",
+      "learning_objectives": ["ترتیب", "تست", "برچسب"]
+    },
+    {
+      "title_fa": "[L3] Ansible Inventory و Group Vars شبکه",
+      "title_en": "Ansible Inventory and Group Vars Network",
+      "chapter_order": 51,
+      "summary": "گروه‌بندی دستگاه‌ها و متغیرهای مشترک.\n",
+      "full_content": "# Inventory\n\n[access]\n[core]\n[firewall]\ngroup_vars برای NTP/DNS/snmp مشترک\n\nhost_vars برای IP مدیریت خاص\n",
+      "commands": "ansible-inventory --list\nansible access -m ping\nansible-playbook -i inventory site.yml --list-hosts",
+      "examples": "سه گروه و دو متغیر مشترک پیشنهاد بده.\n",
+      "notes": "رمز را در group_vars plaintext نگذار.\n",
+      "learning_objectives": ["groups", "vars"]
+    },
+    {
+      "title_fa": "[L3] Terraform State و خطر همزمانی",
+      "title_en": "Terraform State and Concurrency Risk",
+      "chapter_order": 51,
+      "summary": "state منبع حقیقت زیرساخت اعلامی.\n",
+      "full_content": "# Terraform State\n\nremote state با قفل\nهرگز state را دستی در Git عمومی نگذار\nplan قبل apply\n",
+      "commands": "terraform init\nterraform plan\nterraform apply\nterraform state list",
+      "examples": "دو نفر هم‌زمان apply کنند بدون lock؛ چه می‌شود؟\n",
+      "notes": "state آلوده = تغییر غیرمنتظره.\n",
+      "learning_objectives": ["remote state", "lock", "plan"]
+    },
+    {
+      "title_fa": "[L2] ارزیابی فروشنده و RFP شبکه سبک",
+      "title_en": "Lightweight Network Vendor RFP Evaluation",
+      "chapter_order": 5,
+      "summary": "فقط قیمت را مقایسه نکن.\n",
+      "full_content": "# ارزیابی فروشنده\n\nمعیار: قابلیت، پشتیبانی، گارانتی، سازگاری، هزینه پنج‌ساله\nPOC روی سناریوی خودت نه دموی فروش\n",
+      "commands": "show version\nshow inventory\n# تست POC",
+      "examples": "سه معیار غیرقیمت برای انتخاب فایروال.\n",
+      "notes": "ارزان‌ترین جعبه گران‌ترین پشتیبانی را دارد گاهی.\n",
+      "learning_objectives": ["معیار", "POC"]
+    },
+    {
+      "title_fa": "[L4] Capstone — جداسازی OT/IoT از IT",
+      "title_en": "Capstone OT IoT Segmentation from IT",
+      "chapter_order": 65,
+      "summary": "دستگاههای صنعتی/IoT نباید آزاد به IT باشند.\n",
+      "full_content": "# OT/IoT\n\nVLAN/zone جدا\nفقط پورت‌های لازم به سرور به‌روزرسانی\nمانیتور ترافیک غیرعادی\n\nهرگز دسکتاپ ادمین مستقیم روی همان سگمنت بدون کنترل\n",
+      "commands": "show vlan brief\nshow access-lists\nshow mac address-table\ndiagnose firewall session list",
+      "examples": "دوربین‌ها به اینترنت نیاز دارند؛ مسیر امن چگونه است؟\n",
+      "notes": "IoT پیش‌فرض ناامن است.\n",
+      "learning_objectives": ["سگمنت OT", "حداقل ارتباط"]
+    },
+    {
+      "title_fa": "[L4] Capstone — پیاده‌سازی 802.1X موجی",
+      "title_en": "Capstone Phased 8021X Rollout",
+      "chapter_order": 65,
+      "summary": "از monitor mode تا enforce.\n",
+      "full_content": "# Rollout 802.1X\n\n1. RADIUS پایدار\n2. monitor/low-impact\n3. گروه آزمایش\n4. enforce تدریجی\n5. استثنای مستند\n\nپشتیبانی میزکار آماده باشد\n",
+      "commands": "show authentication sessions\nshow dot1x all\nshow aaa servers\nshow logging",
+      "examples": "هفته اول فقط monitor؛ چه متریکی موفقیت است؟\n",
+      "notes": "enforce ناگهانی کل سازمان = بحران.\n",
+      "learning_objectives": ["phased", "monitor", "exception"]
+    },
+    {
+      "title_fa": "[L3] عیب‌یابی چاپگر شبکه همچنان مفید",
+      "title_en": "Still Useful Network Printer Troubleshooting",
+      "chapter_order": 5,
+      "summary": "IP، درایور، فایروال و VLAN.\n",
+      "full_content": "# چاپگر شبکه\n\nping/port 9100 یا IPP\nVLAN درست؟\nفایروال endpoint؟\nصف چاپ گیر کرده؟\n\nخیلی از «شبکه خراب است» در واقع چاپگر است\n",
+      "commands": "ping printer\nTest-NetConnection printer -Port 9100\nGet-Printer\nshow mac address-table",
+      "examples": "یک کاربر چاپ می‌کند بقیه نه؛ تفکیک چگونه؟\n",
+      "notes": "اول لایه ۳ و پورت سرویس.\n",
+      "learning_objectives": ["پورت چاپ", "تفکیک کلاینت"]
+    },
+    {
+      "title_fa": "[L2] ارتباط با ISP و Escalation مؤثر",
+      "title_en": "Effective ISP Communication and Escalation",
+      "chapter_order": 5,
+      "summary": "چه شواهدی برای تیکت ببری.\n",
+      "full_content": "# تیکت ISP\n\nشماره مدار، زمان شروع، جهت مشکل، traceroute، loss، change اخیر\nیک کانال واحد\nزمان و ticket id را ثبت کن\n",
+      "commands": "ping -c 100\nmtr\ntraceroute\nshow interfaces\nshow ip route",
+      "examples": "۵ خط متن آماده برای باز کردن تیکت لینک.\n",
+      "notes": "بدون شواهد، escalation احساسی است.\n",
+      "learning_objectives": ["شواهد", "ticket hygiene"]
+    },
+    {
+      "title_fa": "[L2] سلامت شخصی و شیفت اضطرانی شبکه",
+      "title_en": "Personal Health and Network Oncall Hygiene",
+      "chapter_order": 5,
+      "summary": "روی‌کال بدون فرسودگی.\n",
+      "full_content": "# On-call\n\nچک‌لیست آماده\nسطح دسترسی از پیش تست‌شده\nبعد از حادثه sleep و handover\nمستند postmortem کوتاه\n\nقهرمان همیشه بیدار پایدار نیست\n",
+      "commands": "# ابزار:\n# runbook، لیست تماس، دسترسی VPN تست‌شده",
+      "examples": "بسته on-call شخصی شامل چه چیزهایی باشد؟\n",
+      "notes": "اتوماسیون هشدار هوشمند جلوی صفحه‌نمایش دائمی را می‌گیرد.\n",
+      "learning_objectives": ["آمادگی", "handover", "پایداری انسانی"]
+    }
+  ]
+}
