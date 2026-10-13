@@ -1,0 +1,172 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "v32 — غنی‌سازی دقیق درس‌های عملیاتی و مسیریابی",
+  "lessons": [
+    {
+      "title_fa": "[L2] جدول MAC و Aging عملی",
+      "title_en": "MAC Table and Aging Practical",
+      "chapter_order": 11,
+      "summary": "یادگیری آدرس، پورت، و وقتی جدول اشتباه است.",
+      "full_content": "# جدول MAC\n\nسوئیچ Src MAC را روی پورت ورودی یاد می‌گیرد.\nمقصد معلوم → unicast به همان پورت؛ نامعلوم یا broadcast → flood در VLAN.\n\nAging پیش‌فرض معمولاً چند دقیقه است؛ جابه‌جایی کابل بدون صبر گاهی به مسیر اشتباه موقت می‌انجامد.\n\n## دستورات کلیدی\n```\nshow mac address-table\nshow mac address-table dynamic\nclear mac address-table dynamic\nshow mac address-table interface Gi1/0/10\n```\n\n## RCA\n| علامت | بررسی |\n|--------|--------|\n| ارتباط یک‌طرفه | MAC روی پورت اشتباه / loop |\n| flood زیاد | جدول پر یا حمله |\n| بعد از جابه‌جایی کلاینت | صبر برای aging یا clear هدفمند |\n",
+      "commands": "show mac address-table\nshow mac address-table dynamic\nshow mac address-table interface\nclear mac address-table dynamic address\nshow interfaces status",
+      "examples": "Lab: دو PC در یک VLAN؛ MAC هر کدام را پیدا کن؛ یکی را به پورت دیگر ببر و زمان همگرایی را اندازه بگیر.\n",
+      "notes": "clear کلی روی سوئیچ production شلوغ را با احتیاط انجام بده.\n",
+      "learning_objectives": ["learning", "flood", "aging"]
+    },
+    {
+      "title_fa": "[L3] Inter-VLAN Routing — SVI و Router-on-a-Stick",
+      "title_en": "Inter VLAN Routing SVI and Router on a Stick",
+      "chapter_order": 11,
+      "summary": "ارتباط بین VLANها از طریق لایه ۳.",
+      "full_content": "# Inter-VLAN\n\n## مدل‌ها\n1. **Router-on-a-Stick**: یک لینک trunk به روتر؛ زیررابط per VLAN\n2. **SVI روی سوئیچ L3**: رابط مجازی VLAN به‌عنوان gateway\n\n## پیش‌نیاز\n- VLAN ساخته شده\n- پورت access درست\n- trunk در صورت RoAS\n- IP روی SVI/زیررابط\n- `ip routing` روی سوئیچ L3\n\n## Verify\n```\nshow ip interface brief\nshow vlan brief\nshow interfaces trunk\nping بین دو VLAN\n```\n",
+      "commands": "show ip interface brief\nshow vlan brief\nshow interfaces trunk\nshow ip route\nping\ntraceroute",
+      "examples": "VLAN 10 و 20؛ کلاینت‌ها gateway را .1 هر SVI بگذارند؛ ping متقابل.\n",
+      "notes": "بدون default gateway روی کلاینت، Inter-VLAN از نظر کلاینت «کار نمی‌کند».\n",
+      "learning_objectives": ["SVI", "RoAS", "gateway"]
+    },
+    {
+      "title_fa": "[L3] OSPF Network Types و Timer",
+      "title_en": "OSPF Network Types and Timers",
+      "chapter_order": 13,
+      "summary": "Broadcast، Point-to-Point و اثر روی DR/BDR.",
+      "full_content": "# OSPF Network Type\n\n| نوع | DR/BDR | کاربرد رایج |\n|------|--------|--------------|\n| Broadcast | بله | اترنت چندروتر |\n| Point-to-Point | خیر | لینک سریال / P2P |\n| NBMA | خاص | طرح‌های قدیمی Frame Relay |\n\nHello/Dead باید دو طرف هم‌خوان باشد.\n\n```\nshow ip ospf interface\nshow ip ospf neighbor\n```\n\nناهمسانی network type = همسایگی نمی‌آید یا ناپایدار.\n",
+      "commands": "show ip ospf interface\nshow ip ospf neighbor\nshow ip ospf\nshow ip route ospf",
+      "examples": "یک طرف point-to-point طرف دیگر broadcast؛ چه می‌بینی؟\n",
+      "notes": "اول subnet و area را چک کن بعد timer.\n",
+      "learning_objectives": ["network type", "DR", "timers"]
+    },
+    {
+      "title_fa": "[L3] BGP Prefix Filter با Prefix-List",
+      "title_en": "BGP Prefix Filtering with Prefix Lists",
+      "chapter_order": 14,
+      "summary": "اجازه یا رد پیشوندهای خاص هنگام advertise/accept.",
+      "full_content": "# Prefix-List در BGP\n\nبدون فیلتر، ممکن است مسیرهای ناخواسته بگیری یا بفرستی.\n\n```\nip prefix-list CUST-OUT permit 203.0.113.0/24\nroute-map TO-ISP permit 10\n match ip address prefix-list CUST-OUT\nrouter bgp 65001\n neighbor x.x.x.x route-map TO-ISP out\n```\n\nهمیشه جهت in/out را مشخص کن.\n\nVerify: `show ip bgp neighbors x advertised-routes`\n",
+      "commands": "show ip prefix-list\nshow route-map\nshow ip bgp\nshow ip bgp neighbors\nshow ip bgp neighbors x.x.x.x advertised-routes",
+      "examples": "فقط یک /24 خودت را به ISP بده؛ اسکلت prefix-list + route-map.\n",
+      "notes": "تست در maintenance window؛ فیلتر اشتباه = قطعی.\n",
+      "learning_objectives": ["prefix-list", "route-map direction"]
+    },
+    {
+      "title_fa": "[L2] ICMP عمیق برای RCA نه فقط Ping",
+      "title_en": "Deep ICMP for RCA Beyond Ping",
+      "chapter_order": 1,
+      "summary": "unreachable، time exceeded و محدودیت فایروال.",
+      "full_content": "# ICMP\n\n- Echo Request/Reply = ping\n- Time Exceeded = ماده خام traceroute\n- Destination Unreachable (port/host/network)\n\nفایروال‌هایی که ICMP را کامل می‌بندند RCA را کور می‌کنند.\n\nPath MTU Discovery به ICMP وابسته است؛ بسته‌شدن بی‌دقت = مشکلات عجیب TCP.\n",
+      "commands": "ping\ntraceroute\ntracert\nTest-NetConnection\nshow ip access-lists",
+      "examples": "ping OK و traceroute ناقص؛ سه احتمال.\n",
+      "notes": "ICMP را هوشمندانه محدود کن نه کورکورانه صفر.\n",
+      "learning_objectives": ["انواع ICMP", "PMTUD"]
+    },
+    {
+      "title_fa": "[L3] EtherChannel LACP گام‌به‌گام",
+      "title_en": "EtherChannel LACP Step by Step",
+      "chapter_order": 11,
+      "summary": "باندل کردن لینک‌های موازی با پروتکل LACP.",
+      "full_content": "# LACP\n\n```\ninterface range Gi1/0/1-2\n channel-group 1 mode active\ninterface Po1\n switchport mode trunk\n switchport trunk allowed vlan 10,20,30\n```\n\nدو طرف active یا active/passive.\n\nMismatch در VLAN/speed/duplex = باندل ناقص.\n\n```\nshow etherchannel summary\nshow lacp neighbor\n```\n",
+      "commands": "show etherchannel summary\nshow etherchannel detail\nshow lacp neighbor\nshow interfaces trunk\nshow spanning-tree",
+      "examples": "Lab: دو کابل بین سوئیچ؛ خلاصه Po را ببین؛ یک کابل را بکش — آیا VLANها زنده‌اند؟\n",
+      "notes": "on-on بدون LACP فقط با انضباط کابل‌کشی.\n",
+      "learning_objectives": ["channel-group", "active", "verify"]
+    },
+    {
+      "title_fa": "[L3] NAT Overload PAT با مثال عددی",
+      "title_en": "NAT Overload PAT with Numeric Example",
+      "chapter_order": 12,
+      "summary": "چند داخل به یک عمومی با پورت یکتا.",
+      "full_content": "# PAT\n\nداخل: 10.10.10.50:50000 → بیرون: 203.0.113.10:40001\nداخل: 10.10.10.51:50000 → بیرون: 203.0.113.10:40002\n\nجدول ترجمه پورت را یکتا نگه می‌دارد.\n\nتمام شدن pool پورت یا overload نادرست = شکست نشست جدید.\n\n```\nshow ip nat translations\nshow ip nat statistics\n```\n",
+      "commands": "show ip nat translations\nshow ip nat statistics\nshow running-config | section nat\nclear ip nat translation *",
+      "examples": "دو کلاینت همزمان به 8.8.8.8:53؛ در جدول NAT چه می‌بینی؟\n",
+      "notes": "clear ترجمه روی production نشست‌ها را می‌شکند.\n",
+      "learning_objectives": ["PAT", "translation table"]
+    },
+    {
+      "title_fa": "[L2] DNS Caching و مشکل رکورد کهنه",
+      "title_en": "DNS Caching and Stale Records",
+      "chapter_order": 8,
+      "summary": "تغییر IP سرور ولی کلاینت هنوز آدرس قدیم را دارد.",
+      "full_content": "# DNS Cache\n\nTTL تعیین می‌کند کلاینت/ریزالور چقدر نگه می‌دارد.\nبعد از مهاجرت سرور، TTL بالا = کاربرانی با IP قدیم.\n\n```\nClear-DnsClientCache\nipconfig /flushdns\nResolve-DnsName app.local\n```\n\nروی سرور DNS هم cache فوروادر را در نظر بگیر.\n",
+      "commands": "Resolve-DnsName\nnslookup\nClear-DnsClientCache\nipconfig /flushdns\ndig +ttl",
+      "examples": "TTL=3600؛ IP را عوض کردی؛ بدترین زمان همگرایی تقریبی؟\n",
+      "notes": "قبل از مهاجرت TTL را از قبل پایین بیاور.\n",
+      "learning_objectives": ["TTL", "flush"]
+    },
+    {
+      "title_fa": "[L3] SNMP v3 به‌جای v2c در تولید",
+      "title_en": "SNMPv3 Instead of v2c in Production",
+      "chapter_order": 25,
+      "summary": "احراز و رمز به‌جای community شفاف.",
+      "full_content": "# SNMPv3\n\nuser + auth + priv\nCommunity در v2c روی شبکه خوانده می‌شود.\n\nحداقل: فقط read از شبکه مدیریت؛ ACL.\n\n```\nshow snmp user\nshow snmp\n```\n",
+      "commands": "show snmp\nshow snmp user\nshow run | include snmp\nsnmpwalk",
+      "examples": "چرا community عمومی «public» خطرناک است؟\n",
+      "notes": "SNMP را به اینترنت باز نکن.\n",
+      "learning_objectives": ["v3", "ACL management"]
+    },
+    {
+      "title_fa": "[L3] Syslog سطوح و ارسال متمرکز",
+      "title_en": "Syslog Severity and Central Forwarding",
+      "chapter_order": 25,
+      "summary": "از debug تا emergency؛ چه چیزی را بفرستیم.",
+      "full_content": "# Syslog\n\nسطوح 0–7 (emergency … debug)\nدر production معمولاً informational/notifications به سرور مرکزی.\ndebug روی بافر محلی و کوتاه.\n\n```\nshow logging\nshow run | include logging\n```\n\nNTP برای زمان یکسان اجباری است.\n",
+      "commands": "show logging\nshow clock\nshow ntp status\nshow run | include logging",
+      "examples": "سه رویداد که باید حتماً به SIEM بروند.\n",
+      "notes": "debug دائمی روی لینک شلوغ CPU را می‌خورد.\n",
+      "learning_objectives": ["severity", "central log", "NTP"]
+    },
+    {
+      "title_fa": "[L2] کابل و ماژول — خواندن نشانه‌های فیزیکی",
+      "title_en": "Cable and Optics Physical Symptoms",
+      "chapter_order": 2,
+      "summary": "لینک down، CRC، flapping.",
+      "full_content": "# فیزیکی\n\n| علامت | محتمل |\n|--------|--------|\n| down/down | کابل، برق، SFP |\n| up/down | L2/پروتکل |\n| CRC بالا | کابل/duplex/تداخل |\n| flapping | کابل شل، SFP، loop |\n\n```\nshow interfaces\nshow interfaces transceiver\nshow interfaces status\n```\n",
+      "commands": "show interfaces\nshow interfaces status\nshow interfaces transceiver\nshow logging",
+      "examples": "CRC روی یک پورت مسی؛ سه اقدام اول.\n",
+      "notes": "اول لایه ۱ را رد کن بعد کانفیگ عمیق.\n",
+      "learning_objectives": ["CRC", "flapping", "transceiver"]
+    },
+    {
+      "title_fa": "[L3] First Hop Redundancy مقایسه سریع",
+      "title_en": "FHRP Quick Comparison",
+      "chapter_order": 9,
+      "summary": "HSRP در برابر VRRP در برابر GLBP.",
+      "full_content": "# FHRP\n\n| پروتکل | نکته |\n|---------|------|\n| HSRP | سیسکو؛ VIP |\n| VRRP | استاندارد چندوندوری |\n| GLBP | توزیع بار gateway (سیسکو) |\n\nکلاینت فقط VIP را به‌عنوان gateway دارد.\n\nTracking رابط WAN برای failover هوشمند.\n",
+      "commands": "show standby\nshow vrrp\nshow glbp\nshow ip route",
+      "examples": "Active را خاموش کن؛ زمان قطع ping کلاینت را اندازه بگیر.\n",
+      "notes": "هر دو طرف باید VIP و گروه یکسان داشته باشند.\n",
+      "learning_objectives": ["VIP", "tracking", "failover"]
+    },
+    {
+      "title_fa": "[L2] مستند IPAM سبک برای تیم کوچک",
+      "title_en": "Lightweight IPAM for Small Teams",
+      "chapter_order": 5,
+      "summary": "جدول زنده زیرشبکه‌ها و مالک.",
+      "full_content": "# IPAM سبک\n\nحداقل ستون‌ها: Subnet، VLAN، Site، نقش، Gateway، DHCP؟، مالک\n\nبدون IPAM، تداخل آدرس تکرار می‌شود.\n\nهمگام با دیاگرام و Git.\n",
+      "commands": "show ip interface brief\nshow vlan brief\nshow running-config | include ip address",
+      "examples": "برای یک شعبه جدول IPAM ده ردیفی بنویس.\n",
+      "notes": "Excel بدون مسئول به‌روز نمی‌ماند.\n",
+      "learning_objectives": ["جدول IPAM", "مالکیت"]
+    },
+    {
+      "title_fa": "[L3] امن‌سازی پروتکل‌های کشف همسایه",
+      "title_en": "Hardening Neighbor Discovery Protocols",
+      "chapter_order": 11,
+      "summary": "CDP/LLDP مفید برای عملیات؛ خطرناک روی لبه ناخواسته.",
+      "full_content": "# CDP/LLDP\n\nداخل دیتاسنتر/کابل‌کشی: مفید\nروی پورت‌های کاربر یا لبه اینترنت: محدود یا خاموش\n\n```\nshow cdp neighbors\nshow lldp neighbors\n```\n\nاطلاعات همسایه می‌تواند توپولوژی را لو بدهد.\n",
+      "commands": "show cdp neighbors\nshow cdp neighbors detail\nshow lldp neighbors\nshow run | include cdp|lldp",
+      "examples": "کجا CDP را نگه می‌داری و کجا خاموش؟\n",
+      "notes": "عملیات را فدای امنیت صفر مطلق نکن؛ تعادل.\n",
+      "learning_objectives": ["CDP/LLDP", "edge policy"]
+    },
+    {
+      "title_fa": "[L4] سناریو — قطعی یک VLAN در Campus",
+      "title_en": "Scenario Single VLAN Outage on Campus",
+      "chapter_order": 5,
+      "summary": "فقط یک VLAN از کار افتاده؛ بقیه سالم.",
+      "full_content": "# سناریو\n\nعلائم: کاربران VLAN 20 اینترنت ندارند؛ VLAN 10 OK.\n\nمسیر فکری:\n1. SVI 20 up است؟\n2. پورت‌های access در VLAN 20؟\n3. trunk allowed شامل 20؟\n4. DHCP pool / helper؟\n5. ACL روی SVI؟\n\nزمان‌خط و شواهد را بنویس.\n",
+      "commands": "show ip interface brief\nshow vlan brief\nshow interfaces trunk\nshow ip dhcp pool\nshow access-lists\nping",
+      "examples": "فرض: trunk allowed فقط 10,30 — نتیجه برای VLAN 20 چیست؟\n",
+      "notes": "اول scope را تأیید کن: واقعاً فقط یک VLAN؟\n",
+      "learning_objectives": ["scope", "SVI", "trunk allowed"]
+    }
+  ]
+}
