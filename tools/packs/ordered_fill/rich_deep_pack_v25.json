@@ -1,0 +1,117 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "v25 — غنی‌سازی فصل‌های سطحی: Issabel / PowerShell / Wireless",
+  "lessons": [
+    {
+      "title_fa": "[L2] Issabel / Asterisk مبانی معماری تلفن IP",
+      "title_en": "Issabel Asterisk IP Telephony Architecture Basics",
+      "chapter_order": 45,
+      "summary": "نقش PBX نرم‌افزاری، SIP، داخلی‌ها و تنه (trunk) در شبکه سازمانی.",
+      "full_content": "# Issabel / Asterisk — معماری\n\n## Issabel چیست؟\nتوزیع مبتنی بر Asterisk با پنل وب برای مدیریت داخلی، ترانک، IVR و گزارش.\n\n## اجزای کلیدی\n| جزء | نقش |\n|------|-----|\n| Endpoint / Extension | تلفن سخت‌افزاری یا نرم‌افزاری |\n| Trunk | اتصال به اپراتور یا SIP Provider |\n| Dialplan | منطق شماره‌گیری و مسیر تماس |\n| Codec | رمزنگاری صوت (ulaw, alaw, g729, opus) |\n| NAT / Firewall | حیاتی برای SIP و RTP |\n\n## جریان تماس ساده\nداخلی A → PBX → (داخلی B یا Trunk بیرونی)\n\n## وابستگی شبکه\n- تأخیر و jitter پایین برای کیفیت صوت\n- اولویت QoS برای RTP\n- باز بودن پورت‌های SIP (معمولاً 5060) و بازه RTP\n\n## ضدالگو\nPBX روی VLAN شلوغ کاربران بدون QoS و بدون جداسازی.\n",
+      "commands": "# روی سرور Issabel/Linux:\nsystemctl status asterisk\nasterisk -rx \"core show version\"\nasterisk -rx \"sip show peers\"\nasterisk -rx \"pjsip show endpoints\"\nasterisk -rx \"core show channels\"\nasterisk -rx \"core show calls\"\n# شبکه:\nss -lntu | grep -E '5060|10000'\nping <pbx-ip>\ntraceroute <pbx-ip>",
+      "examples": "Lab:\n1) دو داخلی SIP رجیستر کن\n2) تماس داخلی برقرار کن\n3) channels را ببین\n4) یک داخلی را قطع شبکه کن و رفتار را ثبت کن",
+      "notes": "قبل از اینترنت‌کردن ترانک، امن‌سازی و fail2ban/فایروال را جدی بگیر.\n",
+      "learning_objectives": ["نقش PBX", "SIP در برابر RTP", "وابستگی شبکه"]
+    },
+    {
+      "title_fa": "[L3] Issabel — داخلی SIP، رجیستر و عیب‌یابی",
+      "title_en": "Issabel SIP Extension Register Troubleshooting",
+      "chapter_order": 45,
+      "summary": "علت رجیستر نشدن تلفن و چک‌لیست ۲۰ دقیقه‌ای.",
+      "full_content": "# SIP Register — عیب‌یابی\n\n## علائم\nتلفن Unregistered، تماس یک‌طرفه، قطع بعد از ۳۰ ثانیه.\n\n## چک‌لیست\n1. IP/DNS تا PBX\n2. یوزر/رمز داخلی\n3. UDP/TCP 5060 و NAT\n4. clock/NTP (TLS/cert اگر هست)\n5. codec مشترک\n6. firewall بین VLANها\n\n## یک‌طرفه بودن صدا\nمعمولاً RTP برنمی‌گردد: NAT، پورت RTP، یا مسیر نامتقارن.\n\n## دستورات Asterisk\n```\nsip show peer 101\npjsip show endpoint 101\nsip set debug on\n```\n\n## شبکه\nاز کلاینت: `Test-NetConnection PBX -Port 5060`\n",
+      "commands": "asterisk -rx \"sip show peers\"\nasterisk -rx \"pjsip show endpoints\"\nasterisk -rx \"sip show registry\"\nasterisk -rx \"core show channels\"\nasterisk -rx \"rtp show stats\"\n# ویندوز/لینوکس کلاینت:\nTest-NetConnection <pbx> -Port 5060\nnmap -sU -p 5060 <pbx>",
+      "examples": "Lab:\n1) رمز داخلی را عمداً غلط کن → Unregistered\n2) درست کن → OK\n3) فایروال RTP را ببند → صدای یک‌طرفه\n4) باز کن و Verify",
+      "notes": "SIP OK است ولی صوت نه → مشکل RTP/NAT است نه «رمز داخلی».\n",
+      "learning_objectives": ["رجیستر", "یک‌طرفه", "چک‌لیست"]
+    },
+    {
+      "title_fa": "[L3] Issabel Trunk به Provider و امنیت لبه",
+      "title_en": "Issabel SIP Trunk Provider and Edge Security",
+      "chapter_order": 45,
+      "summary": "ترانک خروجی/ورودی، محدود کردن IP، و جلوگیری از toll fraud.",
+      "full_content": "# SIP Trunk و امنیت\n\n## Trunk\nمسیر تماس به دنیای بیرون یا بین سایت‌ها.\n\n## ریسک\nاگر پورت SIP روی اینترنت باز و رمز ضعیف باشد → تماس‌های بین‌المللی غیرمجاز (toll fraud).\n\n## کنترل‌ها\n| کنترل | توضیح |\n|--------|--------|\n| allowlist IP provider | فقط IPهای رسمی |\n| رمز قوی / TLS | در صورت پشتیبانی |\n| محدودیت مقصد بین‌المللی | dialplan |\n| fail2ban / IDS | brute-force |\n| جدا VLAN صوت | کاهش سطح حمله |\n\n## مانیتور\nلاگ ثبت‌نام‌های ناموفق، الگوی تماس غیرعادی شبانه.\n",
+      "commands": "asterisk -rx \"sip show registry\"\nasterisk -rx \"pjsip show registrations\"\nasterisk -rx \"cdr show status\"\nfirewall-cmd --list-all\n# یا iptables/nft\njournalctl -u asterisk -n 100",
+      "examples": "تمرین:\n1) جدول allowlist IP برای trunk\n2) قانون: از اینترنت فقط همان IPها به 5060\n3) سناریو toll fraud و سه اقدام فوری",
+      "notes": "هرگز 5060 را بدون محدودیت روی 0.0.0.0/0 باز نگذار.\n",
+      "learning_objectives": ["trunk", "toll fraud", "allowlist"]
+    },
+    {
+      "title_fa": "[L2] PowerShell شبکه — کشف و عیب‌یابی پایه",
+      "title_en": "PowerShell Networking Discovery and Basic RCA",
+      "chapter_order": 35,
+      "summary": "جایگزین مدرن ipconfig/ping با Cmdletهای قابل اسکریپت.",
+      "full_content": "# PowerShell شبکه — پایه عمیق\n\n## چرا PowerShell؟\nخروجی object است نه فقط متن؛ قابل فیلتر و اتوماسیون.\n\n## کشف\n```powershell\nGet-NetIPConfiguration\nGet-NetIPAddress -AddressFamily IPv4\nGet-NetRoute -DestinationPrefix '0.0.0.0/0'\nGet-DnsClientServerAddress\nGet-NetAdapter | Where status -eq 'Up'\n```\n\n## تست\n```powershell\nTest-NetConnection 8.8.8.8 -TraceRoute\nTest-NetConnection contoso.com -Port 443\nResolve-DnsName contoso.com\n```\n\n## تفسیر\n- RemotePort موفق / TcpTestSucceeded\n- اگر DNS fail ولی IP OK → مشکل نام\n",
+      "commands": "Get-NetIPConfiguration\nGet-NetIPAddress -AddressFamily IPv4\nGet-NetRoute\nGet-NetAdapter\nTest-NetConnection 8.8.8.8\nTest-NetConnection example.com -Port 443\nResolve-DnsName example.com\nGet-DnsClientServerAddress\nClear-DnsClientCache",
+      "examples": "Lab:\n1) IP و Gateway را با Cmdlet بخوان\n2) Test-NetConnection به Gateway و 8.8.8.8\n3) DNS را خراب کن (اشتباه) و علامت Resolve را ببین\n4) برگردان",
+      "notes": "ExecutionPolicy ممکن است اسکریپت را بلاک کند؛ برای یک‌خط‌ها معمولاً مشکلی نیست.\n",
+      "learning_objectives": ["Cmdletهای کشف", "Test-NetConnection", "جدا DNS از IP"]
+    },
+    {
+      "title_fa": "[L3] PowerShell — فایروال ویندوز و پورت‌های گوش‌دهنده",
+      "title_en": "PowerShell Windows Firewall and Listening Ports",
+      "chapter_order": 35,
+      "summary": "دیدن پورت‌های باز، قانون فایروال و تست از راه دور.",
+      "full_content": "# فایروال و پورت‌ها با PowerShell\n\n## چه چیزی گوش می‌دهد؟\n```powershell\nGet-NetTCPConnection -State Listen |\n  Select LocalAddress, LocalPort, OwningProcess\nGet-Process -Id <PID>\n```\n\n## قوانین فایروال\n```powershell\nGet-NetFirewallRule -Enabled True |\n  ? {$_.Direction -eq 'Inbound'} |\n  Select DisplayName, Profile, Action\n```\n\n## باز کردن کنترل‌شده (Lab)\n```powershell\nNew-NetFirewallRule -DisplayName 'Lab-443' -Direction Inbound -Protocol TCP -LocalPort 443 -Action Allow\n```\n\n## RCA سرویس در دسترس نیست\n1. سرویس Listen است؟\n2. فایروال host؟\n3. فایروال شبکه/NSG؟\n4. مسیر/NAT؟\n",
+      "commands": "Get-NetTCPConnection -State Listen\nGet-NetUDPEndpoint\nGet-NetFirewallRule -Enabled True\nGet-NetFirewallPortFilter\nTest-NetConnection <server> -Port 3389\nGet-Service | ? Status -eq Running",
+      "examples": "Lab:\n1) یک سرویس روی پورت غیرعادی\n2) Listen را ببین\n3) قانون فایروال را ببند/باز کن\n4) از سیستم دوم Test-NetConnection",
+      "notes": "باز کردن پورت روی host کافی نیست اگر فایروال محیطی بسته باشد.\n",
+      "learning_objectives": ["Listen ports", "Firewall rules", "چندلایه"]
+    },
+    {
+      "title_fa": "[L3] PowerShell Remoting برای عملیات شبکه",
+      "title_en": "PowerShell Remoting for Network Operations",
+      "chapter_order": 35,
+      "summary": "اجرای فرمان روی سرورهای دور با WinRM به‌صورت کنترل‌شده.",
+      "full_content": "# PS Remoting — عمیق\n\n## ایده\nبه‌جای RDP برای هر کار تکراری، فرمان را remote اجرا کن.\n\n## پیش‌نیاز\n- WinRM فعال\n- دسترسی ادمین / گروه مناسب\n- شبکه و فایروال پورت 5985/5986\n\n## نمونه\n```powershell\nEnter-PSSession -ComputerName srv01\nInvoke-Command -ComputerName srv01,srv02 -ScriptBlock {\n  Get-NetIPConfiguration\n}\n```\n\n## امنیت\nJust Enough Administration (JEA)، حساب جدا، لاگ، ترجیح HTTPS (5986).\n\n## ضدالگو\nRemoting باز به همه با حساب Domain Admin مشترک.\n",
+      "commands": "Enable-PSRemoting -Force\nTest-WSMan srv01\nEnter-PSSession -ComputerName srv01\nInvoke-Command -ComputerName srv01 -ScriptBlock { hostname; Get-NetRoute -DestinationPrefix '0.0.0.0/0' }\nExit-PSSession",
+      "examples": "Lab:\n1) از ایستگاه به یک VM\n2) Invoke-Command برای خواندن IP\n3) فایروال 5985 را ببند و خطا را ببین\n4) باز کن",
+      "notes": "اول با حساب حداقل‌دسترسی تست کن نه Domain Admin.\n",
+      "learning_objectives": ["WinRM", "Invoke-Command", "محدودیت امنیتی"]
+    },
+    {
+      "title_fa": "[L2] Wireless سازمانی — SSID، باند و طراحی سلول",
+      "title_en": "Enterprise Wireless SSID Band Cell Design",
+      "chapter_order": 30,
+      "summary": "جدا کردن SSIDها، انتخاب باند و همپوشانی سلول‌ها.",
+      "full_content": "# WLAN سازمانی — طراحی\n\n## SSIDها\n| SSID | کاربرد |\n|------|--------|\n| Corp | کارمندان (802.1X) |\n| Guest | اینترنت ایزوله |\n| IoT | دستگاه‌های محدود |\n\nزیاد کردن SSID = overhead بیشتر؛ معمولاً ۳–۴ کافی است.\n\n## باند\n- 2.4GHz: نفوذ بهتر، شلوغ\n- 5GHz: ظرفیت بیشتر\n- 6GHz: تمیزتر، برد کمتر (در صورت پشتیبانی)\n\n## سلول\nهمپوشانی برای roam؛ قدرت زیاد ≠ پوشش خوب (تداخل خودی).\n\n## Controllers / AP\nAPها ترافیک را به کنترلر یا محلی forward می‌کنند — مدل را بشناس.\n",
+      "commands": "show ap summary\nshow ap auto-rf\nshow wlan summary\nshow client summary\nshow ap config general",
+      "examples": "تمرین:\n1) سه SSID با نقش جدا\n2) برای انبار 2.4 و برای دفتر 5GHz اولویت بده\n3) معیار RSSI هدف بنویس",
+      "notes": "Guest را روی همان VLAN داخلی نگذار.\n",
+      "learning_objectives": ["SSID نقش‌دار", "باند", "سلول"]
+    },
+    {
+      "title_fa": "[L3] Wireless — احراز 802.1X و مشکلات رجیستر کلاینت",
+      "title_en": "Wireless 8021X Authentication Client Failures",
+      "chapter_order": 30,
+      "summary": "از association تا EAP؛ کجا قطع می‌شود.",
+      "full_content": "# 802.1X روی وای‌فای\n\n## مراحل\n1. Association به AP\n2. EAP از طریق کنترلر/AP به RADIUS\n3. کلیدگذاری (WPA2/3-Enterprise)\n4. DHCP و ترافیک\n\n## نقاط شکست\n| مرحله | علت رایج |\n|--------|-----------|\n| Assoc | قدرت/کانال/SSID مخفی |\n| EAP | رمز کاربر، گواهی، ساعت |\n| RADIUS | secret، IP، پورت 1812 |\n| DHCP | VLAN دینامیک اشتباه |\n\n## RCA\nلاگ RADIUS + لاگ کنترلر در همان timestamp.\n",
+      "commands": "show client detail <mac>\nshow radius summary\nshow aaa servers\nshow logging\n# روی Windows کلاینت:\nnetsh wlan show interfaces\nnetsh wlan show profiles\nGet-NetIPConfiguration",
+      "examples": "Lab:\n1) secret اشتباه RADIUS → fail EAP\n2) درست کن → DHCP بگیر\n3) timeline سه خطی بنویس",
+      "notes": "NTP بین NPS/RADIUS و کنترلر را جدی بگیر.\n",
+      "learning_objectives": ["زنجیره EAP", "RADIUS", "VLAN دینامیک"]
+    },
+    {
+      "title_fa": "[L3] Wireless — تداخل، کانال و ظرفیت",
+      "title_en": "Wireless Interference Channel Capacity",
+      "chapter_order": 30,
+      "summary": "کندی با وجود سیگنال خوب؛ وقتی RF مقصر است.",
+      "full_content": "# تداخل و ظرفیت\n\n## سیگنال خوب / throughput بد\nعلل: تداخل همکانال، airtime شلوغ، کلاینتهای 2.4 قدیمی، کانال شلوغ.\n\n## ابزار ذهنی\n- SNR نه فقط RSSI\n- استفاده کانال (channel utilization)\n- تعداد کلاینت per AP\n\n## اقدام\n1. کانال‌بندی مجدد\n2. کاهش قدرت برای کوچک‌کردن سلول\n3. هدایت کلاینت به 5GHz\n4. جدا SSID IoT\n\n## ضدالگو\nحداکثر قدرت روی همه APها در دفتر باز.\n",
+      "commands": "show ap auto-rf\nshow ap channel\nshow client summary\nshow ap stats\n# سایت‌سرووی / analyzer در صورت وجود",
+      "examples": "سناریو: ۱۰ کلاینت ویدیو روی یک AP 2.4 — سه اقدام ظرفیتی بنویس.\n",
+      "notes": "اول اندازه‌گیری، بعد جابه‌جایی کانال.\n",
+      "learning_objectives": ["SNR", "utilization", "cell size"]
+    },
+    {
+      "title_fa": "[L2] سناریوی یکپارچه: شعبه با Wi-Fi + PBX + ویندوز",
+      "title_en": "Integrated Branch Scenario WiFi PBX Windows",
+      "chapter_order": 5,
+      "summary": "طراحی کوچک واقعی: کاربران، صوت، مهمان.",
+      "full_content": "# سناریوی شعبه یکپارچه\n\n## نیاز\n۳۰ کارمند، تلفن IP، Guest وای‌فای، فایل سرور کوچک.\n\n## سگمنت پیشنهادی\n| VLAN | نقش |\n|------|-----|\n| 10 | Users |\n| 20 | Voice / PBX |\n| 30 | Servers |\n| 40 | Guest |\n| 99 | Management |\n\n## قواعد\n- Guest فقط اینترنت\n- Voice اولویت QoS روی WAN\n- مدیریت فقط از jump\n- PBX به Internet فقط به IP ترانک\n\n## تست پذیرش\n1. تماس داخلی پایدار\n2. roam وای‌فای بدون قطع مکالمه (در حد ممکن)\n3. کاربر به Guest VLAN نرود\n",
+      "commands": "show vlan brief\nshow interfaces trunk\nasterisk -rx \"sip show peers\"\nGet-NetIPConfiguration\nTest-NetConnection <pbx> -Port 5060\nping <gateway>",
+      "examples": "روی کاغذ دیاگرام بکش و لیست ACL بین‌VLAN را بنویس.\n",
+      "notes": "یک VLAN تخت برای همه = RCA بعدی سخت می‌شود.\n",
+      "learning_objectives": ["سگمنت شعبه", "صوت جدا", "پذیرش تست"]
+    }
+  ]
+}
