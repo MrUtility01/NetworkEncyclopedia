@@ -1,0 +1,95 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "مرحله بعد v24 — غنی‌سازی تخصصی MikroTik / FortiGate / Cisco ops",
+  "lessons": [
+    {
+      "title_fa": "[L4] MikroTik Firewall Filter از صفر تا Production",
+      "title_en": "MikroTik Firewall Filter Zero to Production",
+      "chapter_order": 20,
+      "summary": "زنجیره input/forward/output، connection-state، و ترتیب ruleهای حیاتی.",
+      "full_content": "# MikroTik Firewall Filter — فوق‌عمیق\n\n## زنجیره‌ها\n| chain | ترافیک |\n|--------|---------|\n| input | به خود روتر |\n| forward | عبوری |\n| output | از خود روتر |\n\n## اسکلت امن\n1. accept established,related\n2. drop invalid\n3. accept ICMP محدود / مدیریت از LAN\n4. accept forward LAN→WAN\n5. drop بقیه forward از WAN\n\n## مثال مفهومی\n```\n/ip firewall filter\nadd chain=input connection-state=established,related action=accept\nadd chain=input connection-state=invalid action=drop\nadd chain=input in-interface-list=LAN action=accept\nadd chain=input action=drop comment=\"drop the rest to router\"\nadd chain=forward connection-state=established,related action=accept\nadd chain=forward connection-state=invalid action=drop\nadd chain=forward in-interface-list=LAN out-interface-list=WAN action=accept\nadd chain=forward action=drop comment=\"drop the rest\"\n```\n\n## RCA\n| علامت | بررسی |\n|--------|--------|\n| اینترنت هست مدیریت قطع | rule input بیش‌ازحد سخت / ترتیب |\n| بعضی اپ‌ها fail | invalid/drop زود |\n| CPU بالا | log زیاد روی rule پرترافیک |\n\n## قانون\nهرگز از راه دور rule مدیریت را قبل از تست console اعمال نکن.\n",
+      "commands": "/ip firewall filter print\n/ip firewall filter print stats\n/ip firewall connection print\n/interface print\n/ip address print\n/log print where topics~\"firewall\"",
+      "examples": "Lab:\n1) فقط established+related\n2) از WAN به روتر SSH باید fail\n3) از LAN OK\n4) stats را بعد از ترافیک ببین\n5) یک rule اشتباه ترتیب و علامت را ثبت کن",
+      "notes": "interface-list LAN/WAN را اول درست تعریف کن.\n",
+      "learning_objectives": ["chainها", "connection-state", "ترتیب rule", "آمار"]
+    },
+    {
+      "title_fa": "[L4] MikroTik NAT و Hairpin",
+      "title_en": "MikroTik NAT and Hairpin",
+      "chapter_order": 20,
+      "summary": "srcnat/masquerade، dstnat سرویس داخلی، دسترسی از داخل با IP عمومی.",
+      "full_content": "# MikroTik NAT — فوق‌عمیق\n\n## srcnat\nخروج کاربران با IP عمومی:\n```\n/ip firewall nat\nadd chain=srcnat out-interface-list=WAN action=masquerade\n```\n\n## dstnat\nانتشار سرویس داخلی:\n```\nadd chain=dstnat in-interface-list=WAN protocol=tcp dst-port=443 \\n  action=dst-nat to-addresses=10.10.10.50 to-ports=443\n```\n\n## Hairpin NAT\nکلاینت داخل LAN با DNS عمومی به همان سرور داخلی برسد — نیاز به rule اضافی srcnat/dstnat در سناریوی کلاسیک.\n\n## تله\ndstnat بدون filter forward مناسب = سرویس باز یا برعکس بسته.\n",
+      "commands": "/ip firewall nat print\n/ip firewall nat print stats\n/ip firewall connection print where src-address~\"10.\"\n/ip dns print",
+      "examples": "Lab: وب داخلی روی 80؛ از بیرون dstnat؛ از داخل hairpin را تست کن.\n",
+      "notes": "اول filter، بعد NAT — مدل ذهنی را قاطی نکن.\n",
+      "learning_objectives": ["masquerade", "dstnat", "hairpin"]
+    },
+    {
+      "title_fa": "[L4] FortiGate Policy و Session عمیق",
+      "title_en": "FortiGate Policy and Session Deep",
+      "chapter_order": 22,
+      "summary": "policy از بالا به پایین، objectها، و خواندن session برای RCA.",
+      "full_content": "# FortiGate Policy — فوق‌عمیق\n\n## اصول\n- اولین match برنده است\n- objectهای address/service تمیز\n- NAT در policy یا central SNAT — یک سبک را یکسان نگه دار\n\n## Session\n```\ndiagnose firewall session list\ndiagnose firewall session filter src 10.10.10.20\ndiagnose firewall session clear\n```\n\n## RCA\n| علامت | کار |\n|--------|-----|\n| deny | policy hit count / log |\n| accept اما اپ senseless | IPS/App control / SSL inspection |\n| یک‌طرفه | asym route / session helper |\n\n## آزمایش\nقبل از production، policy جدید را با log-all و آدرس تست محدود کن.\n",
+      "commands": "show firewall policy\nget router info routing-table all\ndiagnose firewall session list\ndiagnose debug flow filter\ndiagnose debug enable",
+      "examples": "Lab: policy LAN→WAN؛ یک deny عمدی؛ از log و session علت را بگو.\n",
+      "notes": "debug flow را در production شلوغ رها نکن.\n",
+      "learning_objectives": ["first match", "session", "log-driven RCA"]
+    },
+    {
+      "title_fa": "[L3] Cisco Switchport و Trunk عملیاتی",
+      "title_en": "Cisco Switchport and Trunk Operations",
+      "chapter_order": 11,
+      "summary": "access/trunk، native VLAN، allowed list و اشتباهات رایج.",
+      "full_content": "# Switchport/Trunk — فوق‌عمیق\n\n## Access\n```\ninterface Gi1/0/10\n switchport mode access\n switchport access vlan 20\n spanning-tree portfast\n```\n\n## Trunk\n```\ninterface Gi1/0/49\n switchport mode trunk\n switchport trunk native vlan 999\n switchport trunk allowed vlan 10,20,30\n```\n\n## تله‌ها\n- native VLAN ناهمسان دو طرف\n- allowed VLAN ناقص\n- DTP روی لبه (ترجیح mode trunk قطعی)\n\n## Verify\n```\nshow interfaces trunk\nshow vlan brief\nshow interfaces switchport\n```\n",
+      "commands": "show interfaces trunk\nshow vlan brief\nshow interfaces switchport\nshow spanning-tree interface Gi1/0/10\nshow mac address-table interface Gi1/0/10",
+      "examples": "Lab: trunk با allowed محدود؛ VLAN حذف‌شده را از allowed ببین ترافیک قطع می‌شود.\n",
+      "notes": "native VLAN را غیرپیش‌فرض و یکسان نگه دار.\n",
+      "learning_objectives": ["access vs trunk", "allowed", "native"]
+    },
+    {
+      "title_fa": "[L3] Cisco EtherChannel عیب‌یابی سریع",
+      "title_en": "Cisco EtherChannel Quick RCA",
+      "chapter_order": 11,
+      "summary": "چرا Po down است و چگونه در ۵ دقیقه پیدا کنی.",
+      "full_content": "# EtherChannel RCA\n\nچک‌لیست:\n1. mode دو طرف (active/active یا desirable)\n2. سرعت/دوبلکس\n3. VLAN/trunk یکسان\n4. MTU\n5. show etherchannel summary\n\nعضو تکی err-disabled → جدا بررسی.\n",
+      "commands": "show etherchannel summary\nshow etherchannel detail\nshow interfaces port-channel1\nshow lacp neighbor\nshow spanning-tree",
+      "examples": "Lab: mode را ناهمسان کن؛ summary را بخوان؛ اصلاح کن.\n",
+      "notes": "on-on فقط با کنترل دقیق.\n",
+      "learning_objectives": ["خلاصه Po", "mismatch", "LACP"]
+    },
+    {
+      "title_fa": "[L3] BGP Neighbor ندارد — چک‌لیست ۲۰ دقیقه‌ای",
+      "title_en": "BGP Neighbor Down 20 Minute Checklist",
+      "chapter_order": 14,
+      "summary": "از لایه ۳ تا capability و فیلتر.\n",
+      "full_content": "# BGP Down Checklist\n\n1. ping/TTL به neighbor\n2. TCP 179 (ACL/firewall)\n3. AS number\n4. update-source / loopback\n5. authentication\n6. capability (v4/v6)\n7. logs\n\n```\nshow ip bgp summary\nshow ip bgp neighbors\nshow tcp brief\n```\n",
+      "commands": "show ip bgp summary\nshow ip bgp neighbors\nshow ip bgp neighbors x.x.x.x\nshow tcp brief\nshow ip route\ndebug ip bgp events",
+      "examples": "Lab: ACL بستن 179؛ علامت؛ باز کردن؛ established.\n",
+      "notes": "debug را با احتیاط و کوتاه.\n",
+      "learning_objectives": ["لایه‌ای جلو برو", "179/ACL", "summary"]
+    },
+    {
+      "title_fa": "[L2] چک‌لیست تحویل سوئیچ Access جدید",
+      "title_en": "New Access Switch Handover Checklist",
+      "chapter_order": 5,
+      "summary": "از جعبه تا production بدون فراموشی.\n",
+      "full_content": "# Access Switch Handover\n\n- hostname / domain / DNS / NTP\n- مدیریت IP در VRF/VLAN مدیریت\n- AAA یا حداقل local قوی\n- SSH، قطع Telnet\n- VLAN و trunk uplink\n- port-security / BPDU guard روی access\n- monitoring SNMP/syslog\n- backup کانفیگ\n- برچسب فیزیکی\n",
+      "commands": "show version\nshow vlan brief\nshow interfaces trunk\nshow spanning-tree summary\nshow running-config",
+      "examples": "یک سوئیچ فرضی را با چک‌لیست تیک بزن.\n",
+      "notes": "بدون NTP و backup، تحویل ناقص است.\n",
+      "learning_objectives": ["چک‌لیست", "امنیت لبه", "monitor"]
+    },
+    {
+      "title_fa": "[L3] خواندن لاگ و correlating رویداد شبکه",
+      "title_en": "Reading Network Logs and Correlating Events",
+      "chapter_order": 25,
+      "summary": "از timestamp تا علت ریشه‌ای در ۱۵ دقیقه.\n",
+      "full_content": "# Log Correlation\n\n1. زمان یکسان (NTP)\n2. پنجره زمانی حادثه\n3. لینک/BGP/AAA/firewall در همان پنجره\n4. تغییر کانفیگ همزمان؟\n5. یک خط زمانی بنویس\n\nابزار: syslog، show logging، SIEM.\n",
+      "commands": "show logging\nshow clock\nshow ntp status\nshow archive\nshow users",
+      "examples": "سه خط لاگ فرضی بده و یک timeline بساز.\n",
+      "notes": "بدون NTP همبستگی دروغین می‌سازد.\n",
+      "learning_objectives": ["timeline", "NTP", "چندمنبع"]
+    }
+  ]
+}
