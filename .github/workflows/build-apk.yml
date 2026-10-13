@@ -2,6 +2,13 @@ name: Build APK v1
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "server/core/**"
+      - "scripts/export_android_index.py"
+      - "android/**"
+      - ".github/workflows/build-apk.yml"
 
 jobs:
   build:
@@ -40,17 +47,12 @@ jobs:
         run: |
           python3 scripts/install_android_icon.py || echo "icons skip"
 
-      - name: Curriculum export
+      - name: Curriculum export (full book content)
         run: |
-          set +e
-          python3 scripts/export_android_index.py
-          code=$?
           set -e
-          if [ "$code" -ne 0 ]; then
-            echo "WARN: using committed curriculum asset"
-            test -f android/app/src/main/assets/curriculum_index.json.gz
-          fi
+          python3 scripts/export_android_index.py
           python3 scripts/merge_content_packs_into_android.py || true
+          ls -la android/app/src/main/assets/curriculum_index.json.gz
 
       - name: local.properties
         run: |
