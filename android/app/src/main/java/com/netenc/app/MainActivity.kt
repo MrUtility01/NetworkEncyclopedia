@@ -44,7 +44,6 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnStudyHub).setOnClickListener {
             startActivity(Intent(this, StudyHubActivity::class.java))
         }
-        // Workspace
         safeBtn(R.id.btnTasks) {
             startActivity(Intent(this, WorkspaceActivity::class.java).putExtra("mode", "tasks"))
         }
@@ -91,7 +90,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnAbout).setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Engineer Jokar")
-                .setMessage("یادگیری عمیق + کارها + یادداشت + رمز\nتوکن: 09136555866")
+                .setMessage("یادگیری عمیق + کارها + یادداشت + رمز\nتوکن: engineerjokar")
                 .setPositiveButton("باشه", null)
                 .show()
         }
@@ -109,22 +108,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun forceReseed() {
-        lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                val dao = AppDatabase.get(this@MainActivity).lessonDao()
-                dao.putMeta(com.netenc.app.data.SyncMetaEntity("offline_seeded_v11", "0"))
-            }
-            seedAll(force = true)
-        }
+        lifecycleScope.launch { seedAll(force = true) }
     }
 
     private suspend fun seedAll(force: Boolean) {
-        log(if (force) "بازسازی…" else "بارگذاری…")
+        log(if (force) "بازسازی کامل از بسته داخلی…" else "بارگذاری فهرست…")
         try {
-            val n = withContext(Dispatchers.IO) { OfflineSeeder.ensureSeeded(this@MainActivity) }
+            val n = withContext(Dispatchers.IO) {
+                OfflineSeeder.ensureSeeded(this@MainActivity, force = force)
+            }
             val sc = withContext(Dispatchers.IO) { ScenarioSeeder.ensure(this@MainActivity) }
             val st = withContext(Dispatchers.IO) { StudyRepository(this@MainActivity).stats() }
             log("✓ درس=$n سناریو=$sc")
+            if (n < 100) {
+                log("هشدار: فهرست کم است — دکمه بازسازی را بزن یا APK جدید نصب کن")
+            }
             log("مطالعه: due=${st["due"]} today=${st["today"]}/${st["goal"]} streak=${st["streak"]}")
         } catch (e: Exception) {
             log("seed: ${e.message}")
