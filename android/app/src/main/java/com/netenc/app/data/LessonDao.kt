@@ -42,6 +42,9 @@ interface LessonDao {
     @Query("SELECT * FROM lessons WHERE deleted = 0 AND chapterOrder = :co ORDER BY lessonOrder, titleFa")
     suspend fun byChapter(co: Int): List<LessonEntity>
 
+    @Query("DELETE FROM lessons")
+    suspend fun clearAllLessons()
+
     @Query("SELECT value FROM sync_meta WHERE key = :key LIMIT 1")
     suspend fun getMeta(key: String): String?
 
