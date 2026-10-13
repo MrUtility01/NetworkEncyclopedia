@@ -1,0 +1,95 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "v23 فوق‌عمیق — فصل‌های باقی‌مانده تخصصی",
+  "lessons": [
+    {
+      "title_fa": "[L4] طراحی Failure Domain و Blast Radius",
+      "title_en": "Failure Domain and Blast Radius Design",
+      "chapter_order": 5,
+      "summary": "محدود کردن دامنه خرابی در Campus، DC و WAN.",
+      "full_content": "# Failure Domain — فوق‌عمیق\n\n## تعریف\nحداکثر محدوده‌ای که یک خرابی واحد می‌تواند از کار بیندازد.\n\n## مثال‌ها\n| دامنه | مثال |\n|--------|------|\n| لینک | یک uplink |\n| دستگاه | یک core switch |\n| L2 | یک VLAN گسترده |\n| Area OSPF | Area بزرگ با LSDB سنگین |\n| سایت | کل شعبه |\n\n## اصول طراحی\n1. L2 را کوچک نگه دار\n2. L3 boundary زود\n3. افزونگی واقعی (نه فقط کابل اضافه روی یک chassis)\n4. تست قطع عمدی\n\n## ضدالگو\nیک STP domain برای کل سازمان؛ یک جفت فایروال برای همه ترافیک بدون segmentation.\n",
+      "commands": "show spanning-tree summary\nshow ip ospf database\nshow cdp neighbors\nshow interfaces status",
+      "examples": "Lab: یک لینک core را قطع کن؛ ببین چند کاربر واقعاً قطع شدند — همان blast radius است.\n",
+      "notes": "افزونگی روی کاغذ بدون تست = دامنه خرابی ناشناخته.\n",
+      "learning_objectives": ["blast radius", "مرز L2/L3", "تست قطع"]
+    },
+    {
+      "title_fa": "[L4] Trade-off طراحی شبکه — هزینه، پیچیدگی، دسترس‌پذیری",
+      "title_en": "Network Design Trade offs Cost Complexity Availability",
+      "chapter_order": 5,
+      "summary": "هر تصمیم طراحی چیزی می‌خرد و چیزی می‌فروشد.",
+      "full_content": "# Design Trade-offs\n\n| انتخاب | می‌گیری | می‌دهی |\n|---------|---------|--------|\n| Active/Active | ظرفیت | پیچیدگی session |\n| L2 stretch | mobility | دامنه خرابی |\n| رمز همه‌جا | امنیت | CPU/latency |\n| اتوماسیون | سرعت change | نیاز به تست/مهارت |\n\nقبل از خرید جعبه جدید، trade-off را بنویس.\n",
+      "commands": "show version\nshow inventory\nshow processes cpu",
+      "examples": "سه گزینه برای اینترنت شعبه بنویس و جدول trade-off پر کن.\n",
+      "notes": "بهترین طراحی، مناسب‌ترین trade-off برای محدودیت واقعی است.\n",
+      "learning_objectives": ["جدول trade-off", "تصمیم آگاهانه"]
+    },
+    {
+      "title_fa": "[L3] عیب‌یابی مسیر نامتقارن (Asymmetric Routing)",
+      "title_en": "Asymmetric Routing Troubleshooting",
+      "chapter_order": 14,
+      "summary": "رفت از یک لینک، برگشت از دیگری؛ اثر روی فایروال stateful.",
+      "full_content": "# Asymmetric Routing\n\n## علامت\nping یک‌طرفه، session فایروال drop، VPN ناپایدار.\n\n## علت\nچند مسیر، ECMP، PBR، دو فایروال بدون sync.\n\n## تشخیص\ntraceroute دو طرفه، session table، capture.\n\n## درمان\nهم‌مسیر کردن، state share، یا policy routing اصلاحی.\n",
+      "commands": "traceroute\nshow ip route\nshow ip cef\ndiagnose firewall session list\nshow crypto session",
+      "examples": "Lab: دو مسیر؛ ترافیک را نامتقارن کن؛ session فایروال را ببین.\n",
+      "notes": "فایروال stateful و مسیر نامتقارن دشمن هم‌اند.\n",
+      "learning_objectives": ["تشخیص asymmetry", "اثر stateful", "هم‌مسیرسازی"]
+    },
+    {
+      "title_fa": "[L3] QoS برای Voice/Video واقعی",
+      "title_en": "Real World QoS for Voice and Video",
+      "chapter_order": 18,
+      "summary": "علامت‌گذاری، صف، و اندازه‌گیری MOS ذهنی.",
+      "full_content": "# QoS Voice/Video\n\n## زنجیره\nTrust boundary → mark → queue → police/shape → verify.\n\n## اهداف تقریبی Voice\nlatency < 150ms یک‌طرفه، jitter پایین، loss نزدیک صفر.\n\n## خطا رایج\nفقط روی یک روتر QoS؛ بقیه مسیر best-effort.\n",
+      "commands": "show policy-map interface\nshow class-map\nshow interfaces\nshow call active voice",
+      "examples": "Lab: bulk download همزمان با voice؛ با/بدون LLQ مقایسه کن.\n",
+      "notes": "بدون mark یکسان end-to-end، صف لبه کافی نیست.\n",
+      "learning_objectives": ["trust boundary", "LLQ", "verify counters"]
+    },
+    {
+      "title_fa": "[L3] امنیت مدیریت — VTY، AAA، Banner، Timeout",
+      "title_en": "Management Plane Hardening VTY AAA",
+      "chapter_order": 65,
+      "summary": "محکم‌کاری دسترسی ادمین قبل از Internet-facing.\n",
+      "full_content": "# Management Hardening\n\n- SSH only\n- ACL به VTY\n- AAA + local fallback تست‌شده\n- exec-timeout\n- banner legal\n- جدا VRF مدیریت\n",
+      "commands": "show ip access-lists\nshow line vty 0 4\nshow aaa servers\nshow users\nshow running-config | include ssh|aaa|line vty",
+      "examples": "Lab: فقط jump host به VTY؛ از IP دیگر fail.\n",
+      "notes": "local fallback را قبل از قطع TACACS تست کن.\n",
+      "learning_objectives": ["VTY ACL", "AAA", "timeout"]
+    },
+    {
+      "title_fa": "[L2] پشتیبان‌گیری کانفیگ و Versioning",
+      "title_en": "Config Backup and Versioning",
+      "chapter_order": 5,
+      "summary": "هر change یک نسخه قابل برگشت.\n",
+      "full_content": "# Config Backup\n\nروزانه/هفتگی + قبل از هر change.\nGit یا سیستم backup متمرکز.\nتست restore سالی چند بار.\n",
+      "commands": "show running-config\ncopy running-config tftp:\nshow archive\ndiff",
+      "examples": "یک change را commit کن؛ بعد rollback از نسخه قبل.\n",
+      "notes": "backup بدون تست restore بی‌ارزش است.\n",
+      "learning_objectives": ["زمان‌بندی backup", "restore test"]
+    },
+    {
+      "title_fa": "[L3] WAN دو مسیر — Performance و Failover",
+      "title_en": "Dual Path WAN Performance and Failover",
+      "chapter_order": 14,
+      "summary": "اندازه‌گیری قبل از اعتماد به failover.\n",
+      "full_content": "# Dual WAN\n\nسلامت لینک ≠ سلامت مسیر اپ.\nProbe به مقصد واقعی (app/DNS).\nزمان failover را ثبت کن.\n",
+      "commands": "show ip route\nshow ip sla statistics\nping\nmtr\nshow interfaces",
+      "examples": "قطع ISP-A؛ زمان بازگشت HTTPS داخلی را اندازه بگیر.\n",
+      "notes": "sessionهای NAT با failover معمولاً می‌میرند.\n",
+      "learning_objectives": ["health probe", "RTO واقعی"]
+    },
+    {
+      "title_fa": "[L2] مستند Runbook قطعی اینترنت شعبه",
+      "title_en": "Branch Internet Outage Runbook",
+      "chapter_order": 5,
+      "summary": "گام‌های تشخیص تا escalation.\n",
+      "full_content": "# Runbook: اینترنت شعبه\n\n1. لینک فیزیکی/PPPoE/DHCP WAN\n2. default route\n3. NAT/policy\n4. DNS\n5. فقط یک سایت یا همه؟\n6. تماس ISP با شماره تیکت\n\nهر گام خروجی مورد انتظار دارد.\n",
+      "commands": "show interfaces\nshow ip route\nshow ip nat translations\nping 8.8.8.8\nnslookup\ntraceroute",
+      "examples": "در Lab این runbook را زمان‌گیری کن.\n",
+      "notes": "Runbook بدون مالک و تاریخ به‌روز نمی‌ماند.\n",
+      "learning_objectives": ["گام‌بندی", "escalation", "شواهد"]
+    }
+  ]
+}

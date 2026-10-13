@@ -13,15 +13,15 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 /**
- * ورود اجباری با رمز برنامه.
- * رمز: engineerjokar
+ * صفحه ورود اجباری.
+ * رمز داخل برنامه: engineerjokar
+ * کاربر فقط همین را در کادر تایپ می‌کند — نیازی به متغیر محیطی نیست.
  */
 class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val prefs = getSharedPreferences("netenc", MODE_PRIVATE)
-        // اگر قبلاً با رمز قدیم unlock شده، با رمز جدید دوباره بخواهد
-        val savedToken = prefs.getString("token", "")
+        val savedToken = prefs.getString("token", "")?.trim()?.lowercase().orEmpty()
         if (prefs.getBoolean("unlocked", false) && savedToken == APP_PASSWORD) {
             goMain()
             return
@@ -59,8 +59,13 @@ class LoginActivity : AppCompatActivity() {
         root.addView(Button(this).apply {
             text = "ورود"
             setOnClickListener {
-                val ok = pass.text?.toString()?.trim() == APP_PASSWORD
-                if (ok) {
+                val typed = pass.text?.toString()
+                    ?.replace("\u200c", "")
+                    ?.replace("\u00a0", "")
+                    ?.trim()
+                    ?.lowercase()
+                    .orEmpty()
+                if (typed == APP_PASSWORD) {
                     prefs.edit()
                         .putBoolean("unlocked", true)
                         .putString("token", APP_PASSWORD)
@@ -68,6 +73,8 @@ class LoginActivity : AppCompatActivity() {
                     goMain()
                 } else {
                     Toast.makeText(this@LoginActivity, "رمز نادرست است", Toast.LENGTH_SHORT).show()
+                    pass.setText("")
+                    pass.requestFocus()
                 }
             }
         })
@@ -80,6 +87,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     companion object {
+        /** رمز ثابت داخل برنامه — همان صفحه ورود وب */
         const val APP_PASSWORD = "engineerjokar"
     }
 }
