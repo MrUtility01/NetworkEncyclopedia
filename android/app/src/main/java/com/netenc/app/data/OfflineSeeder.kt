@@ -8,40 +8,51 @@ import java.io.BufferedInputStream
 import java.util.zip.GZIPInputStream
 
 object OfflineSeeder {
-    private const val META_SEEDED = "offline_seeded_v13"
+    /** هر بار منطق seed عوض شد این را بالا ببر تا روی گوشی دوباره از asset بخواند */
+    private const val META_SEEDED = "offline_seeded_v20"
 
-    suspend fun ensureSeeded(context: Context): Int = withContext(Dispatchers.IO) {
+    suspend fun ensureSeeded(context: Context, force: Boolean = false): Int = withContext(Dispatchers.IO) {
         val dao = AppDatabase.get(context).lessonDao()
         val existing = dao.countActive()
         val filled = if (existing > 0) dao.countFilled() else 0
-        if (dao.getMeta(META_SEEDED) == "1" && existing > 5000 && filled > 2000) {
+        val metaOk = dao.getMeta(META_SEEDED) == "1"
+        if (!force && metaOk && existing >= 5000 && filled >= 3000) {
             return@withContext existing
         }
-        val json = readCurriculumAsset(context) ?: return@withContext existing
-        val root = JSONObject(json)
-        val chapters = root.optJSONArray("chapters") ?: return@withContext existing
-        if (chapters.length() == 0) return@withContext existing
 
+        val json = readCurriculumAsset(context)
+        if (json.isNullOrBlank()) {
+            return@withContext existing
+        }
+        val root = JSONObject(json)
+        val chapters = root.optJSONArray("chapters")
+        if (chapters == null || chapters.length() == 0) {
+            return@withContext existing
+        }
+
+        dao.clearAllLessons()
         val batch = mutableListOf<LessonEntity>()
         for (ci in 0 until chapters.length()) {
             val ch = chapters.getJSONObject(ci)
             val chOrder = ch.optInt("order", ci + 1)
-            val chTitle = ch.optString("title_fa")
+            val chTitle = ch.optString("title_fa").ifBlank { "فصل $chOrder" }
             val subs = ch.optJSONArray("subchapters") ?: continue
             var lessonOrd = 0
             for (si in 0 until subs.length()) {
                 val sub = subs.getJSONObject(si)
-                val subTitle = sub.optString("title_fa")
+                val subTitle = sub.optString("title_fa").ifBlank { "بخش ${si + 1}" }
                 val lessons = sub.optJSONArray("lessons") ?: continue
                 for (li in 0 until lessons.length()) {
                     val les = lessons.getJSONObject(li)
-                    val uid = les.optString("uid")
-                    if (uid.isBlank()) continue
+                    var uid = les.optString("uid")
+                    if (uid.isBlank()) {
+                        uid = "lesson:ch${chOrder}:s$si:l$li"
+                    }
                     lessonOrd++
                     batch.add(
                         LessonEntity(
                             uid = uid,
-                            titleFa = les.optString("title_fa"),
+                            titleFa = les.optString("title_fa").ifBlank { "درس $lessonOrd" },
                             titleEn = les.optString("title_en"),
                             tags = les.optString("level", "L0"),
                             summary = les.optString("summary"),
@@ -49,8 +60,8 @@ object OfflineSeeder {
                             commands = les.optString("commands"),
                             examples = les.optString("examples"),
                             notes = les.optString("notes"),
-                            lastUpdated = "2026-10-11T12:00:00Z",
-                            contentHash = "offline-v13-ch68",
+                            lastUpdated = "2026-10-13T12:00:00Z",
+                            contentHash = "offline-v20",
                             deviceId = "android-offline",
                             chapterOrder = chOrder,
                             chapterTitle = chTitle,
@@ -58,7 +69,7 @@ object OfflineSeeder {
                             lessonOrder = lessonOrd
                         )
                     )
-                    if (batch.size >= 50) {
+                    if (batch.size >= 80) {
                         dao.upsertAll(batch.toList())
                         batch.clear()
                     }
@@ -67,6 +78,8 @@ object OfflineSeeder {
         }
         if (batch.isNotEmpty()) dao.upsertAll(batch)
         dao.putMeta(SyncMetaEntity(META_SEEDED, "1"))
+        dao.putMeta(SyncMetaEntity("offline_seeded_v11", "0"))
+        dao.putMeta(SyncMetaEntity("offline_seeded_v13", "0"))
         dao.countActive()
     }
 
