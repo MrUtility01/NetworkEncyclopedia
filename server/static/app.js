@@ -1,4 +1,4 @@
-/* Engineer Jokar Web - enhanced UI */
+/* Engineer Jokar Web - enhanced UI + SVG lesson render */
 const $ = (s) => document.querySelector(s);
 const chaptersEl = $("#chapters");
 const viewer = $("#viewer");
@@ -29,6 +29,28 @@ function escapeHtml(s) {
   var d = document.createElement("div");
   d.textContent = s == null ? "" : String(s);
   return d.innerHTML;
+}
+/** متن درس: بلوک SVG به‌صورت نمودار رندر شود؛ بقیه متن امن escape شود */
+function formatLessonHtml(s) {
+  s = String(s == null ? "" : s);
+  var re = /<svg\b[\s\S]*?<\/svg>/gi;
+  var out = [];
+  var last = 0;
+  var m;
+  while ((m = re.exec(s)) !== null) {
+    if (m.index > last) {
+      out.push('<div class="md-chunk">' + escapeHtml(s.slice(last, m.index)).replace(/\n/g, "<br>") + "</div>");
+    }
+    var svg = m[0]
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "");
+    out.push('<div class="info-svg lesson-svg">' + svg + "</div>");
+    last = m.index + m[0].length;
+  }
+  if (last < s.length) {
+    out.push('<div class="md-chunk">' + escapeHtml(s.slice(last)).replace(/\n/g, "<br>") + "</div>");
+  }
+  return out.join("") || '<div class="md-chunk muted-p">—</div>';
 }
 function uid() { return "id_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 function loadLS(key) { try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) { return []; } }
@@ -167,7 +189,7 @@ async function renderScenarios() {
       card.addEventListener("click", async function () {
         var sc = await api("/api/scenarios/" + card.dataset.sid);
         breadcrumb.textContent = sc.title_fa || "سناریو";
-        viewer.innerHTML = '<div class="lesson-card"><h1>' + escapeHtml(sc.title_fa || "") + '</h1><pre class="content-pre">' + escapeHtml(sc.business_context || sc.tasks || "—") + '</pre><p><button type="button" class="ghost" id="backSc">بازگشت</button></p></div>';
+        viewer.innerHTML = '<div class="lesson-card"><h1>' + escapeHtml(sc.title_fa || "") + '</h1><div class="content-rich">' + formatLessonHtml(sc.business_context || sc.tasks || "—") + '</div><p><button type="button" class="ghost" id="backSc">بازگشت</button></p></div>';
         $("#backSc").onclick = function () { renderScenarios(); };
       });
     });
@@ -296,14 +318,33 @@ async function onLessonClick(btn) {
   var id = +btn.dataset.id; breadcrumb.textContent = "درس"; viewer.innerHTML = '<div class="loading">…</div>';
   try {
     var L = await api("/api/lessons/" + id);
-    var body = L.full_content || L.content || L.body || ""; var cmds = L.commands || ""; var examples = L.examples || ""; var notes = L.notes || "";
+    var body = L.full_content || L.content || L.body || "";
+    var cmds = L.commands || "";
+    var examples = L.examples || "";
+    var notes = L.notes || "";
     breadcrumb.textContent = L.title_fa || "درس";
-    viewer.innerHTML = '<div class="lesson-card"><h1>' + escapeHtml(L.title_fa || "") + '</h1><div class="tabs"><button type="button" class="tab active" data-tab="main">محتوا</button>' + (cmds ? '<button type="button" class="tab" data-tab="cmd">دستورات</button>' : '') + (examples ? '<button type="button" class="tab" data-tab="ex">مثال</button>' : '') + (notes ? '<button type="button" class="tab" data-tab="note">نکات</button>' : '') + '</div><div class="tab-body" id="tabMain"><pre class="content-pre">' + escapeHtml(body) + '</pre></div>' + (cmds ? '<div class="tab-body" id="tabCmd" hidden><pre class="content-pre">' + escapeHtml(cmds) + '</pre></div>' : '') + (examples ? '<div class="tab-body" id="tabEx" hidden><pre class="content-pre">' + escapeHtml(examples) + '</pre></div>' : '') + (notes ? '<div class="tab-body" id="tabNote" hidden><pre class="content-pre">' + escapeHtml(notes) + '</pre></div>' : '') + '</div>';
+    viewer.innerHTML =
+      '<div class="lesson-card"><h1>' + escapeHtml(L.title_fa || "") + '</h1>' +
+      '<div class="tabs">' +
+      '<button type="button" class="tab active" data-tab="main">محتوا</button>' +
+      (cmds ? '<button type="button" class="tab" data-tab="cmd">دستورات</button>' : '') +
+      (examples ? '<button type="button" class="tab" data-tab="ex">مثال</button>' : '') +
+      (notes ? '<button type="button" class="tab" data-tab="note">نکات</button>' : '') +
+      '</div>' +
+      '<div class="tab-body" id="tabMain"><div class="content-rich">' + formatLessonHtml(body) + '</div></div>' +
+      (cmds ? '<div class="tab-body" id="tabCmd" hidden><pre class="content-pre">' + escapeHtml(cmds) + '</pre></div>' : '') +
+      (examples ? '<div class="tab-body" id="tabEx" hidden><pre class="content-pre">' + escapeHtml(examples) + '</pre></div>' : '') +
+      (notes ? '<div class="tab-body" id="tabNote" hidden><pre class="content-pre">' + escapeHtml(notes) + '</pre></div>' : '') +
+      '</div>';
     viewer.querySelectorAll(".tab").forEach(function (tab) {
       tab.addEventListener("click", function () {
-        viewer.querySelectorAll(".tab").forEach(function (t) { t.classList.remove("active"); }); tab.classList.add("active");
+        viewer.querySelectorAll(".tab").forEach(function (t) { t.classList.remove("active"); });
+        tab.classList.add("active");
         var map = { main: "tabMain", cmd: "tabCmd", ex: "tabEx", note: "tabNote" };
-        Object.keys(map).forEach(function (k) { var el = document.getElementById(map[k]); if (el) el.hidden = tab.getAttribute("data-tab") !== k; });
+        Object.keys(map).forEach(function (k) {
+          var el = document.getElementById(map[k]);
+          if (el) el.hidden = tab.getAttribute("data-tab") !== k;
+        });
       });
     });
   } catch (e) { viewer.innerHTML = '<div class="loading">خطا</div>'; }
