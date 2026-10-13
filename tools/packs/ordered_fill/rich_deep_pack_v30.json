@@ -1,0 +1,117 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "v30 — غنی‌سازی + تکمیل پوشش عملیاتی",
+  "lessons": [
+    {
+      "title_fa": "[L3] عیب‌یابی DNS دوگانه Split-Horizon",
+      "title_en": "Split Horizon DNS Troubleshooting",
+      "chapter_order": 8,
+      "summary": "پاسخ داخلی و خارجی متفاوت برای یک نام.",
+      "full_content": "# Split-Horizon DNS\n\nداخلی: IP خصوصی؛ خارجی: IP عمومی\nRCA: کلاینت کدام resolver را می‌پرسد؟\nVPN کاربران اغلب نیاز به resolver داخلی دارند.\n",
+      "commands": "Resolve-DnsName\nnslookup\ndig\nGet-DnsClientServerAddress",
+      "examples": "از خانه نام داخلی resolve نمی‌شود؛ چرا طبیعی است؟\n",
+      "notes": "یک zone یکسان بدون view اشتباه رایج است.\n",
+      "learning_objectives": ["view", "resolver"]
+    },
+    {
+      "title_fa": "[L3] Certificate Transparency و خطاهای سازمانی",
+      "title_en": "Certificate Errors in Enterprise",
+      "chapter_order": 65,
+      "summary": "زنجیره داخلی، MITM پروکسی و trust store.",
+      "full_content": "# گواهی سازمانی\n\nRoot داخلی روی endpointها\nپروکسی SSL باید root خودش را پخش کند\nموبایل و IoT سخت‌تر trust می‌کنند\n",
+      "commands": "openssl s_client -connect host:443\nshow clock\ncertutil",
+      "examples": "فقط مرورگر شرکت کار می‌کند؛ گوشی نه — علت؟\n",
+      "notes": "ساعت غلط = خطاهای مرموز TLS.\n",
+      "learning_objectives": ["trust store", "proxy cert"]
+    },
+    {
+      "title_fa": "[L2] استاندارد نام‌گذاری Interface و توضیح",
+      "title_en": "Interface Naming and Description Standard",
+      "chapter_order": 5,
+      "summary": "description روی پورت نصف RCA است.",
+      "full_content": "# Description\n\nقالب: to_<device>_<port>_<linkrole>\nبدون description، تیم بعدی کور است.\n",
+      "commands": "show interfaces description\nshow cdp neighbors\nshow lldp neighbors",
+      "examples": "سه پورت uplink را با استاندارد نام بده.\n",
+      "notes": "بعد از هر تغییر کابل description را به‌روز کن.\n",
+      "learning_objectives": ["description", "standard"]
+    },
+    {
+      "title_fa": "[L3] uRPF ضد Spoofing",
+      "title_en": "uRPF Anti Spoofing",
+      "chapter_order": 17,
+      "summary": "رد ترافیک با source غیرمنطقی نسبت به جدول مسیر.",
+      "full_content": "# uRPF\n\nstrict در برابر loose\nلبه مشتری/ISP مفید است\nممکن است asymmetric را بشکند — با احتیاط\n",
+      "commands": "show ip verify\nshow ip route\nshow interfaces",
+      "examples": "کجا strict خطرناک است؟\n",
+      "notes": "با طراحی asymmetric هماهنگ کن.\n",
+      "learning_objectives": ["strict vs loose"]
+    },
+    {
+      "title_fa": "[L3] Control Plane Policing مفهوم",
+      "title_en": "Control Plane Policing Concept",
+      "chapter_order": 17,
+      "summary": "محافظت CPU روتر در برابر flood به control plane.",
+      "full_content": "# CoPP\n\nترافیک به خود دستگاه محدود و اولویت‌بندی می‌شود\nSSH مدیریت نباید در حمله flood بمیرد\n",
+      "commands": "show policy-map control-plane\nshow processes cpu\nshow access-lists",
+      "examples": "حمله ICMP به روتر؛ CoPP چه کمکی می‌کند؟\n",
+      "notes": "پیکربندی اشتباه CoPP خودت را قفل می‌کند.\n",
+      "learning_objectives": ["control plane", "protect mgmt"]
+    },
+    {
+      "title_fa": "[L2] ظرفیت‌سنجی لینک قبل از خرید",
+      "title_en": "Link Capacity Planning Before Purchase",
+      "chapter_order": 5,
+      "summary": "اندازه‌گیری واقعی نه حدس.",
+      "full_content": "# Capacity\n\n95th percentile، زمان اوج، رشد سالانه\nburst کوتاه با میانگین متفاوت است\n",
+      "commands": "show interfaces\nshow policy-map interface\nnms graphs",
+      "examples": "میانگین ۳۰٪ و اوج ۹۰٪؛ چه می‌خری؟\n",
+      "notes": "فقط میانگین گمراه‌کننده است.\n",
+      "learning_objectives": ["peak", "percentile"]
+    },
+    {
+      "title_fa": "[L3] EVPN/VXLAN ذهنیت برای DC مدرن",
+      "title_en": "EVPN VXLAN Mental Model DC",
+      "chapter_order": 16,
+      "summary": "پوشش L2 روی underlay L3.",
+      "full_content": "# EVPN/VXLAN\n\nVTEP، VNI، underlay ECMP\nکنترل با BGP EVPN\nجایگزین برخی طرح‌های L2 stretch قدیمی\n",
+      "commands": "show bgp l2vpn evpn\nshow nve peers\nshow vxlan",
+      "examples": "چرا underlay سالم پیش‌نیاز overlay است؟\n",
+      "notes": "اول underlay را خوب طراحی کن.\n",
+      "learning_objectives": ["VNI", "underlay"]
+    },
+    {
+      "title_fa": "[L3] SASE/Zero Trust شبکه از نگاه سنتی",
+      "title_en": "SASE Zero Trust for Traditional Network Engineers",
+      "chapter_order": 65,
+      "summary": "هویت و سیاست به‌جای فقط محیط قلعه.",
+      "full_content": "# Zero Trust\n\nاعتماد صفر پیش‌فرض\nدسترسی بر اساس هویت/دستگاه/زمینه\nشبکه سنتی هنوز سگمنت و لاگ لازم دارد\n",
+      "commands": "show firewall policy\nshow authentication sessions\nshow logging",
+      "examples": "VPN همیشه پر از دسترسی تخت — چه ضدالگویی است؟\n",
+      "notes": "خرید محصول بدون هویت مرکزی کافی نیست.\n",
+      "learning_objectives": ["identity", "least privilege"]
+    },
+    {
+      "title_fa": "[L2] چک‌لیست تحویل پروژه شبکه",
+      "title_en": "Network Project Handover Checklist",
+      "chapter_order": 5,
+      "summary": "سند، دسترسی، مانیتور، آموزش.",
+      "full_content": "# Handover\n\nدیاگرام، IP plan، اکانت‌ها، backup، مانیتور، runbook، آموزش تیم\nبدون handover پروژه تمام نشده\n",
+      "commands": "show version\nshow running-config\nshow inventory",
+      "examples": "۱۰ آیتم اجباری تحویل را بنویس.\n",
+      "notes": "رمز را در ایمیل plain نفرست.\n",
+      "learning_objectives": ["handover completeness"]
+    },
+    {
+      "title_fa": "[L4] Capstone — بازطراحی سگمنت پس از حادثه",
+      "title_en": "Capstone Resegmentation After Incident",
+      "chapter_order": 65,
+      "summary": "از تخت به سگمنت‌شده بدون قطعی بلند.",
+      "full_content": "# بازسگمنت\n\nmapping دارایی → VLAN جدید → فایروال east-west → موج مهاجرت\nشاخص موفقیت: کاهش blast radius\n",
+      "commands": "show vlan brief\nshow access-lists\nshow mac address-table\nshow firewall policy",
+      "examples": "سه سگمنت اول که جدا می‌کنی کدام‌اند؟\n",
+      "notes": "اول دارایی‌های حیاتی.\n",
+      "learning_objectives": ["wave plan", "blast radius"]
+    }
+  ]
+}
