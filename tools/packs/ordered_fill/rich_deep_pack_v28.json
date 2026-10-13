@@ -1,0 +1,271 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "v28 — ادامه غنی‌سازی فصل‌های باقی‌مانده و عمیق‌تر",
+  "lessons": [
+    {
+      "title_fa": "[L2] کابل‌کشی ساخت‌یافته و استاندارد اتاق رک",
+      "title_en": "Structured Cabling and Rack Room Standards",
+      "chapter_order": 2,
+      "summary": "مسیر کابل، برچسب، جداسازی برق و شبکه، مستند پچ‌پنل.",
+      "full_content": "# کابل‌کشی ساخت‌یافته\n\n## اصول\n- مسیر افقی/عمودی مشخص\n- برچسب دو سر\n- پچ‌پنل به‌جای اتصال مستقیم طولانی به دستگاه\n- جداسازی منطقی برق قوی از دیتا وقتی ممکن است\n\n## مستند\nجدول پورت پچ‌پنل → سوئیچ → VLAN/سرویس\n\n## RCA فیزیکی\nلینک flapping: کابل، SFP، duplex، تداخل EMI\n",
+      "commands": "show interfaces status\nshow interfaces transceiver\nshow cdp neighbors\nshow lldp neighbors",
+      "examples": "یک پورت err-disabled و flapping؛ سه چک فیزیکی اول.\n",
+      "notes": "بدون برچسب، RCA فیزیکی دو برابر طول می‌کشد.\n",
+      "learning_objectives": ["برچسب", "پچ‌پنل", "flapping"]
+    },
+    {
+      "title_fa": "[L2] انتخاب رسانه مسی در برابر فیبر",
+      "title_en": "Copper vs Fiber Media Selection",
+      "chapter_order": 2,
+      "summary": "فاصله، نویز، هزینه و سرعت.\n",
+      "full_content": "# مس در برابر فیبر\n\n| معیار | مس | فیبر |\n|--------|-----|------|\n| فاصله کوتاه | عالی | بیش‌نیاز |\n| فاصله بلند | محدود | مناسب |\n| نویز EMI | حساس‌تر | مقاوم |\n| هزینه کوتاه | معمولاً کمتر | بالاتر |\n\nبرای uplink بین رک‌ها و ساختمان‌ها فیبر را جدی بگیر.\n",
+      "commands": "show interfaces\nshow interfaces transceiver\nshow inventory",
+      "examples": "لینک ۲۰۰ متر بین دو ساختمان؛ کدام رسانه و چرا؟\n",
+      "notes": "SFP ناسازگار = لینک بالا نمی‌آید.\n",
+      "learning_objectives": ["فاصله", "EMI", "uplink"]
+    },
+    {
+      "title_fa": "[L3] VRRP/HSRP دروازه افزونه",
+      "title_en": "VRRP HSRP Redundant Gateway",
+      "chapter_order": 9,
+      "summary": "VIP دروازه؛ failover لایه ۳ دسترسی.\n",
+      "full_content": "# FHRP\n\nHSRP/VRRP یک IP مجازی به کلاینت می‌دهند\nActive/Master ترافیک را می‌گیرد\nاولویت و tracking رابط WAN\n\nRCA: اولویت یکسان، timer، عدم track\n",
+      "commands": "show standby\nshow vrrp\nshow ip route\nshow interfaces",
+      "examples": "Active را خاموش کن؛ کلاینت هنوز ping دارد؟ زمان؟\n",
+      "notes": "بدون preempt آگاهانه، برگشت مسیر غافلگیرکننده است.\n",
+      "learning_objectives": ["VIP", "priority", "tracking"]
+    },
+    {
+      "title_fa": "[L3] OSPF Stub و Totally Stubby",
+      "title_en": "OSPF Stub and Totally Stubby Areas",
+      "chapter_order": 13,
+      "summary": "کاهش LSDB در لبه با نوع Area.\n",
+      "full_content": "# OSPF Stub\n\nStub: بدون LSA خارجی نوع ۵\nTotally Stubby: خلاصه کمتر؛ پیش‌فرض از ABR\nNSSA: اجازه external محدود\n\nهمه روترهای Area باید نوع را هم‌خوان بفهمند\n",
+      "commands": "show ip ospf\nshow ip ospf database\nshow ip ospf border-routers\nshow ip route ospf",
+      "examples": "Area لبه فقط default می‌خواهد؛ کدام نوع Area؟\n",
+      "notes": "ناهمسانی نوع Area = همسایگی نمی‌آید.\n",
+      "learning_objectives": ["stub", "totally stubby", "LSDB"]
+    },
+    {
+      "title_fa": "[L3] BGP Communities کاربردی",
+      "title_en": "Practical BGP Communities",
+      "chapter_order": 14,
+      "summary": "برچسب‌گذاری مسیر برای سیاست ISP/داخلی.\n",
+      "full_content": "# Communities\n\nمسیر را برچسب بزن تا بقیه سیاست اعمال کنند\nISP اغلب community برای prepend/no-export می‌دهد\nمستند ISP را بخوان؛ حدس نزن\n",
+      "commands": "show ip bgp\nshow ip bgp community\nshow ip community-list\nshow route-map",
+      "examples": "می‌خواهی ISP مسیر را دو بار prepend کند؛ از چه سازوکاری؟\n",
+      "notes": "community بدون توافق طرف مقابل بی‌اثر است.\n",
+      "learning_objectives": ["tag", "ISP policy", "route-map"]
+    },
+    {
+      "title_fa": "[L3] Multicast PIM-SM مرور عملی",
+      "title_en": "Practical PIM-SM Multicast Review",
+      "chapter_order": 15,
+      "summary": "RP، IGMP و چرا گیرنده چیزی نمی‌بیند.\n",
+      "full_content": "# PIM-SM\n\nIGMP روی LAN؛ PIM بین روترها؛ RP نقطه ملاقات\nRCA: RP اشتباه، TTL، snooping، فایروال\n",
+      "commands": "show ip pim neighbor\nshow ip pim rp\nshow ip mroute\nshow ip igmp groups",
+      "examples": "یک VLAN گیرنده دارد ولی mroute خالی است؛ کجا؟\n",
+      "notes": "اول unicast زیرساخت را سالم کن.\n",
+      "learning_objectives": ["RP", "IGMP", "mroute"]
+    },
+    {
+      "title_fa": "[L2] QoS علامت‌گذاری DSCP حداقلی",
+      "title_en": "Minimum DSCP Marking QoS",
+      "chapter_order": 18,
+      "summary": "EF برای صوت؛ AF برای کسب‌وکار؛ بقیه BE.\n",
+      "full_content": "# DSCP\n\nعلامت یکسان end-to-end\nلبه اعتماد (trust boundary) مشخص\nبدون mark، صف بی‌معنی است\n",
+      "commands": "show policy-map interface\nshow mls qos\nshow class-map\nshow interfaces",
+      "examples": "صوت هنوز جبر دارد؛ mark را کجا Verify می‌کنی؟\n",
+      "notes": "trust کردن کورکورانه پورت access خطرناک است.\n",
+      "learning_objectives": ["DSCP", "trust boundary"]
+    },
+    {
+      "title_fa": "[L3] فایروال Identity-based Rule",
+      "title_en": "Identity Based Firewall Rules",
+      "chapter_order": 22,
+      "summary": "قانون بر اساس کاربر/گروه نه فقط IP.\n",
+      "full_content": "# Identity Firewall\n\nUser-ID / SSO گروه AD را به session می‌چسباند\nمناسب کاربر موبایل با IP متغیر\nلاگ باید نام کاربر داشته باشد\n",
+      "commands": "diagnose firewall auth list\nget user active-list\nshow firewall policy\nshow log",
+      "examples": "کارمند فروش به سرور مالی؛ rule را هویت‌محور بنویس.\n",
+      "notes": "بدون agent/SSO منبع هویت، rule هویت‌محور کامل نیست.\n",
+      "learning_objectives": ["User-ID", "group policy"]
+    },
+    {
+      "title_fa": "[L3] SSL Inspection استثناها و شکست اپ",
+      "title_en": "SSL Inspection Exceptions and App Breakage",
+      "chapter_order": 22,
+      "summary": "کجا بازرسی نکن و چرا.\n",
+      "full_content": "# SSL Inspection\n\nمزیت: دیدن تهدید داخل HTTPS\nهزینه: گواهی، CPU، اپ‌های certificate-pinning\n\nاستثنا: بانک، آپدیت، اپ‌های حساس\n",
+      "commands": "show firewall ssl\ndiagnose debug application ssl\ncurl -vI https://app",
+      "examples": "یک اپ موبایل فقط پشت فایروال می‌شکند؛ چه تیپ استثنا؟\n",
+      "notes": "بازرسی همه‌چیز بدون استثنا = تیکت‌های بی‌پایان.\n",
+      "learning_objectives": ["trade-off", "exception list"]
+    },
+    {
+      "title_fa": "[L2] Wireless Roaming علائم و تنظیم",
+      "title_en": "Wireless Roaming Symptoms and Tuning",
+      "chapter_order": 30,
+      "summary": "قطع مکالمه هنگام حرکت بین AP.\n",
+      "full_content": "# Roaming\n\nهمپوشانی سلول لازم است\nقدرت زیاد = کلاینت به AP دور می‌چسبد\n802.11k/v/r در صورت پشتیبانی\n\nRCA: پوشش، کانال، کنترلر، sticky client\n",
+      "commands": "show client detail\nshow ap summary\nshow ap auto-rf\nnetsh wlan show interfaces",
+      "examples": "مکالمه VoIP هنگام راه رفتن قطع می‌شود؛ سه اقدام.\n",
+      "notes": "روامینگ مشکل لایه ۲/رادیو است نه فقط «اینترنت ضعیف».\n",
+      "learning_objectives": ["overlap", "sticky client"]
+    },
+    {
+      "title_fa": "[L3] WPA3 و تفاوت با WPA2 سازمانی",
+      "title_en": "WPA3 vs WPA2 Enterprise",
+      "chapter_order": 30,
+      "summary": "ارتقای امنیت لایه لینک وای‌فای.\n",
+      "full_content": "# WPA3\n\nمقاومت بهتر در برابر حمله آفلاین روی PSK\nEnterprise همچنان به RADIUS وابسته است\nسازگاری کلاینت قدیمی را بسنج\n\nگذار: حالت mixed موقتی\n",
+      "commands": "show wlan summary\nshow ap config general\nnetsh wlan show drivers",
+      "examples": "یک انبار اسکنر قدیمی دارد؛ استراتژی گذار؟\n",
+      "notes": "WPA3 جادوی 802.1X را جایگزین نمی‌کند.\n",
+      "learning_objectives": ["WPA3", "سازگاری"]
+    },
+    {
+      "title_fa": "[L3] Issabel IVR و صف تماس مفهومی",
+      "title_en": "Issabel IVR and Call Queue Concepts",
+      "chapter_order": 45,
+      "summary": "منوی صوتی، صف و زمان انتظار.\n",
+      "full_content": "# IVR و Queue\n\nIVR مسیر را بر اساس کلید جدا می‌کند\nصف: استراتژی ring، اعلام انتظار\n\nشبکه: latency روی تجربه مشتری اثر دارد\n",
+      "commands": "asterisk -rx \"queue show\"\nasterisk -rx \"core show channels\"\nasterisk -rx \"pjsip show endpoints\"",
+      "examples": "صف پشتیبانی همیشه پر؛ سه سنجه برای مانیتور.\n",
+      "notes": "IVR پیچیده بدون آمار = سردرگمی کاربر.\n",
+      "learning_objectives": ["IVR", "queue"]
+    },
+    {
+      "title_fa": "[L2] CDR و گزارش تماس برای مدیر",
+      "title_en": "CDR Call Reporting for Management",
+      "chapter_order": 45,
+      "summary": "چه چیزی را از CDR استخراج کنی.\n",
+      "full_content": "# CDR\n\nمدت، مبدأ/مقصد، وضعیت پاسخ\nالگوی غیرعادی = سوءاستفاده احتمالی\nنگهداری مطابق سیاست حریم خصوصی\n",
+      "commands": "asterisk -rx \"cdr show status\"\n# گزارش از پنل Issabel\njournalctl -u asterisk -n 50",
+      "examples": "اوج تماس هر روز ۱۰ صبح؛ چه تصمیمی برای ظرفیت؟\n",
+      "notes": "CDR بدون timezone درست گمراه‌کننده است.\n",
+      "learning_objectives": ["سنجه‌ها", "سوءاستفاده"]
+    },
+    {
+      "title_fa": "[L3] PowerShell برای موجودی شبکه ویندوز",
+      "title_en": "PowerShell Windows Network Inventory",
+      "chapter_order": 35,
+      "summary": "جمع‌آوری IP، مک، مسیر پیش‌فرض از چند میزبان.\n",
+      "full_content": "# Inventory با PowerShell\n\n```powershell\nInvoke-Command -ComputerName (Get-Content hosts.txt) -ScriptBlock {\n  [pscustomobject]@{\n    Host = $env:COMPUTERNAME\n    IP = (Get-NetIPAddress -AddressFamily IPv4 | ? {$_.IPAddress -notlike '127*'}).IPAddress\n    GW = (Get-NetRoute -DestinationPrefix '0.0.0.0/0').NextHop\n  }\n}\n```\n\nخروجی را CSV کن برای CMDB سبک\n",
+      "commands": "Get-NetIPConfiguration\nGet-NetAdapter\nInvoke-Command\nExport-Csv\nTest-WSMan",
+      "examples": "از ۱۰ سیستم CSV شامل IP و Gateway بساز.\n",
+      "notes": "دسترسی remoting حداقل و با لاگ.\n",
+      "learning_objectives": ["جمع‌آوری", "CSV", "Remoting"]
+    },
+    {
+      "title_fa": "[L3] Scheduled Task و Job شبکه در ویندوز",
+      "title_en": "Windows Scheduled Network Tasks Jobs",
+      "chapter_order": 35,
+      "summary": "اسکریپت دوره‌ای برای سلامت لینک و سرویس.\n",
+      "full_content": "# زمان‌بندی\n\nTask Scheduler یا Scheduled Job\nمثال: هر ۵ دقیقه Test-NetConnection به VPN hub و لاگ\n\nهشدار به کانال عملیات\n",
+      "commands": "Register-ScheduledJob\nGet-ScheduledJob\nTest-NetConnection\nGet-Content log.txt -Tail 20",
+      "examples": "اگر VPN portal سه بار fail شد ایمیل/لاگ بده.\n",
+      "notes": "اسکریپت با رمز plaintext در task ممنوع.\n",
+      "learning_objectives": ["زمان‌بندی", "health probe"]
+    },
+    {
+      "title_fa": "[L2] Docker شبکه پایه برای مهندس زیرساخت",
+      "title_en": "Docker Networking Basics for Infra Engineers",
+      "chapter_order": 51,
+      "summary": "bridge، port publish و ارتباط با فایروال host.\n",
+      "full_content": "# Docker Net\n\nbridge پیش‌فرض\n`-p host:container` انتشار پورت\n\nRCA: پورت روی host listen می‌شود؟ فایروال؟\n",
+      "commands": "docker network ls\ndocker ps\nss -lntu\nTest-NetConnection localhost -Port 8080\ncurl -I http://127.0.0.1:8080",
+      "examples": "کانتینر up است از بیرون نه؛ سه چک.\n",
+      "notes": "publish کردن 0.0.0.0 روی سرور عمومی خطرناک است.\n",
+      "learning_objectives": ["bridge", "publish", "host firewall"]
+    },
+    {
+      "title_fa": "[L3] CI شبکه — تست کانفیگ در Pipeline",
+      "title_en": "Network CI Config Test in Pipeline",
+      "chapter_order": 51,
+      "summary": "lint و dry-run قبل از merge.\n",
+      "full_content": "# Network CI\n\nPR → syntax/lint → ansible --check → تأیید → apply محدود\nهدف: شکستن زود در pipeline نه در تولید\n",
+      "commands": "ansible-playbook site.yml --check\nyamllint .\ngit diff\nterraform plan",
+      "examples": "سه تست خودکار که قبل از change شبکه می‌خواهی.\n",
+      "notes": "CI بدون محیط آزمایشی محدود ارزشش کم است.\n",
+      "learning_objectives": ["lint", "dry-run", "gate"]
+    },
+    {
+      "title_fa": "[L2] مدیریت دارایی و CMDB سبک شبکه",
+      "title_en": "Lightweight Network CMDB Asset Management",
+      "chapter_order": 5,
+      "summary": "حداقل فیلدها برای هر دستگاه.\n",
+      "full_content": "# CMDB سبک\n\nفیلدها: نام، نقش، IP مدیریت، محل، سریال، نسخه OS، تاریخ پشتیبانی\nبدون این، پچ و RCA کند می‌شود\n",
+      "commands": "show version\nshow inventory\nshow license\nshow running-config | include hostname",
+      "examples": "جدول ۵ ستونی برای ۱۰ دستگاه لبه بنویس.\n",
+      "notes": "Excel بدون مالک به‌روز نمی‌ماند؛ مسئول تعیین کن.\n",
+      "learning_objectives": ["حداقل فیلد", "مالکیت داده"]
+    },
+    {
+      "title_fa": "[L3] Ransomware آماده باش شبکه — جدول تمرین",
+      "title_en": "Ransomware Network Readiness Drill Table",
+      "chapter_order": 65,
+      "summary": "تمرین رومیزی جداسازی و ارتباط.\n",
+      "full_content": "# تمرین باج‌افزار\n\nنقش‌ها: شبکه، امنیت، مدیریت\nاقدام: isolate، قطع VPN مشکوک، حفظ لاگ\nمعیار بازگشایی\n\nسال حداقل یک tabletop\n",
+      "commands": "show access-lists\nshow interfaces status\nshow logging\nshow mac address-table",
+      "examples": "PC مالی آلوده؛ سه پورت/سگمنت اول برای isolate.\n",
+      "notes": "تمرین روی کاغذ بهتر از اولین بار در تولید است.\n",
+      "learning_objectives": ["tabletop", "isolate", "معیار بازگشت"]
+    },
+    {
+      "title_fa": "[L4] Capstone — طراحی شعبه ۳۰ نفره از صفر",
+      "title_en": "Capstone Design 30 User Branch from Scratch",
+      "chapter_order": 5,
+      "summary": "VLAN، لبه، وای‌فای، صوت، اینترنت.\n",
+      "full_content": "# Capstone شعبه ۳۰ نفر\n\nVLAN: Users / Voice / Servers / Guest / Mgmt\nلبه: فایروال + VPN به مرکز\nWi-Fi: Corp 802.1X + Guest\nQoS صوت\nمانیتور لینک\n\nخروجی: دیاگرام + جدول IP + تست پذیرش\n",
+      "commands": "show vlan brief\nshow interfaces trunk\nshow firewall policy\nshow ap summary\nTest-NetConnection",
+      "examples": "لیست ۱۰ قانون فایروال حداقلی شعبه را بنویس.\n",
+      "notes": "اول نیاز، بعد برند جعبه.\n",
+      "learning_objectives": ["طراحی کامل کوچک", "پذیرش"]
+    },
+    {
+      "title_fa": "[L4] Capstone — مهاجرت VLAN بدون قطعی طولانی",
+      "title_en": "Capstone VLAN Migration Minimal Downtime",
+      "chapter_order": 11,
+      "summary": "برنامه موجی و rollback.\n",
+      "full_content": "# مهاجرت VLAN\n\n1. مستند وضعیت فعلی\n2. VLAN جدید موازی\n3. موج آزمایشی کاربران\n4. DHCP/scout\n5. قطع نهایی کوتاه\n6. rollback آماده\n",
+      "commands": "show vlan brief\nshow mac address-table\nshow ip dhcp binding\nshow interfaces trunk",
+      "examples": "۲۰۰ کاربر؛ چرا مهاجرت یک‌شبه خطرناک است؟\n",
+      "notes": "بدون inventory سوکت/پورت مهاجرت کور است.\n",
+      "learning_objectives": ["موجی", "rollback", "DHCP"]
+    },
+    {
+      "title_fa": "[L4] Capstone — دو دیتاسنتر و failover اپ",
+      "title_en": "Capstone Dual DC Application Failover",
+      "chapter_order": 16,
+      "summary": "DNS، مسیر و وابستگی پایگاه داده.\n",
+      "full_content": "# Dual DC\n\nL3 ترجیح به stretch بی‌مورد L2\nDNS TTL و سلامت\nتکرار داده و RPO/RTO\nتمرین failover\n",
+      "commands": "dig\nshow ip route\nshow bgp summary\ncurl -I https://app\nshow firewall policy",
+      "examples": "RTO یک ساعت؛ DNS TTL باید حدوداً چه باشد؟\n",
+      "notes": "failover بدون تمرین اپ معمولاً شکست می‌خورد.\n",
+      "learning_objectives": ["RTO/RPO", "DNS", "تمرین"]
+    },
+    {
+      "title_fa": "[L2] اخلاق حرفه‌ای و دسترسی ادمین",
+      "title_en": "Professional Ethics and Admin Access",
+      "chapter_order": 5,
+      "summary": "حداقل دسترسی، لاگ و حریم داده.\n",
+      "full_content": "# اخلاق دسترسی\n\nدسترسی فقط برای نقش\nورود با نام خودت نه shared\nداده‌های کاربر محرمانه است\nتغییر بدون ثبت ممنوع فرهنگی\n",
+      "commands": "show users\nshow logging\nshow aaa",
+      "examples": "همکار رمز shared می‌خواهد؛ پاسخ حرفه‌ای؟\n",
+      "notes": "امنیت بدون فرهنگ پایدار نیست.\n",
+      "learning_objectives": ["least privilege", "accountability"]
+    },
+    {
+      "title_fa": "[L2] مسیر یادگیری ادامه بعد از این دانشنامه",
+      "title_en": "Learning Path After This Encyclopedia",
+      "chapter_order": 5,
+      "summary": "چگونه عمیق‌تر بروید بدون پراکندگی.\n",
+      "full_content": "# مسیر بعدی\n\n1. Lab هفتگی ثابت\n2. یک حوزه عمیق (BGP یا Security یا Automation)\n3. مستند نوشته‌های خودت\n4. مشارکت در change واقعی\n5. postmortem خواندن\n\nگواهینامه ابزار است نه هدف نهایی\n",
+      "commands": "# تمرین:\n# هر هفته یک Lab از فهرست دانشنامه",
+      "examples": "برنامه ۳۰ روزه شخصی با ۴ موضوع بنویس.\n",
+      "notes": "عمق در یک مسیر > صد دوره سطحی.\n",
+      "learning_objectives": ["تمرکز", "Lab عادت", "مستند شخصی"]
+    }
+  ]
+}
