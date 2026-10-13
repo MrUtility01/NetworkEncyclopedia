@@ -149,6 +149,32 @@ button.tiny { padding: 4px 8px; font-size: 11px; }
 .tab-body { margin-top: 8px; }
 .muted-p { color: var(--muted); font-style: italic; }
 
+/* درس غنی: متن + SVG واقعی (نه سورس کد) */
+.content-rich {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  line-height: 1.75;
+  font-size: 14px;
+  color: #0f172a;
+}
+.content-rich .md-chunk { margin: 0 0 12px; word-wrap: break-word; }
+.content-rich .lesson-svg,
+.content-rich .info-svg {
+  overflow-x: auto;
+  margin: 12px 0;
+  background: #fff;
+  border-radius: 12px;
+}
+.content-rich .lesson-svg svg,
+.content-rich .info-svg svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+
 .ws-panel {
   max-width: 720px; background: #fff; border: 1px solid var(--border);
   border-radius: 14px; padding: 16px; box-shadow: var(--shadow);
