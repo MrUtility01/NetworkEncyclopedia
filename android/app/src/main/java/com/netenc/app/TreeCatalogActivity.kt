@@ -5,14 +5,17 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseExpandableListAdapter
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ExpandableListView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.netenc.app.data.AppDatabase
 import com.netenc.app.data.LessonEntity
+import com.netenc.app.data.OfflineSeeder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -36,10 +39,17 @@ class TreeCatalogActivity : AppCompatActivity() {
             setBackgroundColor(Ui.CARD)
         }
         header = TextView(this).apply {
-            text = "در حال بارگذاری درخت…"
+            text = "در حال بارگذاری فهرست…"
             setPadding(24, 12, 24, 8)
             textSize = 13f
             setTextColor(Ui.MUTED)
+        }
+        val btnReload = Button(this).apply {
+            text = "بارگذاری مجدد فهرست"
+            typeface = Ui.persianTypeface()
+            setOnClickListener {
+                lifecycleScope.launch { loadTree(force = true) }
+            }
         }
         list = ExpandableListView(this).apply {
             setBackgroundColor(Ui.BG)
@@ -50,6 +60,7 @@ class TreeCatalogActivity : AppCompatActivity() {
             setBackgroundColor(Ui.BG)
             addView(search)
             addView(header)
+            addView(btnReload)
             addView(list, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f
             ))
@@ -62,12 +73,23 @@ class TreeCatalogActivity : AppCompatActivity() {
             }
             true
         }
-        lifecycleScope.launch { loadTree() }
+        lifecycleScope.launch { loadTree(force = false) }
     }
 
-    private suspend fun loadTree() {
+    private suspend fun loadTree(force: Boolean) {
+        header.text = if (force) "بازسازی فهرست…" else "بارگذاری فهرست…"
+        val seeded = withContext(Dispatchers.IO) {
+            OfflineSeeder.ensureSeeded(this@TreeCatalogActivity, force = force)
+        }
         val lessons = withContext(Dispatchers.IO) {
             AppDatabase.get(this@TreeCatalogActivity).lessonDao().allActive()
+        }
+        if (lessons.isEmpty()) {
+            header.text = "فهرست خالی است (seed=$seeded). دکمه بارگذاری مجدد را بزن یا APK را دوباره نصب کن."
+            Toast.makeText(this, "فهرست خالی — بازسازی لازم است", Toast.LENGTH_LONG).show()
+            tree = emptyList()
+            list.setAdapter(null)
+            return
         }
         val byChapter = lessons.groupBy { it.chapterOrder to it.chapterTitle }
             .toSortedMap(compareBy({ it.first }, { it.second }))
@@ -76,7 +98,7 @@ class TreeCatalogActivity : AppCompatActivity() {
                 .map { (st, ls) -> SubNode(st, ls.sortedBy { it.lessonOrder }) }
             ChapterNode(key.first, key.second, subs)
         }
-        header.text = "${tree.size} فصل · ${lessons.size} درس"
+        header.text = "${tree.size} فصل · ${lessons.size} درس (seed=$seeded)"
         list.setAdapter(object : BaseExpandableListAdapter() {
             override fun getGroupCount() = tree.size
             override fun getChildrenCount(g: Int) = tree[g].subs.size
