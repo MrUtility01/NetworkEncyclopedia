@@ -1,0 +1,73 @@
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "v31 — غنی دقیق فصل عملیات/فایل‌سیستم و موضوعات مرتبط بدون SVG خام در متن",
+  "lessons": [
+    {
+      "title_fa": "[L2] فایل‌سیستم لینوکس برای مهندس شبکه",
+      "title_en": "Linux Filesystem for Network Engineers",
+      "chapter_order": 5,
+      "summary": "مسیرهای حیاتی، مجوز، و جایی که کانفیگ شبکه زندگی می‌کند.",
+      "full_content": "# فایل‌سیستم لینوکس — نگاه شبکه\n\n## مسیرهای مهم\n| مسیر | نقش |\n|------|-----|\n| /etc/network یا /etc/netplan | تنظیم IP (بسته به توزیع) |\n| /etc/resolv.conf | DNS کلاینت |\n| /etc/hosts | نام محلی |\n| /var/log | لاگ سیستم و سرویس |\n| /proc و /sys | وضعیت هسته و اینترفیس |\n\n## مجوز\nخواندن کانفیگ اغلب root؛ اشتباه chmod روی کلید SSH = قفل ورود.\n\n## مثال عملی\n```\nls -la /etc/netplan\nip a\nip r\ncat /etc/resolv.conf\njournalctl -u NetworkManager -n 50\n```\n\n## RCA\nسرویس بالا نیست ولی فایل کانفیگ هست → سرویس را restart و لاگ را بخوان.\n",
+      "commands": "ls -la /etc\nip a\nip r\ncat /etc/resolv.conf\nss -lntu\njournalctl -xe",
+      "examples": "Lab: قبل/بعد از تغییر netplan با `ip a` مقایسه کن.\n",
+      "notes": "هرگز کلید خصوصی را 777 نکن.\n",
+      "learning_objectives": ["مسیرهای شبکه", "مجوز", "لاگ"]
+    },
+    {
+      "title_fa": "[L2] مدیریت فضای دیسک و لاگ‌های پر",
+      "title_en": "Disk Space and Full Log Volumes",
+      "chapter_order": 5,
+      "summary": "وقتی /var پر می‌شود سرویس‌ها و لاگ شبکه می‌میرند.",
+      "full_content": "# دیسک پر\n\nعلائم: نمی‌نویسد، سرویس crash، لاگ قطع.\n\n```\ndf -h\ndu -sh /var/log/* | sort -h\njournalctl --disk-usage\n```\n\nچرخش لاگ (logrotate) و سقف journal.\n\nهرگز بدون بکاپ `rm -rf` روی ناشناخته.\n",
+      "commands": "df -h\ndu -sh /var/log/*\njournalctl --disk-usage\nls -lh /var/log",
+      "examples": "اگر /var 100٪ است سه اقدام امن بنویس.\n",
+      "notes": "لاگ بدون چرخش دشمن خاموش است.\n",
+      "learning_objectives": ["df/du", "logrotate"]
+    },
+    {
+      "title_fa": "[L3] بکاپ فایل کانفیگ و نسخه",
+      "title_en": "Config File Backup and Versioning",
+      "chapter_order": 5,
+      "summary": "قبل از change از فایل کپی بگیر.",
+      "full_content": "# نسخه کانفیگ\n\n```\ncp /etc/netplan/01.yaml /root/backup/01.yaml.$(date +%F)\n```\n\nGit برای مخزن کانفیگ (بدون secret).\n\nتست restore ماهانه.\n",
+      "commands": "cp\ndiff\ngit status\nls -la /root/backup",
+      "examples": "یک change خراب؛ مسیر برگشت از کپی دیروز.\n",
+      "notes": "رمز را در Git عمومی نگذار.\n",
+      "learning_objectives": ["کپی زمان‌دار", "restore"]
+    },
+    {
+      "title_fa": "[L2] inode و فایل‌های زیاد کوچک",
+      "title_en": "Inodes and Many Small Files",
+      "chapter_order": 5,
+      "summary": "گاهی فضا هست ولی inode تمام شده.",
+      "full_content": "# inode\n\n```\ndf -i\n```\n\nعلائم شبیه دیسک پر است.\nپوشه‌های موقت با میلیون فایل را پاک کن.\n",
+      "commands": "df -i\ndf -h\nfind /tmp -type f | wc -l",
+      "examples": "df -h آزاد است df -i پر؛ تشخیص؟\n",
+      "notes": "مانیتور هر دو درصد.\n",
+      "learning_objectives": ["inode", "تشخیص"]
+    },
+    {
+      "title_fa": "[L3] mount و NAS برای پوشه بکاپ",
+      "title_en": "Mount and NAS for Backup Folders",
+      "chapter_order": 5,
+      "summary": "اتصال NFS/SMB و وابستگی شبکه.",
+      "full_content": "# mount شبکه\n\nاگر لینک شبکه قطع شود mount ممکن است hang شود.\ntimeout و مانیتور لازم است.\n\n```\nmount | grep nfs\ndf -h\n```\n",
+      "commands": "mount\ndf -h\nping nas\nTest-NetConnection nas -Port 445",
+      "examples": "بکاپ روی NAS؛ لینک ۱۰٪ loss — اثر؟\n",
+      "notes": "بکاپ فقط روی همان دیسک production کافی نیست.\n",
+      "learning_objectives": ["mount", "وابستگی شبکه"]
+    },
+    {
+      "title_fa": "[L2] مسیر پکت — جمع‌بندی بدون کد خام",
+      "title_en": "Packet Path Summary Text Form",
+      "chapter_order": 5,
+      "summary": "از PC تا اینترنت در چند خط قابل حفظ.",
+      "full_content": "# مسیر پکت (متنی شفاف)\n\n1. PC فریم را به سوئیچ می‌دهد (MAC)\n2. سوئیچ در VLAN به Gateway می‌رساند\n3. روتر جدول مسیر را می‌خواند\n4. NAT/Policy در لبه\n5. تحویل به ISP\n\nبرگشت با connection tracking.\n\nمثال: 10.10.10.50 → 10.10.10.1 → Public → 8.8.8.8\n\n(نمودارهای بصری در منوی «اینفوگرافیک» و اگر SVG در محتوا باشد به‌صورت تصویر نمایش داده می‌شود نه سورس.)\n",
+      "commands": "ping\ntraceroute\nip r\nshow ip route",
+      "examples": "هر hop را با یک دستور Verify بنویس.\n",
+      "notes": "اگر نمودار به‌جای شکل، کد دیدید Ctrl+F5 بزنید.\n",
+      "learning_objectives": ["مسیر end-to-end", "Verify"]
+    }
+  ]
+}
