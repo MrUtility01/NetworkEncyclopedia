@@ -1,14 +1,16 @@
 package com.netenc.app
 
+import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import android.webkit.WebView
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -22,11 +24,12 @@ import kotlinx.coroutines.withContext
 
 class LessonDetailActivity : AppCompatActivity() {
     private var lesson: LessonEntity? = null
-    private lateinit var body: TextView
+    private lateinit var web: WebView
     private lateinit var study: StudyRepository
     private var currentTab = 0
     private val tabButtons = mutableListOf<Button>()
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val uid = intent.getStringExtra("uid") ?: return finish()
@@ -39,7 +42,7 @@ class LessonDetailActivity : AppCompatActivity() {
             orientation = LinearLayout.HORIZONTAL
             layoutDirection = View.LAYOUT_DIRECTION_RTL
         }
-        val tabNames = listOf("خلاصه", "متن", "دستورات", "آزمایشگاه", "نکات")
+        val tabNames = listOf("خلاصه", "متن+نمودار", "دستورات", "آزمایشگاه", "نکات")
         tabNames.forEachIndexed { idx, name ->
             val b = Button(this).apply {
                 text = name
@@ -56,9 +59,10 @@ class LessonDetailActivity : AppCompatActivity() {
             tabs.addView(b, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         }
 
-        body = Ui.text(this, "", 14.5f, Ui.TEXT).apply {
-            setPadding(24, 20, 24, 32)
-            setLineSpacing(0f, 1.25f)
+        web = WebView(this).apply {
+            setBackgroundColor(Color.parseColor("#F4F6F9"))
+            settings.javaScriptEnabled = false
+            settings.defaultTextEncodingName = "utf-8"
         }
 
         val studyRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
@@ -78,15 +82,33 @@ class LessonDetailActivity : AppCompatActivity() {
         studyRow.addView(studyBtn("⏰ دوباره", "again"), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         studyRow.addView(studyBtn("✗ بلد نیستم", "forgot"), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
 
-        val btnCopy = Button(this).apply {
-            text = "کپی تب فعلی"
+        val extraRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        extraRow.addView(Button(this).apply {
+            text = "کپی"
+            textSize = 11f
             typeface = Ui.persianTypeface()
             setOnClickListener {
                 val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 cm.setPrimaryClip(ClipData.newPlainText("netenc", tabText()))
                 Toast.makeText(this@LessonDetailActivity, "کپی شد", Toast.LENGTH_SHORT).show()
             }
-        }
+        }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        extraRow.addView(Button(this).apply {
+            text = "کارها"
+            textSize = 11f
+            typeface = Ui.persianTypeface()
+            setOnClickListener {
+                startActivity(Intent(this@LessonDetailActivity, WorkspaceActivity::class.java).putExtra("mode", "tasks"))
+            }
+        }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        extraRow.addView(Button(this).apply {
+            text = "یادداشت"
+            textSize = 11f
+            typeface = Ui.persianTypeface()
+            setOnClickListener {
+                startActivity(Intent(this@LessonDetailActivity, WorkspaceActivity::class.java).putExtra("mode", "notes"))
+            }
+        }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -95,12 +117,9 @@ class LessonDetailActivity : AppCompatActivity() {
             addView(title)
             addView(meta)
             addView(studyRow)
+            addView(extraRow)
             addView(tabs)
-            addView(btnCopy)
-            addView(
-                ScrollView(this@LessonDetailActivity).apply { addView(body) },
-                LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
-            )
+            addView(web, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
         }
         setContentView(root)
 
@@ -110,7 +129,11 @@ class LessonDetailActivity : AppCompatActivity() {
             } ?: return@launch
             lesson = e
             title.text = e.titleFa
-            meta.text = listOfNotNull(e.chapterTitle, e.subTitle, e.tags).filter { it.isNotBlank() }.joinToString(" · ")
+            meta.text = listOf(
+                e.chapterTitle.ifBlank { "فصل ${e.chapterOrder}" },
+                e.subTitle.ifBlank { "گروه عمومی" },
+                e.tags.ifBlank { "L?" }
+            ).joinToString("  ›  ")
             renderTab()
         }
     }
@@ -119,21 +142,58 @@ class LessonDetailActivity : AppCompatActivity() {
         val e = lesson ?: return ""
         return when (currentTab) {
             0 -> e.summary.ifBlank { "خلاصه برای این درس خالی است." }
-            1 -> e.fullContent.ifBlank { "متن کامل خالی است. از منوی اصلی بازسازی محتوا را بزنید." }
+            1 -> e.fullContent.ifBlank { "متن کامل خالی است. از منوی اصلی «بازسازی» را بزنید." }
             2 -> e.commands.ifBlank { "دستوراتی ثبت نشده." }
             3 -> {
                 val lab = e.examples.ifBlank { e.notes }
                 if (lab.isBlank()) {
-                    "آزمایشگاه هنوز برای این درس پر نشده.\n1) متن را بخوانید\n2) دستورات را اجرا کنید\n3) نتیجه را یادداشت کنید"
+                    "آزمایشگاه خالی است.\n1) متن را بخوانید\n2) دستورات را اجرا کنید\n3) در یادداشت نتیجه را بنویسید"
                 } else lab
             }
-            else -> e.notes.ifBlank { "نکته‌ای ثبت نشده." }
+            else -> e.notes.ifBlank { "نکته‌ای ثبت نشده. از دکمه یادداشت برای ذخیره نکته شخصی استفاده کنید." }
         }
     }
 
+    private fun escapeHtml(s: String): String =
+        s.replace("&", "&").replace("<", "<").replace(">", ">")
+
+    private fun toHtml(raw: String): String {
+        val parts = mutableListOf<String>()
+        var i = 0
+        val text = raw
+        val lower = text.lowercase()
+        while (i < text.length) {
+            val start = lower.indexOf("<svg", i)
+            if (start < 0) {
+                parts.add("<pre style=\"white-space:pre-wrap;font-family:sans-serif;direction:rtl\">" +
+                    escapeHtml(text.substring(i)) + "</pre>")
+                break
+            }
+            if (start > i) {
+                parts.add("<pre style=\"white-space:pre-wrap;font-family:sans-serif;direction:rtl\">" +
+                    escapeHtml(text.substring(i, start)) + "</pre>")
+            }
+            val end = lower.indexOf("</svg>", start)
+            if (end < 0) {
+                parts.add("<pre style=\"white-space:pre-wrap;font-family:sans-serif;direction:rtl\">" +
+                    escapeHtml(text.substring(start)) + "</pre>")
+                break
+            }
+            parts.add("<div style=\"margin:12px 0;overflow:auto\">" + text.substring(start, end + 6) + "</div>")
+            i = end + 6
+        }
+        return """
+            <html><head><meta charset="utf-8"/>
+            <meta name="viewport" content="width=device-width,initial-scale=1"/>
+            <style>
+              body{margin:12px;background:#F4F6F9;color:#0f172a;direction:rtl;font-size:15px;line-height:1.55}
+              pre{background:#fff;padding:12px;border-radius:10px;border:1px solid #e2e8f0}
+              svg{max-width:100%;height:auto}
+            </style></head><body>${parts.joinToString("")}</body></html>
+        """.trimIndent()
+    }
+
     private fun renderTab() {
-        body.text = tabText()
-        body.typeface = Ui.persianTypeface()
-        body.textDirection = View.TEXT_DIRECTION_RTL
+        web.loadDataWithBaseURL(null, toHtml(tabText()), "text/html", "utf-8", null)
     }
 }
