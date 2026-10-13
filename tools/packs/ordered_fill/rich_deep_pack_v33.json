@@ -1,1 +1,216 @@
-PLACEHOLDER
+{
+  "package_schema_version": 1,
+  "project": "ENGINEER JOKAR",
+  "purpose": "v33 — غنی‌سازی فصل‌های پایانی ۵۰–۶۸ و موضوعات خالی",
+  "lessons": [
+    {
+      "title_fa": "[L2] مرور معماری Zero Trust شبکه",
+      "title_en": "Zero Trust Network Architecture Review",
+      "chapter_order": 55,
+      "summary": "مرور معماری Zero Trust شبکه",
+      "full_content": "# Zero Trust شبکه\n\nفرض: هیچ کاربر/دستگاهی به‌طور پیش‌فرض قابل اعتماد نیست — حتی داخل LAN.\n\n## اصول\n1. Verify explicitly (هویت + دستگاه + زمینه)\n2. Least privilege\n3. Assume breach\n\n## اجزا\n- Identity (IdP / MFA)\n- Device posture\n- Micro-segmentation\n- Continuous monitoring\n\n## در عمل شبکه\n- 802.1X روی access\n- VPN با MFA\n- Segment بین OT/IT\n- عدم اعتماد به «فقط IP داخلی»\n",
+      "commands": "show aaa servers\nshow authentication sessions\nshow access-lists",
+      "examples": "سه کنترل که فردا در Campus می‌توانی شروع کنی را بنویس.\n",
+      "notes": "Zero Trust یک محصول نیست؛ معماری است.\n",
+      "learning_objectives": ["MFA", "micro-seg", "assume breach"]
+    },
+    {
+      "title_fa": "[L3] SIEM سبک برای تیم شبکه",
+      "title_en": "Lightweight SIEM for Network Teams",
+      "chapter_order": 56,
+      "summary": "SIEM سبک برای تیم شبکه",
+      "full_content": "# SIEM سبک\n\nرویدادها: Syslog، authentication fail، VPN connect، interface down.\n\nحداقل:\n- جمع متمرکز\n- همبستگی زمان (NTP)\n- هشدار روی الگوی تکراری\n\nبدون SIEM بزرگ هم می‌شود با ELK/Graylog کوچک شروع کرد.\n",
+      "commands": "show logging\nshow clock\nshow ntp status",
+      "examples": "۵ رویداد که حتماً باید alert داشته باشند.\n",
+      "notes": "لاگ بدون زمان یکسان تقریباً بی‌ارزش است.\n",
+      "learning_objectives": ["جمع لاگ", "alert", "NTP"]
+    },
+    {
+      "title_fa": "[L3] Backup و RPO/RTO عملیاتی",
+      "title_en": "Operational Backup RPO RTO",
+      "chapter_order": 57,
+      "summary": "Backup و RPO/RTO عملیاتی",
+      "full_content": "# Backup عملیاتی\n\n| مفهوم | معنی |\n|--------|------|\n| RPO | چقدر داده ممکن است از دست برود |\n| RTO | چقدر طول می‌کشد سرویس برگردد |\n\nکانفیگ شبکه: نسخه روزانه + قبل از هر change.\nتست restore ماهانه — بکاپ تست‌نشده وجود ندارد.\n",
+      "commands": "copy running-config tftp:\nexport\nshow archive",
+      "examples": "برای Core switch RPO و RTO پیشنهادی تیم کوچک را بنویس.\n",
+      "notes": "بکاپ فقط روی همان دستگاه کافی نیست.\n",
+      "learning_objectives": ["RPO", "RTO", "restore test"]
+    },
+    {
+      "title_fa": "[L3] Change Management شبکه",
+      "title_en": "Network Change Management",
+      "chapter_order": 58,
+      "summary": "Change Management شبکه",
+      "full_content": "# مدیریت تغییر\n\n1. شرح change و rollback\n2. پنجره زمانی\n3. تأیید peer\n4. اجرا + verify\n5. ثبت در لاگ تغییر\n\nبدون change log، RCA بعداً غیرممکن می‌شود.\n",
+      "commands": "show archive config differences\nshow running-config",
+      "examples": "یک change ساده ACL را با rollback بنویس.\n",
+      "notes": "«فقط یک خط» هم change است.\n",
+      "learning_objectives": ["rollback", "window", "peer review"]
+    },
+    {
+      "title_fa": "[L2] مستندسازی زنده توپولوژی",
+      "title_en": "Living Topology Documentation",
+      "chapter_order": 59,
+      "summary": "مستندسازی زنده توپولوژی",
+      "full_content": "# مستند زنده\n\nحداقل: دیاگرام L2/L3، جدول VLAN، IPAM، لیست مدار WAN.\n\nابزار: draw.io + Git؛ تاریخ روی فایل.\n\nبعد از هر پروژه بزرگ دیاگرام را به‌روز کن.\n",
+      "commands": "show cdp neighbors\nshow lldp neighbors\nshow ip route",
+      "examples": "برای یک شعبه سه‌لایه چه صفحات مستند لازم است؟\n",
+      "notes": "دیاگرام شش‌ماهه قدیمی خطرناک‌تر از نبود دیاگرام است.\n",
+      "learning_objectives": ["diagram", "IPAM", "version"]
+    },
+    {
+      "title_fa": "[L3] QoS مبانی در لبه WAN",
+      "title_en": "QoS Basics at WAN Edge",
+      "chapter_order": 60,
+      "summary": "QoS مبانی در لبه WAN",
+      "full_content": "# QoS لبه\n\nهدف: صدای Real-time و کنترل‌های حیاتی در تراکم زنده بمانند.\n\nمراحل مفهومی:\n1. Classification\n2. Marking\n3. Queuing / Policing\n\nاشتباه رایج: QoS پیچیده بدون اندازه‌گیری پایه.\n",
+      "commands": "show policy-map interface\nshow interface | include drops",
+      "examples": "برای لینک 20Mbps چه کلاسی را اولویت می‌دهی؟\n",
+      "notes": "اول bandwidth واقعی را بشناس.\n",
+      "learning_objectives": ["classify", "queue", "WAN"]
+    },
+    {
+      "title_fa": "[L3] SD-WAN تصمیم مسیر",
+      "title_en": "SD-WAN Path Decision",
+      "chapter_order": 61,
+      "summary": "SD-WAN تصمیم مسیر",
+      "full_content": "# SD-WAN\n\nبه‌جای یک default static، مسیر بر اساس latency/loss/jitter و سیاست اپلیکیشن.\n\nUnderlay هنوز IP است؛ Overlay تونل/سیاست.\n\nعیب‌یابی: اول underlay، بعد overlay.\n",
+      "commands": "ping\ntraceroute\nshow ip route",
+      "examples": "اگر MPLS سالم و Internet پرتلاطم است مسیر VoIP کجا برود؟\n",
+      "notes": "SD-WAN جادو نیست؛ مدار خراب را درست نمی‌کند.\n",
+      "learning_objectives": ["underlay", "overlay", "SLA"]
+    },
+    {
+      "title_fa": "[L3] IPv6 Dual Stack عملیاتی",
+      "title_en": "IPv6 Dual Stack Operations",
+      "chapter_order": 62,
+      "summary": "IPv6 Dual Stack عملیاتی",
+      "full_content": "# Dual Stack\n\nIPv4 و IPv6 همزمان روی اینترفیس.\n\nبررسی:\n- آدرس GUA / ULA\n- Default route v6\n- DNS AAAA\n\nمشکل رایج: v4 کار می‌کند v6 شکسته و اپ ترجیح v6 دارد.\n",
+      "commands": "show ipv6 interface brief\nshow ipv6 route\nping ipv6",
+      "examples": "کلاینت به سایت Dual Stack وصل نمی‌شود؛ سه چک اول.\n",
+      "notes": "غیرفعال کردن v6 راه‌حل پایدار نیست.\n",
+      "learning_objectives": ["GUA", "AAAA", "prefer"]
+    },
+    {
+      "title_fa": "[L3] Wireless Controller و AP Discovery",
+      "title_en": "Wireless Controller and AP Discovery",
+      "chapter_order": 63,
+      "summary": "Wireless Controller و AP Discovery",
+      "full_content": "# WLC و AP\n\nAP از DHCP گزینه یا DNS یا broadcast کنترلر را پیدا می‌کند.\n\nCAPWAP برای تونل مدیریت/داده.\n\nعیب‌یابی: DHCP، ACL بین AP و WLC، گواهی/زمان.\n",
+      "commands": "show ap summary\nshow capwap\ndhcp server",
+      "examples": "AP در حالت Discover گیر کرده؛ چک‌لیست.\n",
+      "notes": "NTP روی WLC برای certificate حیاتی است.\n",
+      "learning_objectives": ["CAPWAP", "discovery", "DHCP option"]
+    },
+    {
+      "title_fa": "[L2] Git برای کانفیگ شبکه",
+      "title_en": "Git for Network Configurations",
+      "chapter_order": 64,
+      "summary": "Git برای کانفیگ شبکه",
+      "full_content": "# Git شبکه\n\n- مخزن خصوصی\n- بدون secret در commit\n- branch per change\n- tag برای نسخه production\n\n```\ngit status\ngit diff\ngit log --oneline\n```\n\nهمراه با export منظم از دستگاه.\n",
+      "commands": "git status\ngit diff\ngit log --oneline -5",
+      "examples": "قبل از change بزرگ چه commit messageای می‌نویسی؟\n",
+      "notes": "رمز را در Git نگذار.\n",
+      "learning_objectives": ["diff", "branch", "no secrets"]
+    },
+    {
+      "title_fa": "[L3] Ansible ادهاب شبکه — Idempotent",
+      "title_en": "Ansible Network Ad-hoc Idempotent",
+      "chapter_order": 65,
+      "summary": "Ansible ادهاب شبکه — Idempotent",
+      "full_content": "# Ansible شبکه\n\nPlaybook باید Idempotent باشد: اجرای دوباره خراب نکند.\n\nInventory جدا از playbook.\nVault برای secret.\n\n```\nansible-playbook site.yml --check\n```\n",
+      "commands": "ansible all -m ping\nansible-playbook site.yml --check",
+      "examples": "یک task تنظیم NTP را ایده‌آل Idempotent توصیف کن.\n",
+      "notes": "بدون --check روی production خطرناک است.\n",
+      "learning_objectives": ["idempotent", "inventory", "vault"]
+    },
+    {
+      "title_fa": "[L3] امنیت وایرلس WPA3 و 802.1X",
+      "title_en": "Wireless Security WPA3 and 8021X",
+      "chapter_order": 66,
+      "summary": "امنیت وایرلس WPA3 و 802.1X",
+      "full_content": "# امنیت وایرلس\n\nWPA3-Enterprise با 802.1X برای سازمان.\nPSK فقط برای مهمان با ایزوله.\n\nحملات رایج: Evil Twin، رمز ضعیف PSK، مدیریت باز AP.\n\nMonitor: association fail، rogue AP.\n",
+      "commands": "show wireless client summary\nshow wlan\nshow ap",
+      "examples": "برای مهمان و کارمند چه SSID/سیاستی جدا می‌کنی؟\n",
+      "notes": "یک PSK مشترک برای کل شرکت = یک نقطه شکست.\n",
+      "learning_objectives": ["WPA3", "802.1X", "guest"]
+    },
+    {
+      "title_fa": "[L4] Capstone — شعبه جدید در یک هفته",
+      "title_en": "Capstone New Branch in One Week",
+      "chapter_order": 67,
+      "summary": "Capstone — شعبه جدید در یک هفته",
+      "full_content": "# Capstone شعبه\n\nروز ۱: IPAM، VLAN، دیاگرام\nروز ۲: سوییچ access/core، trunk\nروز ۳: فایروال/NAT، DNS، DHCP\nروز ۴: VPN به مرکز، مانیتور\nروز ۵: تست failover و مستند\n\nتحویل: جدول IP، دستورات کلیدی، چک‌لیست Go-Live.\n",
+      "commands": "show ip interface brief\nshow vlan brief\nshow crypto session\nping\ntraceroute",
+      "examples": "چک‌لیست ۱۰ موردی Go-Live بنویس.\n",
+      "notes": "بدون بکاپ کانفیگ Go-Live نکن.\n",
+      "learning_objectives": ["plan", "implement", "verify"]
+    },
+    {
+      "title_fa": "[L3] اخلاق عملی و دسترسی ممتاز",
+      "title_en": "Operational Ethics and Privileged Access",
+      "chapter_order": 68,
+      "summary": "اخلاق عملی و دسترسی ممتاز",
+      "full_content": "# دسترسی ممتاز\n\n- حساب شخصی با sudo/enable جدا\n- MFA برای admin\n- لاگ دستورات حساس\n- قطع دسترسی جداشده‌ها همان روز\n\nابزار قدرت بدون حسابرسی = ریسک سازمانی.\n",
+      "commands": "show privilege\nshow users\nshow logging | include USER",
+      "examples": "سه قانون دسترسی admin که در تیم می‌گذاری.\n",
+      "notes": "اشتراک پسورد enable بین همه ممنوع.\n",
+      "learning_objectives": ["MFA", "audit", "offboarding"]
+    },
+    {
+      "title_fa": "[L3] Load Balancer لایه ۴ و ۷",
+      "title_en": "L4 and L7 Load Balancing",
+      "chapter_order": 50,
+      "summary": "Load Balancer لایه ۴ و ۷",
+      "full_content": "# LB\n\nL4: IP/Port — سریع\nL7: HTTP host/path — هوشمند\n\nHealth check حیاتی است؛ بدون آن ترافیک به backend مرده می‌رود.\n\nSession persistence وقتی لازم است (نه همیشه).\n",
+      "commands": "curl -I http://vip\nshow server health",
+      "examples": "برای API بدون session چه الگوریتمی؟\n",
+      "notes": "Health check باید همان مسیر واقعی را لمس کند.\n",
+      "learning_objectives": ["L4", "L7", "health"]
+    },
+    {
+      "title_fa": "[L3] Paramiko / Netmiko اتصال امن",
+      "title_en": "Paramiko Netmiko Secure Access",
+      "chapter_order": 51,
+      "summary": "Paramiko / Netmiko اتصال امن",
+      "full_content": "# اتوماسیون SSH\n\n- کلید به‌جای پسورد\n- known_hosts\n- timeout و retry محدود\n- لاگ دستورات\n\nهرگز credential را hardcode نکن.\n",
+      "commands": "python -c \"import netmiko\"\nssh user@host",
+      "examples": "یک اسکریپت backup running-config را مرحله‌بندی کن.\n",
+      "notes": "Vault یا env برای secret.\n",
+      "learning_objectives": ["SSH key", "timeout", "no hardcode"]
+    },
+    {
+      "title_fa": "[L3] FortiGate Policy مرتب‌سازی",
+      "title_en": "FortiGate Policy Ordering",
+      "chapter_order": 52,
+      "summary": "FortiGate Policy مرتب‌سازی",
+      "full_content": "# Policy Order\n\nاولین match برنده است.\nقانون کلی بالا؛ استثنا پایین‌تر با دقت.\n\nShadow rule = قانون مرده زیر قانون کلی‌تر.\n\n```\ndiagnose firewall iprope lookup\n```\n",
+      "commands": "show firewall policy\ndiagnose firewall iprope lookup",
+      "examples": "چرا یک allow پایین هرگز hit نمی‌خورد؟\n",
+      "notes": "بعد از تغییر policy، sessionهای قدیمی را در نظر بگیر.\n",
+      "learning_objectives": ["first match", "shadow", "lookup"]
+    },
+    {
+      "title_fa": "[L3] MikroTik FastTrack و استثنا",
+      "title_en": "MikroTik FastTrack and Exceptions",
+      "chapter_order": 53,
+      "summary": "MikroTik FastTrack و استثنا",
+      "full_content": "# FastTrack\n\nشتاب forward برای ترافیک established.\nاستثنا: ترافیکی که نیاز به connection tracking ویژه / queue پیچیده دارد.\n\nاشتباه: FastTrack همه‌چیز بدون فهم connection.\n",
+      "commands": "/ip firewall filter print\n/ip firewall connection print",
+      "examples": "چه ترافیکی را از FastTrack خارج می‌کنی؟\n",
+      "notes": "عیب‌یابی با disable موقت FastTrack گاهی روشنگر است.\n",
+      "learning_objectives": ["fasttrack", "connection", "exception"]
+    },
+    {
+      "title_fa": "[L2] Issabel/Asterisk SIP پایه شبکه",
+      "title_en": "Issabel Asterisk SIP Network Basics",
+      "chapter_order": 54,
+      "summary": "Issabel/Asterisk SIP پایه شبکه",
+      "full_content": "# SIP و شبکه\n\nپورت‌های رایج: 5060 SIP، RTP رنج میانی.\nNAT و SIP مشکل‌سازند؛ ALG گاهی خراب‌تر می‌کند.\n\nکیفیت صدا: jitter/latency/loss — QoS و پهنای باند.\n",
+      "commands": "sip show peers\nrtp set debug on\nping",
+      "examples": "یک‌طرفه بودن صدا؛ سه علت شبکه‌ای.\n",
+      "notes": "بدون NTP ثبت و لاگ SIP گیج‌کننده است.\n",
+      "learning_objectives": ["SIP", "RTP", "NAT"]
+    }
+  ]
+}
