@@ -85,12 +85,30 @@ def ensure_chapters_1_to_68(curriculum: list) -> list:
         )
     if 68 not in by:
         packs = ROOT / "tools" / "packs" / "commands_encyclopedia"
-        levels = None
-        for name in ("cisco_switching.json", "mikrotik.json"):
-            lv = _lessons_from_pack_json(packs / name, limit=150)
-            if lv:
-                levels = levels or []
-                levels.append((name.replace(".json", ""), lv[0][1]))
+        name_map = {
+            "cisco_switching.json": "سیسکو — سوییچینگ و دستورات پایه",
+            "mikrotik.json": "میکروتیک — RouterOS و دستورات",
+            "fortigate.json": "FortiGate — FortiOS",
+            "linux.json": "لینوکس — شبکه و سیستم",
+            "windows.json": "ویندوز — PowerShell و شبکه",
+        }
+        levels = []
+        for name, title_fa in name_map.items():
+            lv = _lessons_from_pack_json(packs / name, limit=200)
+            if not lv:
+                continue
+            items = []
+            for lfa, len_ in lv[0][1]:
+                short = lfa
+                if not any(x in short for x in ("سیسکو", "میکروتیک", "Cisco", "MikroTik", "Forti", "Linux", "Windows", "لینوکس", "ویندوز")):
+                    if short.startswith("["):
+                        parts = short.split("]", 1)
+                        if len(parts) == 2:
+                            short = parts[0] + "] " + title_fa.split("—")[0].strip() + " ·" + parts[1]
+                    else:
+                        short = title_fa.split("—")[0].strip() + " · " + short
+                items.append((short, len_))
+            levels.append((title_fa, items))
         if not levels:
             levels = _minimal("دانشنامه دستورات", "Commands Encyclopedia")
         by[68] = (
