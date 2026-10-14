@@ -83,21 +83,39 @@ class FlashcardActivity : AppCompatActivity() {
     private suspend fun loadQueue() {
         val dao = AppDatabase.get(this).lessonDao()
         val chapterFilter = intent.getStringExtra("chapter")
-        val due = withContext(Dispatchers.IO) { study.dueNow(40) }
-        var lessons = if (due.isNotEmpty()) due.mapNotNull { withContext(Dispatchers.IO) { dao.byUid(it.lessonUid) } }
-        else withContext(Dispatchers.IO) { dao.allActive().filter { it.summary.isNotBlank() || it.fullContent.isNotBlank() }.shuffled().take(50) }
-        if (!chapterFilter.isNullOrBlank()) {
-            lessons = lessons.filter { it.chapterTitle == chapterFilter }
-            if (lessons.isEmpty()) {
-                lessons = withContext(Dispatchers.IO) {
-                    dao.allActive().filter { it.chapterTitle == chapterFilter }.shuffled().take(40)
-                }
-            }
+        val fromEasy = intent.getBooleanExtra("from_easy", false)
+        val allActive = withContext(Dispatchers.IO) { dao.allActive() }
+        val scoped = allActive.filter {
+            chapterFilter.isNullOrBlank() || it.chapterTitle == chapterFilter
         }
-        queue = lessons.toMutableList(); index = 0; showBack = false
-        if (queue.isEmpty()) { title.text = "کارتی نیست"; body.text = "ابتدا فهرست درختی یا بازسازی محتوا." } else render()
+        val contentLessons = scoped.filter { it.summary.isNotBlank() || it.fullContent.isNotBlank() }
+        val easyLessons = contentLessons.filter { isEasyLevel(it.tags) }
+        val due = withContext(Dispatchers.IO) { study.dueNow(40) }
+        val byUid = allActive.associateBy { it.uid }
+        val dueInScope = due.mapNotNull { byUid[it.lessonUid] }
+            .filter { chapterFilter.isNullOrBlank() || it.chapterTitle == chapterFilter }
+
+        val lessons = when {
+            fromEasy && easyLessons.isNotEmpty() -> easyLessons.shuffled().take(40)
+            !fromEasy && dueInScope.isNotEmpty() -> dueInScope
+            contentLessons.isNotEmpty() -> contentLessons.shuffled().take(if (fromEasy) 40 else 50)
+            else -> scoped.shuffled().take(40)
+        }
+
+        queue = lessons.toMutableList()
+        index = 0
+        showBack = false
+        if (queue.isEmpty()) {
+            title.text = "کارتی نیست"
+            body.text = "در این فصل درس قابل مرور پیدا نشد. فهرست درختی یا بازسازی محتوا را بررسی کنید."
+        } else {
+            render()
+        }
         refreshProgress()
     }
+
+    private fun isEasyLevel(tags: String): Boolean =
+        Regex("""(^|[\\s,;|])L[01]($|[\\s,;|])""", RegexOption.IGNORE_CASE).containsMatchIn(tags)
 
     private fun refreshProgress() {
         progress.text = "جلسه: $sessionDone کارت · صف: ${queue.size} · حالت: ${modeLabel()}"
