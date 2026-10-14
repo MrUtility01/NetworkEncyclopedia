@@ -115,7 +115,7 @@ class FlashcardActivity : AppCompatActivity() {
     }
 
     private fun isEasyLevel(tags: String): Boolean =
-        Regex("""(^|[\\s,;|])L[01]($|[\\s,;|])""", RegexOption.IGNORE_CASE).containsMatchIn(tags)
+        Regex("""(^|[\s,;|])L[01]($|[\s,;|])""", RegexOption.IGNORE_CASE).containsMatchIn(tags)
 
     private fun refreshProgress() {
         progress.text = "جلسه: $sessionDone کارت · صف: ${queue.size} · حالت: ${modeLabel()}"
