@@ -155,7 +155,7 @@ class LessonDetailActivity : AppCompatActivity() {
     }
 
     private fun escapeHtml(s: String): String =
-        s.replace("&", "&").replace("<", "<").replace(">", ">")
+        s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
     private fun toHtml(raw: String): String {
         val parts = mutableListOf<String>()
