@@ -141,9 +141,9 @@ class InfographicsActivity : AppCompatActivity() {
             val start = ((680 - total) / 2).coerceAtLeast(8)
             val boxes = labels.mapIndexed { index, label ->
                 val x = start + index * (bw + gap)
-                """<rect x="$x" y="65" width="$bw" height="42" rx="8" fill="#dbeafe" stroke="#2563eb"/><text x="$\{x + bw / 2}" y="90" text-anchor="middle" font-size="11" fill="#0f172a">$\{escapeHtml(label)}</text>"""
+                """<rect x="$x" y="65" width="$bw" height="42" rx="8" fill="#dbeafe" stroke="#2563eb"/><text x="${x + bw / 2}" y="90" text-anchor="middle" font-size="11" fill="#0f172a">${escapeHtml(label)}</text>"""
             }.joinToString("")
-            Diagram(title, """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 135" width="100%"><text x="16" y="25" font-size="14" fill="#0f172a">$\{escapeHtml(title)}</text>$boxes</svg>""")
+            Diagram(title, """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 135" width="100%"><text x="16" y="25" font-size="14" fill="#0f172a">${escapeHtml(title)}</text>$boxes</svg>""")
         }
     }
 
