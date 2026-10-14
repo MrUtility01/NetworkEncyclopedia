@@ -7,6 +7,15 @@ on:
     paths:
       - "server/core/**"
       - "scripts/export_android_index.py"
+      - "scripts/build_infographics_asset.py"
+      - "android/**"
+      - ".github/workflows/build-apk.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "server/core/**"
+      - "scripts/export_android_index.py"
+      - "scripts/build_infographics_asset.py"
       - "android/**"
       - ".github/workflows/build-apk.yml"
 
@@ -52,7 +61,9 @@ jobs:
           set -e
           python3 scripts/export_android_index.py
           python3 scripts/merge_content_packs_into_android.py || true
+          python3 scripts/build_infographics_asset.py
           ls -la android/app/src/main/assets/curriculum_index.json.gz
+          ls -lh android/app/src/main/assets/infographics.json
 
       - name: local.properties
         run: |
