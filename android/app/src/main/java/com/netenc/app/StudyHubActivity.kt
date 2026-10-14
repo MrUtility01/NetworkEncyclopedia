@@ -60,6 +60,10 @@ class StudyHubActivity : AppCompatActivity() {
             })
             addView(section("شروع هوشمند"))
             addView(btn("انتخاب فصل → کارت از سطح سبک", Ui.ACCENT) { pickChapterForCards() })
+            addView(section("دیاگرام‌ها و تصویرسازی"))
+            addView(btn("گالری آفلاین دیاگرام‌های شبکه", Color.parseColor("#0F766E")) {
+                startActivity(Intent(this@StudyHubActivity, InfographicsActivity::class.java))
+            })
             addView(section("مرور SRS"))
             addView(btn("مرور مفهوم", Color.parseColor("#1D4ED8")) {
                 startActivity(Intent(this@StudyHubActivity, FlashcardActivity::class.java).putExtra("mode", "review"))
