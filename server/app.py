@@ -133,7 +133,7 @@ def _apply_content_packs_if_needed(database: WebDB, force: bool = False):
         return {"ok": False, "pending": True, "reason": "seed_not_complete"}
 
     required = {
-        "ch34_m365_intune_email_professional.json": 45,
+        "ch34_m365_intune_email_professional.json": 60,
         "ch35_powershell_cmd_professional.json": 75,
         "ch36_linux_admin_professional.json": 45,
         "ch37_linux_network_professional.json": 45,
