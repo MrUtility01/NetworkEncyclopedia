@@ -326,6 +326,12 @@ def main():
     data = json.loads(gzip.open(GZ, "rt", encoding="utf-8").read())
     packs = find_pack_files()
     print("packs", len(packs))
+    required_professional_counts = {
+        "ch36_linux_admin_professional.json": 45,
+        "ch37_linux_network_professional.json": 45,
+        "ch38_linux_web_services_professional.json": 40,
+        "ch39_linux_security_professional.json": 45,
+    }
     sec, wireless = [], []
     routing_extra, vpn_extra, cmd_extra = [], [], []
     for p in packs:
@@ -349,6 +355,10 @@ def main():
             cmd_extra.extend(lessons)
             continue
         n = merge_by_title(data, lessons)
+        expected_count = required_professional_counts.get(p.name)
+        if expected_count is not None and n != expected_count:
+            print(" ERROR professional chapter title-merge:", p.name, "expected", expected_count, "actual", n)
+            sys.exit(2)
         print("   title-merge", n)
         if "ospf" in name or "bgp" in name or "redistribution" in name or "routing_deep" in name:
             routing_extra.extend(lessons)
