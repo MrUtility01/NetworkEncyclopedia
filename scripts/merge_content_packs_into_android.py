@@ -201,9 +201,35 @@ def normalize_pack(path: Path, data: dict):
 
 
 def apply_fields(les, src):
+    """Merge a matched pack lesson without dropping its assessment metadata.
+
+    The Android curriculum's stable lesson record is matched by canonical title.
+    Text fields update in place; question banks and answer keys are serialized to
+    the same EJ markers already used by command packs so downstream readers can
+    recover them without changing the chapter skeleton or lesson UID.
+    """
     for k in ("summary", "full_content", "commands", "examples", "notes"):
         if src.get(k):
             les[k] = as_text(src.get(k)) if k != "full_content" else (src.get(k) or "")
+
+    notes = as_text(les.get("notes"))
+    meta = src.get("meta") or {}
+    for key in ("assessment", "flashcards"):
+        value = meta.get(key)
+        marker = f"<!-- EJ_{key.upper()}\\n"
+        if value and marker not in notes:
+            if notes and not notes.endswith("\\n"):
+                notes += "\\n"
+            notes += marker + json.dumps(value, ensure_ascii=False) + "\\n-->\\n"
+    objectives = src.get("learning_objectives") or []
+    if objectives:
+        marker = "<!-- EJ_LEARNING_OBJECTIVES\\n"
+        if marker not in notes:
+            if notes and not notes.endswith("\\n"):
+                notes += "\\n"
+            notes += marker + json.dumps(objectives, ensure_ascii=False) + "\\n-->\\n"
+    if notes:
+        les["notes"] = notes
 
 
 def merge_by_title(data, lessons):
