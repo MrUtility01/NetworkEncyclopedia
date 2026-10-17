@@ -334,7 +334,7 @@ def _assessment_note(assessment):
     normalized = _assessment_for_android(assessment)
     if not normalized.get("questions"):
         return ""
-    return "\\n\\n<!-- EJ_ASSESSMENT\\n" + json.dumps(normalized, ensure_ascii=False) + "\\n-->\\n"
+    return "\n\n<!-- EJ_ASSESSMENT\n" + json.dumps(normalized, ensure_ascii=False) + "\n-->\n"
 
 
 def _lab_text(lab):
@@ -357,7 +357,7 @@ def _lab_text(lab):
     lines += ["", "## تحویل‌دادنی‌ها"]
     lines.extend("- " + str(x) for x in (lab.get("deliverables") or []))
     lines += ["", "## بازگشت / پاک‌سازی", str(lab.get("rollback") or "پاک‌سازی محیط آزمایش و بازگردانی baseline.")]
-    return "\\n".join(lines)
+    return "\n".join(lines)
 
 
 def append_professional_pack_to_chapter(data, pack, order):
@@ -410,7 +410,7 @@ def append_professional_pack_to_chapter(data, pack, order):
             "full_content": full,
             "commands": "",
             "examples": full,
-            "notes": "نوع محتوا: لابراتوار عملی\\nمجوز/محدوده: " + str(lab.get("authorization") or "محیط آزمایشگاهی مجاز") + "\\nبازگشت: " + str(lab.get("rollback") or ""),
+            "notes": "نوع محتوا: لابراتوار عملی\nمجوز/محدوده: " + str(lab.get("authorization") or "محیط آزمایشگاهی مجاز") + "\nبازگشت: " + str(lab.get("rollback") or ""),
         })
 
     final_assessment = pack.get("assessment") or {}
