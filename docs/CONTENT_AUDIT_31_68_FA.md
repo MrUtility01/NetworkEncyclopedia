@@ -129,3 +129,15 @@ python tools/audit_content.py --db server/data/encyclopedia.db --json docs/conte
 اولین اجرای خودکار بررسی منبع، compile پایتون را با موفقیت گذراند اما ۵ فایل قدیمی با JSON نامعتبر پیدا کرد: `rich_deep_pack_v11.json`، `rich_deep_pack_v17.json`، `rich_deep_pack_v19.json`، `rich_deep_pack_v21.json` و `real_lessons_core_pack.json`. در مرحلهٔ اصلاح، فقط newline/control character و escapeهای نامعتبر داخل رشته‌ها اصلاح شدند؛ هیچ رکوردی حذف نشد و محتوای معنایی بازنویسی نشد. هر پنج فایل پس از اصلاح با JSON.parse اعتبارسنجی شدند. اجرای CI بعدی باید دوباره این نتیجه را تأیید کند.
 
 همچنین فرمان‌نامه‌ها از schema درس معمولی استفاده نمی‌کنند؛ ممیزی برای آن‌ها فیلدهای `command` و `usage` را هم محتوای معتبر حساب می‌کند. حالت پیش‌فرض ممیزی هشدار می‌دهد اما اجازه می‌دهد build ادامه یابد؛ با `--strict` وجود JSON نامعتبر باعث خروج غیرصفر می‌شود. این تغییر، خطاهای legacy را پنهان یا رفع‌شده اعلام نمی‌کند.
+
+
+## نتیجهٔ اعتبارسنجی خودکار پس از اصلاح (۱۷ اکتبر ۲۰۲۶)
+
+در commit `2dfc7140a9f2f4a0a252380d425d80651835d9a0`:
+
+- **ممیزی JSON:** ۶۷ فایل بررسی شد و تعداد فایل‌های JSON نامعتبر **صفر** بود.
+- **Windows x64:** workflow موفق شد؛ مرحلهٔ compile، ساخت executable و smoke test سرویس `/api/health`، seed محتوا و اعمال بسته‌ها همگی سبز بودند. ZIP خروجی حدود ۱۶٫۴۵ مگابایت است.
+- **Android:** workflow موفق شد؛ ممیزی JSON، export و merge بسته‌ها و `assembleDebug` همگی موفق بودند. APK خروجی حدود ۱۴٫۹۴ مگابایت است.
+- فایل‌های خروجی در artifacts این دو workflow نگه‌داری می‌شوند: [Windows build](https://github.com/MrUtility01/NetworkEncyclopedia/actions/runs/39032787017) و [Android APK build](https://github.com/MrUtility01/NetworkEncyclopedia/actions/runs/39032787045).
+
+این نتیجه، build و smoke test خودکار را تأیید می‌کند؛ جایگزین نصب APK روی دستگاه واقعی یا ممیزی دیتابیس موجود روی رایانهٔ کاربر نیست. همچنین هنوز به این معنی نیست که پوشه‌های `tools/chapters/1..68` ساخته شده‌اند یا تمام فصل‌های ۶۴–۶۸ در دیتابیس Windows به‌طور مستقل شمارش و تطبیق شده‌اند.
