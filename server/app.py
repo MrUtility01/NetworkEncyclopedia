@@ -135,7 +135,7 @@ def _apply_content_packs_if_needed(database: WebDB):
     required = {
         "ch36_linux_admin_professional.json": 45,
         "ch37_linux_network_professional.json": 45,
-        "ch38_vmware_hyperv_professional.json": 70,
+        "ch38_linux_web_services_professional.json": 40,
         "ch39_linux_security_professional.json": 45,
     }
     try:
