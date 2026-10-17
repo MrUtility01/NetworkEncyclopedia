@@ -122,3 +122,10 @@ python tools/audit_content.py --db server/data/encyclopedia.db --json docs/conte
 ```
 
 گزارش اول JSONهای منبع را می‌سنجد؛ گزارش دوم رکوردهای واقعاً ذخیره‌شده در SQLite را می‌سنجد. هر دو باید بررسی شوند، پیش از آن‌که غنی‌سازی کامل اعلام شود.
+
+
+### نتیجهٔ اولین اجرای CI روی شاخهٔ ممیزی
+
+اولین اجرای خودکار بررسی منبع، compile پایتون را با موفقیت گذراند اما در مرحلهٔ ممیزی JSON به ۵ فایل قدیمی با JSON نامعتبر رسید: `tools/packs/ordered_fill/rich_deep_pack_v11.json`، `rich_deep_pack_v17.json`، `rich_deep_pack_v19.json`، `rich_deep_pack_v21.json` و `tools/packs/real_lessons_core/real_lessons_core_pack.json`. خطاها شامل control character یا escape نامعتبر و در فایل آخر delimiter مفقود است. این فایل‌ها حذف نشده‌اند و برای جلوگیری از تغییر مخرب محتوا باید جداگانه تعمیر و دوباره اعتبارسنجی شوند.
+
+همچنین فرمان‌نامه‌ها از schema درس معمولی استفاده نمی‌کنند؛ ممیزی برای آن‌ها فیلدهای `command` و `usage` را هم محتوای معتبر حساب می‌کند. حالت پیش‌فرض ممیزی هشدار می‌دهد اما اجازه می‌دهد build ادامه یابد؛ با `--strict` وجود JSON نامعتبر باعث خروج غیرصفر می‌شود. این تغییر، خطاهای legacy را پنهان یا رفع‌شده اعلام نمی‌کند.

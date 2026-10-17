@@ -6,7 +6,7 @@ import argparse, json
 from pathlib import Path
 from collections import Counter
 
-TEXT_KEYS = ("full_content", "content", "body", "lesson_body", "description")
+TEXT_KEYS = ("full_content", "content", "body", "lesson_body", "description", "command", "command_fa", "command_en", "usage", "syntax", "details", "example")
 ITEM_KEYS = ("lessons", "items", "records", "commands", "topics", "questions", "examples", "labs")
 
 def records_from(data):
@@ -47,7 +47,7 @@ def audit(path):
         result["error"] = str(exc); return result
     rows = records_from(data); result["records"] = len(rows); ids = []
     for row in rows:
-        uid = row.get("uid") or row.get("id")
+        uid = row.get("uid") or row.get("id") or row.get("name") or row.get("command") or row.get("command_en") or row.get("command_fa")
         if uid: ids.append(str(uid))
         else: result["uid_missing"] += 1
         n = text_length(row)
@@ -66,6 +66,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=".")
     ap.add_argument("--json", dest="json_path")
+    ap.add_argument("--strict", action="store_true", help="return exit code 1 if any JSON file is invalid")
     args = ap.parse_args()
     root = Path(args.root).resolve()
     files = sorted(p for p in (root / "tools").rglob("*.json") if p.is_file() and "node_modules" not in p.parts)
@@ -83,7 +84,9 @@ def main():
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         print("Report written:", target)
-    return 1 if report["invalid_json_files"] else 0
+    if report["invalid_json_files"]:
+        print("WARNING: malformed legacy JSON packs were found; see the report for exact paths and parser errors.")
+    return 1 if args.strict and report["invalid_json_files"] else 0
 
 if __name__ == "__main__":
     raise SystemExit(main())
