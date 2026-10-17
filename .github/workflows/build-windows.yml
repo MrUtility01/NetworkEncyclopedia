@@ -92,7 +92,7 @@ jobs:
               }
               try {
                 $response = Invoke-RestMethod -Uri "http://127.0.0.1:5083/api/health" -TimeoutSec 2
-                if ($response.ok -and $response.content_seeded -and $response.packs_applied -eq "v36-ch36-ch37-ch38-ch39") {
+                if ($response.ok -and $response.content_seeded -and $response.packs_applied -eq "v34-ch34-ch35-ch36-ch37-ch38-ch39") {
                   $healthy = $true
                   break
                 }
