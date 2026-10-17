@@ -114,7 +114,7 @@ class TreeCatalogActivity : AppCompatActivity() {
                     textSize = 16f
                     typeface = Ui.persianTypeface()
                 }
-                val n = tree[g].subs.fold(0) { total, sub -> total + sub.lessons.size }
+                val n: Int = tree[g].subs.fold(0) { total: Int, sub: SubNode -> total + sub.lessons.size }
                 tv.text = "فصل ${tree[g].order} — ${tree[g].title}  ($n درس)"
                 tv.setTextColor(Ui.TEXT)
                 tv.setBackgroundColor(Ui.CARD)
