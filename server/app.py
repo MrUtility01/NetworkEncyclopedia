@@ -125,9 +125,9 @@ def get_lan_ips():
 
 PACK_CONTENT_VERSION = "v36-ch36-ch37-ch38-ch39"
 
-def _apply_content_packs_if_needed(database: WebDB):
+def _apply_content_packs_if_needed(database: WebDB, force: bool = False):
     """Apply and verify required lesson packs only after the full lesson seed completes."""
-    if database.get_meta("packs_applied") == PACK_CONTENT_VERSION:
+    if not force and database.get_meta("packs_applied") == PACK_CONTENT_VERSION:
         return {"ok": True, "skipped": True, "version": PACK_CONTENT_VERSION}
     if not database.is_seeded():
         return {"ok": False, "pending": True, "reason": "seed_not_complete"}
@@ -337,7 +337,7 @@ def apply_packs():
     if denied:
         return denied
     try:
-        result = _apply_content_packs_if_needed(db())
+        result = _apply_content_packs_if_needed(db(), force=True)
         status = 200 if result.get("ok") else 503
         return jsonify(result), status
     except Exception as e:
@@ -349,7 +349,9 @@ def reseed():
     denied = require_token()
     if denied:
         return denied
-    result = db().seed_full(force=True, skeleton_only=True)
+    database = db()
+    database.set_meta("packs_applied", "")  # Force professional packs to be reapplied after reseeding.
+    result = database.seed_full(force=True, skeleton_only=True)
     # Do not apply rich packs to the skeleton while the background seed is still running.
     def _bg():
         try:
