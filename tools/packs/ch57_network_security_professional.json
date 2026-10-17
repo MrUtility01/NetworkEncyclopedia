@@ -605,7 +605,16 @@
         "مبدأ جعلی در مرز آزمایشگاه رد می‌شود",
         "ترافیک معتبر چندمسیره ناخواسته حذف نمی‌شود"
       ],
-      "rollback": "غیرفعال‌سازی کنترل آزمایشگاهی و بازگرداندن پیکربندی baseline"
+      "rollback": "غیرفعال‌سازی کنترل آزمایشگاهی و بازگرداندن پیکربندی baseline",
+      "topology": [
+        "uRPF",
+        [
+          "Edge router in isolated lab",
+          "Symmetric test prefix",
+          "Asymmetric test prefix",
+          "Monitoring/log collector"
+        ]
+      ]
     },
     {
       "id": "NETSEC-LAB-03",
@@ -623,7 +632,16 @@
         "قواعد موقت تاریخ انقضا دارند",
         "تغییر با ticket و rollback ثبت شده است"
       ],
-      "rollback": "بازگرداندن snapshot policy"
+      "rollback": "بازگرداندن snapshot policy",
+      "topology": [
+        "فایروال",
+        [
+          "Client VLAN",
+          "Test application server",
+          "Firewall policy zone",
+          "Central log collector"
+        ]
+      ]
     },
     {
       "id": "NETSEC-LAB-04",
@@ -641,7 +659,16 @@
         "false positiveها دسته‌بندی شده‌اند",
         "هیچ مسدودسازی تولیدی انجام نمی‌شود"
       ],
-      "rollback": "بازگرداندن قواعد قبلی و توقف سنسور آزمایشی"
+      "rollback": "بازگرداندن قواعد قبلی و توقف سنسور آزمایشی",
+      "topology": [
+        "IDS",
+        [
+          "Mirrored test traffic source",
+          "IDS sensor in passive mode",
+          "Test server",
+          "Alert console"
+        ]
+      ]
     },
     {
       "id": "NETSEC-LAB-05",
@@ -659,7 +686,16 @@
         "کاربر فقط به مقصدهای مجاز دسترسی دارد",
         "لغو دسترسی قابل اثبات است"
       ],
-      "rollback": "حذف حساب‌ها و کلیدهای آزمایشی و پاک‌سازی محیط"
+      "rollback": "حذف حساب‌ها و کلیدهای آزمایشی و پاک‌سازی محیط",
+      "topology": [
+        "VPN",
+        [
+          "Test user/device",
+          "VPN gateway in lab",
+          "Identity provider/test account",
+          "Protected test subnet"
+        ]
+      ]
     }
   ],
   "assessment": {
