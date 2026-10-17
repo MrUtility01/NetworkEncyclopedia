@@ -41,7 +41,7 @@ def _tokens(title: str) -> List[str]:
     return [w for w in _norm_title(title).split() if len(w) >= 3 and w not in _STOP]
 
 
-def _lesson_fields(raw: Dict[str, Any]) -> Optional[Dict[str, str]]:
+def _lesson_fields(raw: Dict[str, Any], inherited_chapter_order: Any = None) -> Optional[Dict[str, Any]]:
     title = (raw.get("title_fa") or raw.get("title") or raw.get("name") or "").strip()
     full = (
         raw.get("full_content")
@@ -66,6 +66,7 @@ def _lesson_fields(raw: Dict[str, Any]) -> Optional[Dict[str, str]]:
         "learning_objectives": _as_text(raw.get("learning_objectives") or ""),
         "meta_json": json.dumps(raw.get("meta") or {}, ensure_ascii=False),
         "source_status": str(raw.get("source_status") or ""),
+        "chapter_order": raw.get("chapter_order") or raw.get("chapterOrder") or raw.get("chapter_order_index") or inherited_chapter_order,
     }
 
 
@@ -78,8 +79,8 @@ def load_lessons_from_file(path: Path) -> List[Dict[str, str]]:
 
     out: List[Dict[str, str]] = []
 
-    def add(item: dict):
-        f = _lesson_fields(item)
+    def add(item: dict, inherited_chapter_order: Any = None):
+        f = _lesson_fields(item, inherited_chapter_order)
         if f:
             out.append(f)
 
@@ -101,6 +102,7 @@ def load_lessons_from_file(path: Path) -> List[Dict[str, str]]:
     if isinstance(curriculum, dict):
         for ch in curriculum.get("chapters") or []:
             for col in ch.get("collections") or []:
+                chapter_order = ch.get("chapter_order") or ch.get("order_index") or ch.get("order") or ch.get("chapter")
                 for les in col.get("lessons") or []:
                     for sub in les.get("sub_lessons") or [les]:
                         if not isinstance(sub, dict):
@@ -108,7 +110,7 @@ def load_lessons_from_file(path: Path) -> List[Dict[str, str]]:
                         merged = dict(sub)
                         if not merged.get("title_fa"):
                             merged["title_fa"] = les.get("title_fa") or ""
-                        add(merged)
+                        add(merged, chapter_order)
 
     return out
 
@@ -161,45 +163,52 @@ def _score(pack_title: str, db_title: str) -> float:
     return max(jacc, cover * 0.85)
 
 
-def match_lesson_id(conn: sqlite3.Connection, title: str) -> Optional[int]:
+def match_lesson_id(conn: sqlite3.Connection, title: str, chapter_order: Any = None) -> Optional[int]:
     title = (title or "").strip()
     if not title:
         return None
-    # Prefer the exact canonical title so L0-L4 versions never collapse onto one row.
-    exact = conn.execute("SELECT id FROM lessons WHERE title_fa=? ORDER BY id LIMIT 1", (title,)).fetchone()
+    try:
+        chapter_order = int(chapter_order) if chapter_order is not None else None
+    except (TypeError, ValueError):
+        chapter_order = None
+
+    # Chapter-aware matching prevents a lesson from one pack overwriting a same-named lesson elsewhere.
+    join = " JOIN levels lv ON lv.id=lessons.level_id JOIN chapters ch ON ch.id=lv.chapter_id " if chapter_order is not None else ""
+    scope = " AND ch.order_index=?" if chapter_order is not None else ""
+    args = [chapter_order] if chapter_order is not None else []
+    exact = conn.execute(
+        "SELECT lessons.id FROM lessons" + join + " WHERE lessons.title_fa=?" + scope + " ORDER BY lessons.id LIMIT 1",
+        [title, *args],
+    ).fetchone()
     if exact:
         return int(exact["id"] if isinstance(exact, sqlite3.Row) else exact[0])
+
     bare = _norm_title(title)
     if len(bare) < 4:
         return None
-
     rows = conn.execute(
-        "SELECT id, title_fa FROM lessons WHERE title_fa LIKE ? LIMIT 30",
-        (f"%{bare[:80]}%",),
+        "SELECT lessons.id, lessons.title_fa FROM lessons" + join +
+        " WHERE lessons.title_fa LIKE ?" + scope + " LIMIT 50",
+        [f"%{bare[:80]}%", *args],
     ).fetchall()
-
     if not rows:
         strong_toks = [t for t in _tokens(title) if len(t) >= 4][:4]
         if not strong_toks:
             return None
-        q = "SELECT id, title_fa FROM lessons WHERE " + " AND ".join(
-            ["title_fa LIKE ?"] * len(strong_toks)
-        ) + " LIMIT 40"
-        rows = conn.execute(q, [f"%{t}%" for t in strong_toks]).fetchall()
-
-    best_id = None
-    best_score = 0.0
+        clauses = ["lessons.title_fa LIKE ?"] * len(strong_toks)
+        rows = conn.execute(
+            "SELECT lessons.id, lessons.title_fa FROM lessons" + join +
+            " WHERE " + " AND ".join(clauses) + scope + " LIMIT 50",
+            [*[f"%{t}%" for t in strong_toks], *args],
+        ).fetchall()
+    best_id, best_score = None, 0.0
     for r in rows:
         rid = int(r[0] if not isinstance(r, sqlite3.Row) else r["id"])
         rtitle = r[1] if not isinstance(r, sqlite3.Row) else r["title_fa"]
-        sc = _score(title, rtitle or "")
-        if sc > best_score:
-            best_score = sc
-            best_id = rid
-
-    if best_score >= 0.55:
-        return best_id
-    return None
+        score = _score(title, rtitle or "")
+        if score > best_score:
+            best_id, best_score = rid, score
+    return best_id if best_score >= 0.55 else None
 
 
 def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
@@ -231,7 +240,7 @@ def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
 
         m = x = u = 0
         for les in lessons:
-            lid = match_lesson_id(conn, les["title_fa"])
+            lid = match_lesson_id(conn, les["title_fa"], les.get("chapter_order"))
             if lid is None:
                 x += 1
                 continue
