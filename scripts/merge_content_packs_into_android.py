@@ -40,6 +40,8 @@ def find_pack_files():
         if name.endswith(".json.json"):
             print(" skip double ext:", f)
             continue
+        if f.name in {"ENGINEER_JOKAR_OSPF_BGP_Redistribution_deep_v1.json", "ENGINEER_JOKAR_VPN_Enterprise_IPsec_SSL_Troubleshooting_deep_v1.json"}:
+            continue  # chapter-focused packs under tools/packs are the canonical Android source
         if "/prompts/" in str(f).replace("\\", "/").lower():
             continue
         k = str(f.resolve())
@@ -164,9 +166,9 @@ def blueprint_to_lessons(d, focus_keywords, default_ch):
                     li += 1
                     target = default_ch
                     if any(k in blob for k in ("OSPF", "BGP", "REDIS", "EIGRP", "ROUTE-MAP")):
-                        target = 14
+                        target = 66
                     if any(k in blob for k in ("IPSEC", "IKE", "SSL VPN", "PHASE", "TUNNEL", "VPN")):
-                        target = 57
+                        target = 67
                     full = content
                     if sub.get("commands"):
                         full += "\n\n## دستورات\n\n" + str(sub.get("commands"))

@@ -123,7 +123,7 @@ def get_lan_ips():
     return ips
 
 
-PACK_CONTENT_VERSION = "v36-ch31-63-scoped-professional-packs"
+PACK_CONTENT_VERSION = "v37-ch31-68-security-routing-vpn-commands"
 
 def _apply_content_packs_if_needed(database: WebDB, force: bool = False):
     """Apply and verify required lesson packs only after the full lesson seed completes."""
@@ -151,10 +151,20 @@ def _apply_content_packs_if_needed(database: WebDB, force: bool = False):
         "ch61_enterprise_architecture_professional.json": 145,
         "ch62_it_operations_noc_professional.json": 100,
         "ch63_runbook_cmdb_professional.json": 110,
+        "security_ethical_hacking_pack.json": 110,
+        "wireless_security_pack.json": 25,
+        "ch66_ospf_bgp_redistribution_professional.json": 130,
+        "ch67_vpn_enterprise_ipsec_ssl_professional.json": 130,
+        "chapter_68_cisco_routing_1600.json": 1600,
+        "cisco_switching.json": 1323,
+        "mikrotik.json": 20,
+        "linux.json": 15,
+        "powershell.json": 12,
+        "batch.json": 10,
     }
     try:
         from core.pack_loader import apply_packs_to_db
-        print("applying versioned professional content packs for chapters 31-63 with chapter-scoped matching...")
+        print("applying versioned professional content packs for chapters 31-68 with chapter-scoped matching and insert-on-miss...")
         res = apply_packs_to_db(Path(database.path), overwrite=False)
         print("pack apply:", res.get("updated"), "updated /", res.get("matched"), "matched",
               "skipped_shorter", res.get("skipped_shorter"))

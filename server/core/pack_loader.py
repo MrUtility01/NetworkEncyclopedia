@@ -54,8 +54,23 @@ def _lesson_fields(raw: Dict[str, Any], inherited_chapter_order: Any = None) -> 
         full = json.dumps(full, ensure_ascii=False, indent=2)
     full = str(full).strip()
     if len(full) < 200:
+        cmd = raw.get("command") or raw.get("syntax") or raw.get("cli") or raw.get("commands") or ""
+        detail = raw.get("description_fa") or raw.get("description") or raw.get("when_to_use_fa") or raw.get("purpose") or ""
+        if cmd or detail:
+            full = (
+                f"# {title}\n\n## Command\n{_as_text(cmd)}\n\n"
+                f"## Purpose\n{_as_text(detail)}\n\n"
+                f"## Syntax / Example\n{_as_text(raw.get('syntax') or cmd)}\n\n"
+                f"## Lab and verification\n{_as_text(raw.get('lab_hint_fa') or raw.get('example') or raw.get('sample_output') or '')}\n\n"
+                f"## Common mistakes / security\n{_as_text(raw.get('common_mistakes_fa') or raw.get('security_notes_fa') or raw.get('notes') or '')}\n"
+            )
+    if len(full) < 200:
         return None
-    summary = (raw.get("summary") or full[:200]).strip()
+    summary = _as_text(raw.get("summary") or raw.get("when_to_use_fa") or full[:200]).strip()
+    meta = raw.get("meta") if isinstance(raw.get("meta"), dict) else {}
+    if raw.get("uid"):
+        meta = dict(meta)
+        meta.setdefault("uid", str(raw.get("uid")))
     return {
         "title_fa": title,
         "summary": summary,
@@ -64,9 +79,15 @@ def _lesson_fields(raw: Dict[str, Any], inherited_chapter_order: Any = None) -> 
         "examples": _as_text(raw.get("examples") or raw.get("lab") or ""),
         "notes": _as_text(raw.get("notes") or raw.get("troubleshooting") or ""),
         "learning_objectives": _as_text(raw.get("learning_objectives") or ""),
-        "meta_json": json.dumps(raw.get("meta") or {}, ensure_ascii=False),
+        "title_en": str(raw.get("title_en") or raw.get("name") or ""),
+        "meta_json": json.dumps(meta, ensure_ascii=False),
         "source_status": str(raw.get("source_status") or ""),
         "chapter_order": raw.get("chapter_order") or raw.get("chapterOrder") or raw.get("chapter_order_index") or inherited_chapter_order,
+        "subchapter_order": raw.get("subchapter_order") or raw.get("subchapter") or 1,
+        "lesson_order": raw.get("lesson_order") or raw.get("order") or 0,
+        "topic": str(raw.get("topic") or raw.get("domain") or raw.get("category") or ""),
+        "uid": str(raw.get("uid") or ""),
+        "level": str(raw.get("level") or ""),
     }
 
 
@@ -93,6 +114,45 @@ def load_lessons_from_file(path: Path) -> List[Dict[str, str]]:
     if not isinstance(data, dict):
         return out
 
+    if isinstance(data.get("commands"), list):
+        root_chapter = data.get("chapter_order") or 68
+        vendor_pack = str(data.get("vendor_pack") or data.get("vendor") or path.stem)
+        for i, command in enumerate(data["commands"], 1):
+            if not isinstance(command, dict):
+                continue
+            cmd = str(command.get("command") or command.get("title_en") or command.get("name") or f"command-{i}")
+            title = str(command.get("title_fa") or command.get("title") or cmd)
+            level = str(command.get("level") or "L1")
+            if not re.match(r"^\[L[0-4]\]", title, re.I):
+                title = f"[{level}] {title}"
+            topic = str(command.get("subcategory") or command.get("category") or vendor_pack)
+            args = command.get("arguments") or []
+            args_text = "\n".join(
+                f"- {a.get('name', '')}: {a.get('meaning_fa', '')} (example: {a.get('example', '')})"
+                if isinstance(a, dict) else f"- {a}" for a in args
+            )
+            steps = command.get("steps_fa") or []
+            steps_text = "\n".join(f"{n}. {v}" for n, v in enumerate(steps, 1)) if isinstance(steps, list) else str(steps)
+            mistakes = command.get("common_mistakes_fa") or []
+            mistakes_text = "\n".join(f"- {v}" for v in mistakes) if isinstance(mistakes, list) else str(mistakes)
+            full = (
+                f"# {title}\n\n## Command\n{cmd}\n\n## When to use\n{command.get('when_to_use_fa') or command.get('description') or title}\n\n"
+                f"## Syntax and arguments\n{command.get('syntax') or cmd}\n{args_text}\n\n## Steps\n{steps_text}\n\n"
+                f"## Example output\n{command.get('sample_output') or ''}\n\n## Common mistakes\n{mistakes_text}\n\n"
+                f"## Lab\n{command.get('lab_hint_fa') or ''}\n\n## Security\n{command.get('security_notes_fa') or ''}\n"
+            )
+            add({
+                "uid": command.get("uid") or f"lesson:ch{int(root_chapter):02d}:{vendor_pack}:{i:04d}",
+                "chapter_order": root_chapter, "subchapter_order": command.get("subchapter_order") or 1,
+                "lesson_order": command.get("lesson_order") or i, "level": level, "topic": topic,
+                "title_fa": title, "title_en": command.get("title_en") or cmd,
+                "summary": command.get("when_to_use_fa") or command.get("description") or title,
+                "full_content": full, "commands": cmd, "examples": command.get("sample_output") or "",
+                "notes": mistakes_text, "learning_objectives": command.get("learning_objectives") or "",
+                "meta": command.get("meta") or {}, "source_status": command.get("source_status") or "review_required",
+            }, root_chapter)
+        return out
+
     if isinstance(data.get("lessons"), list):
         for item in data["lessons"]:
             if isinstance(item, dict):
@@ -102,7 +162,7 @@ def load_lessons_from_file(path: Path) -> List[Dict[str, str]]:
     if isinstance(curriculum, dict):
         for ch in curriculum.get("chapters") or []:
             for col in ch.get("collections") or []:
-                chapter_order = ch.get("chapter_order") or ch.get("order_index") or ch.get("order") or ch.get("chapter")
+                chapter_order = (66 if "OSPF_BGP" in path.name.upper() else 67 if "VPN_ENTERPRISE" in path.name.upper() else ch.get("chapter_order") or ch.get("order_index") or ch.get("order") or ch.get("chapter_no") or ch.get("chapter"))
                 for les in col.get("lessons") or []:
                     for sub in les.get("sub_lessons") or [les]:
                         if not isinstance(sub, dict):
@@ -126,6 +186,8 @@ def find_pack_files() -> List[Path]:
     seen = set()
     for pat in patterns:
         for p in ROOT.glob(pat):
+            if p.name in {"ENGINEER_JOKAR_OSPF_BGP_Redistribution_deep_v1.json", "ENGINEER_JOKAR_VPN_Enterprise_IPsec_SSL_Troubleshooting_deep_v1.json"}:
+                continue
             if not p.is_file() or p.stat().st_size < 500:
                 continue
             key = str(p.resolve())
@@ -211,6 +273,48 @@ def match_lesson_id(conn: sqlite3.Connection, title: str, chapter_order: Any = N
     return best_id if best_score >= 0.55 else None
 
 
+def _insert_pack_lesson(conn: sqlite3.Connection, lesson: Dict[str, Any], now: str) -> Optional[int]:
+    try:
+        chapter_order = int(lesson.get("chapter_order"))
+    except (TypeError, ValueError):
+        return None
+    chapter = conn.execute("SELECT id FROM chapters WHERE order_index=? ORDER BY id LIMIT 1", (chapter_order,)).fetchone()
+    if not chapter:
+        return None
+    chapter_id = int(chapter["id"])
+    topic = str(lesson.get("topic") or "").strip() or f"محتوای فصل {chapter_order}"
+    level = conn.execute("SELECT id FROM levels WHERE chapter_id=? AND title_fa=? ORDER BY id LIMIT 1", (chapter_id, topic)).fetchone()
+    if level:
+        level_id = int(level["id"])
+    else:
+        row = conn.execute("SELECT COALESCE(MAX(order_index),0)+1 n FROM levels WHERE chapter_id=?", (chapter_id,)).fetchone()
+        conn.execute("INSERT INTO levels(chapter_id,order_index,title_fa,title_en) VALUES(?,?,?,?)",
+                     (chapter_id, int(row["n"] or 1), topic, topic))
+        level_id = int(conn.execute("SELECT last_insert_rowid()").fetchone()[0])
+    title = str(lesson.get("title_fa") or "درس افزوده")
+    existing = conn.execute("SELECT id FROM lessons WHERE level_id=? AND title_fa=? ORDER BY id LIMIT 1", (level_id, title)).fetchone()
+    if existing:
+        return int(existing["id"])
+    row = conn.execute("SELECT COALESCE(MAX(order_index),0)+1 n FROM lessons WHERE level_id=?", (level_id,)).fetchone()
+    try:
+        meta = json.loads(lesson.get("meta_json") or "{}")
+    except Exception:
+        meta = {}
+    if not isinstance(meta, dict):
+        meta = {}
+    if lesson.get("uid"):
+        meta.setdefault("uid", lesson["uid"])
+    cur = conn.execute(
+        """INSERT INTO lessons(level_id,order_index,title_fa,title_en,tags,summary,full_content,commands,examples,notes,meta_json,learning_objectives,source_status,last_updated)
+           VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (level_id, int(row["n"] or 1), title, lesson.get("title_en") or "", lesson.get("level") or "",
+         lesson.get("summary") or "", lesson.get("full_content") or "", lesson.get("commands") or "",
+         lesson.get("examples") or "", lesson.get("notes") or "", json.dumps(meta, ensure_ascii=False),
+         str(lesson.get("learning_objectives") or ""), lesson.get("source_status") or "review_required", now),
+    )
+    return int(cur.lastrowid)
+
+
 def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
     db_path = Path(db_path)
     if not db_path.is_file():
@@ -233,6 +337,11 @@ def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
             "ch37_linux_network_professional.json",
             "ch38_linux_web_services_professional.json",
             "ch39_linux_security_professional.json",
+            "security_ethical_hacking_pack.json", "wireless_security_pack.json",
+            "ch66_ospf_bgp_redistribution_professional.json",
+            "ch67_vpn_enterprise_ipsec_ssl_professional.json",
+            "chapter_68_cisco_routing_1600.json", "cisco_switching.json",
+            "mikrotik.json", "linux.json", "powershell.json", "batch.json",
         }
         # فصل‌های حرفه‌ای فصل‌محور، منبع مرجع درس‌های canonical هستند.
         if re.match(r"ch(?:31|32|33|4[0-9]|5[0-9]|6[0-3])_.*_professional(?:_part\d+)?\.json$", pack.name, re.I):
@@ -242,7 +351,12 @@ def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
         for les in lessons:
             lid = match_lesson_id(conn, les["title_fa"], les.get("chapter_order"))
             if lid is None:
-                x += 1
+                lid = _insert_pack_lesson(conn, les, now)
+                if lid is None:
+                    x += 1
+                    continue
+                m += 1
+                u += 1
                 continue
             row = conn.execute("SELECT title_fa FROM lessons WHERE id=?", (lid,)).fetchone()
             db_title = row["title_fa"] if row else ""
