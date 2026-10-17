@@ -1,0 +1,32 @@
+name: Validate professional content packs
+
+on:
+  pull_request:
+    paths:
+      - "tools/packs/**/*.json"
+      - "tools/validate_content_packs.py"
+  push:
+    branches:
+      - main
+    paths:
+      - "tools/packs/**/*.json"
+      - "tools/validate_content_packs.py"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-content-packs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate chapter 57 and 60 packs
+        run: |
+          python tools/validate_content_packs.py \
+            tools/packs/ch57_network_security_professional.json \
+            tools/packs/ch60_ethical_hacking_troubleshooting_professional.json
