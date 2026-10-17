@@ -35,7 +35,7 @@
 - هر فصل: `tools/chapter_prompts/chXX/PROMPT.md`
 - اولویت: `tools/chapter_prompts/priority/`
 - دستورات: `tools/commands_encyclopedia/`
-- **پرامپت آماده است؛ محتوای فوق‌عمیق همه فصل‌ها هنوز تولید کامل نشده**
+- بسته‌های حرفه‌ای canonical برای فصل‌های ۳۱–۳۳ و ۴۰–۶۳ در `tools/packs/professional_chapters/` اضافه شده‌اند؛ نتیجه بررسی ساختاری و محدودیت‌های آزمون محیط در [گزارش ممیزی فصل‌های ۳۱ تا ۶۸](CONTENT_AUDIT_31_68_FA.md) ثبت شده است.
 
 ## آیکون
 درخواست عکس کاربر ثبت شده؛ فقط بعد از build سبز Actions و نصب APK جدید مطمئن شو همان آیکون است.
@@ -45,3 +45,14 @@
 
 ## سناریو ۲۰×۱۰
 پرامپت: `tools/scenarios_200/PROMPT_20x10.md`
+
+
+## ممیزی و غنی‌سازی فصل‌های ۳۱ تا ۶۸
+
+گزارش تفصیلی: [docs/CONTENT_AUDIT_31_68_FA.md](CONTENT_AUDIT_31_68_FA.md). بسته‌های فصل‌محور جدید با عنوان canonical از اسکلت `server/core/full_curriculum.py` استفاده می‌کنند. برای ممیزی دیتابیس عملی بعد از دریافت تغییرات، اجرا کنید:
+
+```bash
+python tools/audit_content.py --db server/data/encyclopedia.db --json docs/content_audit_local.json
+```
+
+ممیزی دادهٔ واقعی SQLite و آزمون نهایی APK تا اجرای دستور در محیط مقصد تأییدشده محسوب نمی‌شود.

@@ -225,6 +225,10 @@ def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
             "ch38_linux_web_services_professional.json",
             "ch39_linux_security_professional.json",
         }
+        # فصل‌های حرفه‌ای فصل‌محور، منبع مرجع درس‌های canonical هستند.
+        if re.match(r"ch(?:31|32|33|4[0-9]|5[0-9]|6[0-3])_.*_professional(?:_part\d+)?\.json$", pack.name, re.I):
+            force_professional = True
+
         m = x = u = 0
         for les in lessons:
             lid = match_lesson_id(conn, les["title_fa"])

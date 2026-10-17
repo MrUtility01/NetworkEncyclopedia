@@ -29,3 +29,10 @@ JSON جدید را **فقط اینجا** بگذار. در `commands_encyclopedia
 | `linux_services_security/ch39_linux_security_professional.json` | ۳۹ — امنیت لینوکس | ۴۵ | ۹۰ |
 
 هر درس در پنج سطح L0 تا L4 دارای محتوای اجرایی، تمرین lab، عیب‌یابی مبتنی بر شواهد، معیار پذیرش و `meta.assessment.answer_key` جداگانه است. برای فصل‌های Windows/M365، نقش و مجوز، نسخهٔ PowerShell/Module، قابلیت tenant و rollout آزمایشی باید در محیط مقصد بازبینی شود. وضعیت اعتبارسنجی دستورها و قابلیت‌های وابسته به نسخه/tenant: `review_required`.
+
+
+## بسته‌های حرفه‌ای فصل‌محور (تکمیل ۳۱–۳۳ و ۴۰–۶۳)
+
+بسته‌های JSON canonical در `professional_chapters/` قرار دارند. هر موضوع با عنوانی منطبق بر `full_curriculum.py` در سطح‌های L0–L4 تکمیل شده است. هر درس شامل معماری، روند اجرا، نمونه فرمان، Lab مجاز، عیب‌یابی مبتنی بر evidence، امنیت، rollback، معیار پذیرش و واژه‌نامه است. پرسش‌ها در `meta.assessment.questions` و پاسخ‌ها در `meta.assessment.answer_key` جدا هستند. `pack_loader.py` این بسته‌ها را برای درس‌های canonical به‌عنوان نسخه مرجع می‌شناسد.
+
+گزارش پوشش و محدودیت اعتبارسنجی: `docs/CONTENT_AUDIT_31_68_FA.md`.
