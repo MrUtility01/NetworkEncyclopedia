@@ -215,10 +215,12 @@ def apply_fields(les, src):
     for key, marker in markers:
         payload = meta.get(key)
         if payload and marker not in notes:
-            notes += "\\n\\n<!-- " + marker + "\\n" + json.dumps(payload, ensure_ascii=False) + "\\n-->\\n"
+            notes += chr(10) * 2 + "<!-- " + marker + chr(10)
+            notes += json.dumps(payload, ensure_ascii=False) + chr(10) + "-->" + chr(10)
     objectives = src.get("learning_objectives")
     if objectives and "EJ_LEARNING_OBJECTIVES" not in notes:
-        notes += "\\n\\n<!-- EJ_LEARNING_OBJECTIVES\\n" + json.dumps(objectives, ensure_ascii=False) + "\\n-->\\n"
+        notes += chr(10) * 2 + "<!-- EJ_LEARNING_OBJECTIVES" + chr(10)
+        notes += json.dumps(objectives, ensure_ascii=False) + chr(10) + "-->" + chr(10)
     les["notes"] = notes.strip()
 
 
