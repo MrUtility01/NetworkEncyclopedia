@@ -30,8 +30,7 @@
       "title_en": "Advanced NAT and Proxy Combined Troubleshooting",
       "chapter_order": 12,
       "summary": "وقتی هم NAT لبه هست هم proxy کاربر؛ جدا کردن لایه‌ها.",
-      "full_content": "# NAT + Proxy — RCA\n\n## ترتیب ذهنی\nکلاینت → (proxy؟) → NAT لبه → اینترنت.\n\nاگر proxy در مسیر است، IP منبع دیده‌شده سمت سرور = proxy است نه کلاینت.\n\n## علائم\n| علامت | احتمال |\n|--------|---------|
-| فقط مرورگر fail | proxy/PAC |\n| همه پروتکل‌ها fail | NAT/مسیر |\n| بعضی سایت‌ها | DNS یا SNI filter |\n",
+      "full_content": "# NAT + Proxy — RCA\n\n## ترتیب ذهنی\nکلاینت → (proxy؟) → NAT لبه → اینترنت.\n\nاگر proxy در مسیر است، IP منبع دیده‌شده سمت سرور = proxy است نه کلاینت.\n\n## علائم\n| علامت | احتمال |\n|--------|---------|\n| فقط مرورگر fail | proxy/PAC |\n| همه پروتکل‌ها fail | NAT/مسیر |\n| بعضی سایت‌ها | DNS یا SNI filter |\n",
       "commands": "show ip nat translations\ncurl -v https://example.com\nGet-Proxy\nnscurl\nipconfig /all",
       "examples": "Lab: با/بدون proxy؛ translations را مقایسه کن.\n",
       "notes": "لاگ فایروال را با IP کلاینت اشتباه نگیر وقتی proxy هست.\n",
@@ -42,8 +41,7 @@
       "title_en": "VLAN Design OT IoT Separated from IT",
       "chapter_order": 11,
       "summary": "سگمنت دوربین، حسگر و اتوماسیون صنعتی با حداقل دسترسی.",
-      "full_content": "# OT/IoT Segmentation\n\n## اصل\nدستگاه‌های IoT نباید به VLAN کاربران یا DC آزادانه وصل باشند.\n\n## الگو\n| سگمنت | دسترسی |\n|--------|---------|
-| IoT | فقط اینترنت محدود یا فقط جمع‌کننده |\n| OT | فقط سرورهای OT |\n| IT | جدا |\n\n## فایروال بین IT و OT\ndeny پیش‌فرض؛ اجازه صریح.\n",
+      "full_content": "# OT/IoT Segmentation\n\n## اصل\nدستگاه‌های IoT نباید به VLAN کاربران یا DC آزادانه وصل باشند.\n\n## الگو\n| سگمنت | دسترسی |\n|--------|---------|\n| IoT | فقط اینترنت محدود یا فقط جمع‌کننده |\n| OT | فقط سرورهای OT |\n| IT | جدا |\n\n## فایروال بین IT و OT\ndeny پیش‌فرض؛ اجازه صریح.\n",
       "commands": "show vlan brief\nshow access-lists\nshow mac address-table\nshow interfaces trunk",
       "examples": "Lab: دوربین فقط به NVR؛ از PC کاربر مستقیم fail.\n",
       "notes": "IoT روی Wi-Fi مهمان بدون ایزوله = خطر.\n",
