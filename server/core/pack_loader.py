@@ -216,7 +216,7 @@ def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
 
     for pack in packs:
         lessons = load_lessons_from_file(pack)
-        # These two curated chapter packs are authoritative for their exact canonical lesson titles.
+        # These curated professional chapter packs are authoritative for their exact canonical lesson titles.
         force_professional = pack.name in {
             "ch36_linux_admin_professional.json",
             "ch37_linux_network_professional.json",
