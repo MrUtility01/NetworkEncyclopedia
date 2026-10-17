@@ -123,7 +123,7 @@ def get_lan_ips():
     return ips
 
 
-PACK_CONTENT_VERSION = "v36-ch36-ch37-ch38-ch39"
+PACK_CONTENT_VERSION = "v34-ch34-ch35-ch36-ch37-ch38-ch39"
 
 def _apply_content_packs_if_needed(database: WebDB, force: bool = False):
     """Apply and verify required lesson packs only after the full lesson seed completes."""
@@ -133,6 +133,8 @@ def _apply_content_packs_if_needed(database: WebDB, force: bool = False):
         return {"ok": False, "pending": True, "reason": "seed_not_complete"}
 
     required = {
+        "ch34_m365_intune_email_professional.json": 45,
+        "ch35_powershell_cmd_professional.json": 75,
         "ch36_linux_admin_professional.json": 45,
         "ch37_linux_network_professional.json": 45,
         "ch38_linux_web_services_professional.json": 40,
@@ -140,7 +142,7 @@ def _apply_content_packs_if_needed(database: WebDB, force: bool = False):
     }
     try:
         from core.pack_loader import apply_packs_to_db
-        print("applying versioned content packs (chapters 36-39 are authoritative)...")
+        print("applying versioned content packs (chapters 34-39 include authoritative professional packs)...")
         res = apply_packs_to_db(Path(database.path), overwrite=False)
         print("pack apply:", res.get("updated"), "updated /", res.get("matched"), "matched",
               "skipped_shorter", res.get("skipped_shorter"))
