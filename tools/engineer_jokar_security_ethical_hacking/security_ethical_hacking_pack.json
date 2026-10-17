@@ -2,7 +2,7 @@
   "package_schema_version": 1,
   "project": "ENGINEER JOKAR / NetworkEncyclopedia",
   "generated_on": "2026-10-09",
-  "purpose": "افزودن فصل امنیت سایبری و هک اخلاقی به‌صورت بسته مستقل؛ محتوای دفاعی و آزمایشگاهی با پاسخ‌نامه جداگانه.",
+  "purpose": "افزودن فصل امنیت سایبری و هک اخلاقی به‌صورت بسته مستقل؛ محتوای دفاعی و آزمایشگاهی با پاسخ‌نامه جداگانه.؛ شماره فصل اصلاح‌شده به 65 برای حفظ فصل 64=Git.",
   "scope": [
     {
       "chapter_order": 64,
@@ -194,17 +194,18 @@
   ],
   "compatibility": {
     "target": "lesson records compatible with observed curriculum pack fields",
-    "chapter_order": 64,
+    "chapter_order": 65,
     "chapter_order_note": "مخزن README به 63 فصل اشاره می‌کند؛ شماره 64 به‌عنوان فصل افزوده پیشنهادی انتخاب شده است و قبل از اعمال باید با دیتابیس واقعی تطبیق داده شود.",
     "preserve_existing_records": true,
     "preserve_existing_uids": true,
-    "questions_and_answers_separate": true
+    "questions_and_answers_separate": true,
+    "chapter_title_fa": "امنیت سایبری و امنیت بی‌سیم"
   },
   "lessons": [
     {
-      "uid": "lesson:ch64:lv001:l0001",
+      "uid": "lesson:ch65:lv001:l0001",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 1,
       "lesson_order": 1,
       "topic": "مبانی امنیت سایبری",
@@ -308,14 +309,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv001:l0002",
+      "uid": "lesson:ch65:lv001:l0002",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 1,
       "lesson_order": 2,
       "topic": "مبانی امنیت سایبری",
@@ -419,14 +421,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv001:l0003",
+      "uid": "lesson:ch65:lv001:l0003",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 1,
       "lesson_order": 3,
       "topic": "مبانی امنیت سایبری",
@@ -530,14 +533,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv001:l0004",
+      "uid": "lesson:ch65:lv001:l0004",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 1,
       "lesson_order": 4,
       "topic": "مبانی امنیت سایبری",
@@ -641,14 +645,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv001:l0005",
+      "uid": "lesson:ch65:lv001:l0005",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 1,
       "lesson_order": 5,
       "topic": "مبانی امنیت سایبری",
@@ -752,14 +757,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv001:l0006",
+      "uid": "lesson:ch65:lv001:l0006",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 1,
       "lesson_order": 6,
       "topic": "اخلاق، قانون و محدوده آزمون",
@@ -863,14 +869,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv001:l0007",
+      "uid": "lesson:ch65:lv001:l0007",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 1,
       "lesson_order": 7,
       "topic": "اخلاق، قانون و محدوده آزمون",
@@ -974,14 +981,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv001:l0008",
+      "uid": "lesson:ch65:lv001:l0008",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 1,
       "lesson_order": 8,
       "topic": "اخلاق، قانون و محدوده آزمون",
@@ -1085,14 +1093,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv001:l0009",
+      "uid": "lesson:ch65:lv001:l0009",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 1,
       "lesson_order": 9,
       "topic": "اخلاق، قانون و محدوده آزمون",
@@ -1196,14 +1205,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv001:l0010",
+      "uid": "lesson:ch65:lv001:l0010",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 1,
       "lesson_order": 10,
       "topic": "اخلاق، قانون و محدوده آزمون",
@@ -1307,14 +1317,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv002:l0001",
+      "uid": "lesson:ch65:lv002:l0001",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 2,
       "lesson_order": 1,
       "topic": "ساخت آزمایشگاه امن",
@@ -1418,14 +1429,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv002:l0002",
+      "uid": "lesson:ch65:lv002:l0002",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 2,
       "lesson_order": 2,
       "topic": "ساخت آزمایشگاه امن",
@@ -1529,14 +1541,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv002:l0003",
+      "uid": "lesson:ch65:lv002:l0003",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 2,
       "lesson_order": 3,
       "topic": "ساخت آزمایشگاه امن",
@@ -1640,14 +1653,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv002:l0004",
+      "uid": "lesson:ch65:lv002:l0004",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 2,
       "lesson_order": 4,
       "topic": "ساخت آزمایشگاه امن",
@@ -1751,14 +1765,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv002:l0005",
+      "uid": "lesson:ch65:lv002:l0005",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 2,
       "lesson_order": 5,
       "topic": "ساخت آزمایشگاه امن",
@@ -1862,14 +1877,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv002:l0006",
+      "uid": "lesson:ch65:lv002:l0006",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 2,
       "lesson_order": 6,
       "topic": "شبکه برای متخصص امنیت",
@@ -1973,14 +1989,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv002:l0007",
+      "uid": "lesson:ch65:lv002:l0007",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 2,
       "lesson_order": 7,
       "topic": "شبکه برای متخصص امنیت",
@@ -2084,14 +2101,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv002:l0008",
+      "uid": "lesson:ch65:lv002:l0008",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 2,
       "lesson_order": 8,
       "topic": "شبکه برای متخصص امنیت",
@@ -2195,14 +2213,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv002:l0009",
+      "uid": "lesson:ch65:lv002:l0009",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 2,
       "lesson_order": 9,
       "topic": "شبکه برای متخصص امنیت",
@@ -2306,14 +2325,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv002:l0010",
+      "uid": "lesson:ch65:lv002:l0010",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 2,
       "lesson_order": 10,
       "topic": "شبکه برای متخصص امنیت",
@@ -2417,14 +2437,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv003:l0001",
+      "uid": "lesson:ch65:lv003:l0001",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 3,
       "lesson_order": 1,
       "topic": "امن‌سازی لینوکس",
@@ -2528,14 +2549,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv003:l0002",
+      "uid": "lesson:ch65:lv003:l0002",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 3,
       "lesson_order": 2,
       "topic": "امن‌سازی لینوکس",
@@ -2639,14 +2661,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv003:l0003",
+      "uid": "lesson:ch65:lv003:l0003",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 3,
       "lesson_order": 3,
       "topic": "امن‌سازی لینوکس",
@@ -2750,14 +2773,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv003:l0004",
+      "uid": "lesson:ch65:lv003:l0004",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 3,
       "lesson_order": 4,
       "topic": "امن‌سازی لینوکس",
@@ -2861,14 +2885,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv003:l0005",
+      "uid": "lesson:ch65:lv003:l0005",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 3,
       "lesson_order": 5,
       "topic": "امن‌سازی لینوکس",
@@ -2972,14 +2997,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv003:l0006",
+      "uid": "lesson:ch65:lv003:l0006",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 3,
       "lesson_order": 6,
       "topic": "امن‌سازی ویندوز",
@@ -3083,14 +3109,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv003:l0007",
+      "uid": "lesson:ch65:lv003:l0007",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 3,
       "lesson_order": 7,
       "topic": "امن‌سازی ویندوز",
@@ -3194,14 +3221,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv003:l0008",
+      "uid": "lesson:ch65:lv003:l0008",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 3,
       "lesson_order": 8,
       "topic": "امن‌سازی ویندوز",
@@ -3305,14 +3333,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv003:l0009",
+      "uid": "lesson:ch65:lv003:l0009",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 3,
       "lesson_order": 9,
       "topic": "امن‌سازی ویندوز",
@@ -3416,14 +3445,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv003:l0010",
+      "uid": "lesson:ch65:lv003:l0010",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 3,
       "lesson_order": 10,
       "topic": "امن‌سازی ویندوز",
@@ -3527,14 +3557,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv004:l0001",
+      "uid": "lesson:ch65:lv004:l0001",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 4,
       "lesson_order": 1,
       "topic": "هویت و کنترل دسترسی",
@@ -3638,14 +3669,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv004:l0002",
+      "uid": "lesson:ch65:lv004:l0002",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 4,
       "lesson_order": 2,
       "topic": "هویت و کنترل دسترسی",
@@ -3749,14 +3781,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv004:l0003",
+      "uid": "lesson:ch65:lv004:l0003",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 4,
       "lesson_order": 3,
       "topic": "هویت و کنترل دسترسی",
@@ -3860,14 +3893,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv004:l0004",
+      "uid": "lesson:ch65:lv004:l0004",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 4,
       "lesson_order": 4,
       "topic": "هویت و کنترل دسترسی",
@@ -3971,14 +4005,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv004:l0005",
+      "uid": "lesson:ch65:lv004:l0005",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 4,
       "lesson_order": 5,
       "topic": "هویت و کنترل دسترسی",
@@ -4082,14 +4117,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv004:l0006",
+      "uid": "lesson:ch65:lv004:l0006",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 4,
       "lesson_order": 6,
       "topic": "رمزنگاری و مدیریت کلید",
@@ -4193,14 +4229,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv004:l0007",
+      "uid": "lesson:ch65:lv004:l0007",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 4,
       "lesson_order": 7,
       "topic": "رمزنگاری و مدیریت کلید",
@@ -4304,14 +4341,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv004:l0008",
+      "uid": "lesson:ch65:lv004:l0008",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 4,
       "lesson_order": 8,
       "topic": "رمزنگاری و مدیریت کلید",
@@ -4415,14 +4453,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv004:l0009",
+      "uid": "lesson:ch65:lv004:l0009",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 4,
       "lesson_order": 9,
       "topic": "رمزنگاری و مدیریت کلید",
@@ -4526,14 +4565,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv004:l0010",
+      "uid": "lesson:ch65:lv004:l0010",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 4,
       "lesson_order": 10,
       "topic": "رمزنگاری و مدیریت کلید",
@@ -4637,14 +4677,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv005:l0001",
+      "uid": "lesson:ch65:lv005:l0001",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 5,
       "lesson_order": 1,
       "topic": "شناسایی غیرفعال و OSINT",
@@ -4748,14 +4789,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv005:l0002",
+      "uid": "lesson:ch65:lv005:l0002",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 5,
       "lesson_order": 2,
       "topic": "شناسایی غیرفعال و OSINT",
@@ -4859,14 +4901,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv005:l0003",
+      "uid": "lesson:ch65:lv005:l0003",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 5,
       "lesson_order": 3,
       "topic": "شناسایی غیرفعال و OSINT",
@@ -4970,14 +5013,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv005:l0004",
+      "uid": "lesson:ch65:lv005:l0004",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 5,
       "lesson_order": 4,
       "topic": "شناسایی غیرفعال و OSINT",
@@ -5081,14 +5125,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv005:l0005",
+      "uid": "lesson:ch65:lv005:l0005",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 5,
       "lesson_order": 5,
       "topic": "شناسایی غیرفعال و OSINT",
@@ -5192,14 +5237,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv005:l0006",
+      "uid": "lesson:ch65:lv005:l0006",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 5,
       "lesson_order": 6,
       "topic": "کشف دارایی و اسکن مجاز",
@@ -5303,14 +5349,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv005:l0007",
+      "uid": "lesson:ch65:lv005:l0007",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 5,
       "lesson_order": 7,
       "topic": "کشف دارایی و اسکن مجاز",
@@ -5414,14 +5461,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv005:l0008",
+      "uid": "lesson:ch65:lv005:l0008",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 5,
       "lesson_order": 8,
       "topic": "کشف دارایی و اسکن مجاز",
@@ -5525,14 +5573,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv005:l0009",
+      "uid": "lesson:ch65:lv005:l0009",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 5,
       "lesson_order": 9,
       "topic": "کشف دارایی و اسکن مجاز",
@@ -5636,14 +5685,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv005:l0010",
+      "uid": "lesson:ch65:lv005:l0010",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 5,
       "lesson_order": 10,
       "topic": "کشف دارایی و اسکن مجاز",
@@ -5747,14 +5797,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv006:l0001",
+      "uid": "lesson:ch65:lv006:l0001",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 6,
       "lesson_order": 1,
       "topic": "مدیریت آسیب‌پذیری و CVE",
@@ -5858,14 +5909,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv006:l0002",
+      "uid": "lesson:ch65:lv006:l0002",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 6,
       "lesson_order": 2,
       "topic": "مدیریت آسیب‌پذیری و CVE",
@@ -5969,14 +6021,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv006:l0003",
+      "uid": "lesson:ch65:lv006:l0003",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 6,
       "lesson_order": 3,
       "topic": "مدیریت آسیب‌پذیری و CVE",
@@ -6080,14 +6133,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv006:l0004",
+      "uid": "lesson:ch65:lv006:l0004",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 6,
       "lesson_order": 4,
       "topic": "مدیریت آسیب‌پذیری و CVE",
@@ -6191,14 +6245,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv006:l0005",
+      "uid": "lesson:ch65:lv006:l0005",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 6,
       "lesson_order": 5,
       "topic": "مدیریت آسیب‌پذیری و CVE",
@@ -6302,14 +6357,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv006:l0006",
+      "uid": "lesson:ch65:lv006:l0006",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 6,
       "lesson_order": 6,
       "topic": "امنیت وب و OWASP",
@@ -6413,14 +6469,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv006:l0007",
+      "uid": "lesson:ch65:lv006:l0007",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 6,
       "lesson_order": 7,
       "topic": "امنیت وب و OWASP",
@@ -6524,14 +6581,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv006:l0008",
+      "uid": "lesson:ch65:lv006:l0008",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 6,
       "lesson_order": 8,
       "topic": "امنیت وب و OWASP",
@@ -6635,14 +6693,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv006:l0009",
+      "uid": "lesson:ch65:lv006:l0009",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 6,
       "lesson_order": 9,
       "topic": "امنیت وب و OWASP",
@@ -6746,14 +6805,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv006:l0010",
+      "uid": "lesson:ch65:lv006:l0010",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 6,
       "lesson_order": 10,
       "topic": "امنیت وب و OWASP",
@@ -6857,14 +6917,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv007:l0001",
+      "uid": "lesson:ch65:lv007:l0001",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 7,
       "lesson_order": 1,
       "topic": "تزریق SQL و XSS در محیط آموزشی",
@@ -6968,14 +7029,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv007:l0002",
+      "uid": "lesson:ch65:lv007:l0002",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 7,
       "lesson_order": 2,
       "topic": "تزریق SQL و XSS در محیط آموزشی",
@@ -7079,14 +7141,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv007:l0003",
+      "uid": "lesson:ch65:lv007:l0003",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 7,
       "lesson_order": 3,
       "topic": "تزریق SQL و XSS در محیط آموزشی",
@@ -7190,14 +7253,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv007:l0004",
+      "uid": "lesson:ch65:lv007:l0004",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 7,
       "lesson_order": 4,
       "topic": "تزریق SQL و XSS در محیط آموزشی",
@@ -7301,14 +7365,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv007:l0005",
+      "uid": "lesson:ch65:lv007:l0005",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 7,
       "lesson_order": 5,
       "topic": "تزریق SQL و XSS در محیط آموزشی",
@@ -7412,14 +7477,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv007:l0006",
+      "uid": "lesson:ch65:lv007:l0006",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 7,
       "lesson_order": 6,
       "topic": "امنیت API و نشست",
@@ -7523,14 +7589,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv007:l0007",
+      "uid": "lesson:ch65:lv007:l0007",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 7,
       "lesson_order": 7,
       "topic": "امنیت API و نشست",
@@ -7634,14 +7701,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv007:l0008",
+      "uid": "lesson:ch65:lv007:l0008",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 7,
       "lesson_order": 8,
       "topic": "امنیت API و نشست",
@@ -7745,14 +7813,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv007:l0009",
+      "uid": "lesson:ch65:lv007:l0009",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 7,
       "lesson_order": 9,
       "topic": "امنیت API و نشست",
@@ -7856,14 +7925,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv007:l0010",
+      "uid": "lesson:ch65:lv007:l0010",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 7,
       "lesson_order": 10,
       "topic": "امنیت API و نشست",
@@ -7967,14 +8037,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv008:l0001",
+      "uid": "lesson:ch65:lv008:l0001",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 1,
       "topic": "امنیت Active Directory",
@@ -8078,14 +8149,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv008:l0002",
+      "uid": "lesson:ch65:lv008:l0002",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 2,
       "topic": "امنیت Active Directory",
@@ -8189,14 +8261,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv008:l0003",
+      "uid": "lesson:ch65:lv008:l0003",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 3,
       "topic": "امنیت Active Directory",
@@ -8300,14 +8373,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv008:l0004",
+      "uid": "lesson:ch65:lv008:l0004",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 4,
       "topic": "امنیت Active Directory",
@@ -8411,14 +8485,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv008:l0005",
+      "uid": "lesson:ch65:lv008:l0005",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 5,
       "topic": "امنیت Active Directory",
@@ -8522,14 +8597,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv008:l0006",
+      "uid": "lesson:ch65:lv008:l0006",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 6,
       "topic": "امنیت بی‌سیم",
@@ -8633,14 +8709,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv008:l0007",
+      "uid": "lesson:ch65:lv008:l0007",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 7,
       "topic": "امنیت بی‌سیم",
@@ -8744,14 +8821,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv008:l0008",
+      "uid": "lesson:ch65:lv008:l0008",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 8,
       "topic": "امنیت بی‌سیم",
@@ -8855,14 +8933,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv008:l0009",
+      "uid": "lesson:ch65:lv008:l0009",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 9,
       "topic": "امنیت بی‌سیم",
@@ -8966,14 +9045,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv008:l0010",
+      "uid": "lesson:ch65:lv008:l0010",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 10,
       "topic": "امنیت بی‌سیم",
@@ -9077,14 +9157,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv009:l0001",
+      "uid": "lesson:ch65:lv009:l0001",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 9,
       "lesson_order": 1,
       "topic": "امنیت ابر و کانتینر",
@@ -9188,14 +9269,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv009:l0002",
+      "uid": "lesson:ch65:lv009:l0002",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 9,
       "lesson_order": 2,
       "topic": "امنیت ابر و کانتینر",
@@ -9299,14 +9381,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv009:l0003",
+      "uid": "lesson:ch65:lv009:l0003",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 9,
       "lesson_order": 3,
       "topic": "امنیت ابر و کانتینر",
@@ -9410,14 +9493,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv009:l0004",
+      "uid": "lesson:ch65:lv009:l0004",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 9,
       "lesson_order": 4,
       "topic": "امنیت ابر و کانتینر",
@@ -9521,14 +9605,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv009:l0005",
+      "uid": "lesson:ch65:lv009:l0005",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 9,
       "lesson_order": 5,
       "topic": "امنیت ابر و کانتینر",
@@ -9632,14 +9717,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv009:l0006",
+      "uid": "lesson:ch65:lv009:l0006",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 9,
       "lesson_order": 6,
       "topic": "ثبت رخداد و SIEM",
@@ -9743,14 +9829,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv009:l0007",
+      "uid": "lesson:ch65:lv009:l0007",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 9,
       "lesson_order": 7,
       "topic": "ثبت رخداد و SIEM",
@@ -9854,14 +9941,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv009:l0008",
+      "uid": "lesson:ch65:lv009:l0008",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 9,
       "lesson_order": 8,
       "topic": "ثبت رخداد و SIEM",
@@ -9965,14 +10053,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv009:l0009",
+      "uid": "lesson:ch65:lv009:l0009",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 9,
       "lesson_order": 9,
       "topic": "ثبت رخداد و SIEM",
@@ -10076,14 +10165,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv009:l0010",
+      "uid": "lesson:ch65:lv009:l0010",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 9,
       "lesson_order": 10,
       "topic": "ثبت رخداد و SIEM",
@@ -10187,14 +10277,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv010:l0001",
+      "uid": "lesson:ch65:lv010:l0001",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 10,
       "lesson_order": 1,
       "topic": "پاسخ به رخداد و مهار",
@@ -10298,14 +10389,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv010:l0002",
+      "uid": "lesson:ch65:lv010:l0002",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 10,
       "lesson_order": 2,
       "topic": "پاسخ به رخداد و مهار",
@@ -10409,14 +10501,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv010:l0003",
+      "uid": "lesson:ch65:lv010:l0003",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 10,
       "lesson_order": 3,
       "topic": "پاسخ به رخداد و مهار",
@@ -10520,14 +10613,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv010:l0004",
+      "uid": "lesson:ch65:lv010:l0004",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 10,
       "lesson_order": 4,
       "topic": "پاسخ به رخداد و مهار",
@@ -10631,14 +10725,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv010:l0005",
+      "uid": "lesson:ch65:lv010:l0005",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 10,
       "lesson_order": 5,
       "topic": "پاسخ به رخداد و مهار",
@@ -10742,14 +10837,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv010:l0006",
+      "uid": "lesson:ch65:lv010:l0006",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 10,
       "lesson_order": 6,
       "topic": "جرم‌یابی دیجیتال",
@@ -10853,14 +10949,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv010:l0007",
+      "uid": "lesson:ch65:lv010:l0007",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 10,
       "lesson_order": 7,
       "topic": "جرم‌یابی دیجیتال",
@@ -10964,14 +11061,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv010:l0008",
+      "uid": "lesson:ch65:lv010:l0008",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 10,
       "lesson_order": 8,
       "topic": "جرم‌یابی دیجیتال",
@@ -11075,14 +11173,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv010:l0009",
+      "uid": "lesson:ch65:lv010:l0009",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 10,
       "lesson_order": 9,
       "topic": "جرم‌یابی دیجیتال",
@@ -11186,14 +11285,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv010:l0010",
+      "uid": "lesson:ch65:lv010:l0010",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 10,
       "lesson_order": 10,
       "topic": "جرم‌یابی دیجیتال",
@@ -11297,14 +11397,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv011:l0001",
+      "uid": "lesson:ch65:lv011:l0001",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 11,
       "lesson_order": 1,
       "topic": "پایتون برای دفاع و اتوماسیون امنیت",
@@ -11408,14 +11509,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv011:l0002",
+      "uid": "lesson:ch65:lv011:l0002",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 11,
       "lesson_order": 2,
       "topic": "پایتون برای دفاع و اتوماسیون امنیت",
@@ -11519,14 +11621,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv011:l0003",
+      "uid": "lesson:ch65:lv011:l0003",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 11,
       "lesson_order": 3,
       "topic": "پایتون برای دفاع و اتوماسیون امنیت",
@@ -11630,14 +11733,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv011:l0004",
+      "uid": "lesson:ch65:lv011:l0004",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 11,
       "lesson_order": 4,
       "topic": "پایتون برای دفاع و اتوماسیون امنیت",
@@ -11741,14 +11845,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv011:l0005",
+      "uid": "lesson:ch65:lv011:l0005",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 11,
       "lesson_order": 5,
       "topic": "پایتون برای دفاع و اتوماسیون امنیت",
@@ -11852,14 +11957,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv011:l0006",
+      "uid": "lesson:ch65:lv011:l0006",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 11,
       "lesson_order": 6,
       "topic": "گزارش آزمون نفوذ و اصلاح",
@@ -11963,14 +12069,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv011:l0007",
+      "uid": "lesson:ch65:lv011:l0007",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 11,
       "lesson_order": 7,
       "topic": "گزارش آزمون نفوذ و اصلاح",
@@ -12074,14 +12181,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv011:l0008",
+      "uid": "lesson:ch65:lv011:l0008",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 11,
       "lesson_order": 8,
       "topic": "گزارش آزمون نفوذ و اصلاح",
@@ -12185,14 +12293,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv011:l0009",
+      "uid": "lesson:ch65:lv011:l0009",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 11,
       "lesson_order": 9,
       "topic": "گزارش آزمون نفوذ و اصلاح",
@@ -12296,14 +12405,15 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     },
     {
-      "uid": "lesson:ch64:lv011:l0010",
+      "uid": "lesson:ch65:lv011:l0010",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 11,
       "lesson_order": 10,
       "topic": "گزارش آزمون نفوذ و اصلاح",
@@ -12407,9 +12517,11 @@
             }
           }
         },
-        "content_status": "generated_review_required"
+        "content_status": "generated_review_required",
+        "chapter_order": 65
       },
       "source_status": "review_required"
     }
-  ]
+  ],
+  "chapter_order": 65
 }

@@ -59,6 +59,8 @@ jobs:
             --add-data "server/templates;server/templates" `
             --add-data "server/static;server/static" `
             --add-data "tools/packs;tools/packs" `
+            --add-data "tools/engineer_jokar_security_ethical_hacking/security_ethical_hacking_pack.json;tools/engineer_jokar_security_ethical_hacking" `
+            --add-data "tools/engineer_jokar_wireless_security/wireless_security_pack.json;tools/engineer_jokar_wireless_security" `
             server/app.py
 
           if (-not (Test-Path "dist/NetworkEncyclopedia/NetworkEncyclopedia.exe")) {

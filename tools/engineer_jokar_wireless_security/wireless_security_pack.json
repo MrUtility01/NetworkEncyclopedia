@@ -2,7 +2,7 @@
   "package_schema_version": 1,
   "project": "ENGINEER JOKAR / NetworkEncyclopedia",
   "generated_on": "2026-10-09",
-  "purpose": "بسته تکمیلی و عمیق برای درس امنیت بی‌سیم؛ قابل ادغام با فصل امنیت و هک اخلاقی.",
+  "purpose": "بسته تکمیلی و عمیق برای درس امنیت بی‌سیم؛ قابل ادغام با فصل امنیت و هک اخلاقی.؛ شماره فصل اصلاح‌شده به 65 برای حفظ فصل 64=Git.",
   "scope": [
     {
       "chapter_order": 64,
@@ -39,18 +39,19 @@
   ],
   "compatibility": {
     "target": "lesson records compatible with observed curriculum pack fields",
-    "chapter_order": 64,
+    "chapter_order": 65,
     "subchapter_order": 8,
     "note": "افزونه این بسته پنج موضوع بی‌سیم را با 25 درس اضافه می‌کند. lesson_order از 3 تا 7 است تا با دو موضوع موجود زیرفصل 8 تداخل نکند. پیش از ادغام، تطبیق شناسه‌ها و ترتیب در دیتابیس واقعی الزامی است.",
     "preserve_existing_records": true,
     "preserve_existing_uids": true,
-    "questions_and_answers_separate": true
+    "questions_and_answers_separate": true,
+    "chapter_title_fa": "امنیت سایبری و امنیت بی‌سیم"
   },
   "lessons": [
     {
-      "uid": "lesson:ch64:wireless:lv01:l01",
+      "uid": "lesson:ch65:wireless:lv01:l01",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 3,
       "topic": "مبانی شبکه بی‌سیم",
@@ -156,14 +157,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 1
+        "topic_order": 1,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv01:l02",
+      "uid": "lesson:ch65:wireless:lv01:l02",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 4,
       "topic": "مبانی شبکه بی‌سیم",
@@ -269,14 +271,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 1
+        "topic_order": 1,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv01:l03",
+      "uid": "lesson:ch65:wireless:lv01:l03",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 5,
       "topic": "مبانی شبکه بی‌سیم",
@@ -382,14 +385,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 1
+        "topic_order": 1,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv01:l04",
+      "uid": "lesson:ch65:wireless:lv01:l04",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 6,
       "topic": "مبانی شبکه بی‌سیم",
@@ -495,14 +499,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 1
+        "topic_order": 1,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv01:l05",
+      "uid": "lesson:ch65:wireless:lv01:l05",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 7,
       "topic": "مبانی شبکه بی‌سیم",
@@ -608,14 +613,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 1
+        "topic_order": 1,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv02:l01",
+      "uid": "lesson:ch65:wireless:lv02:l01",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 3,
       "topic": "استانداردها و امنیت Wi‑Fi",
@@ -721,14 +727,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 2
+        "topic_order": 2,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv02:l02",
+      "uid": "lesson:ch65:wireless:lv02:l02",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 4,
       "topic": "استانداردها و امنیت Wi‑Fi",
@@ -834,14 +841,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 2
+        "topic_order": 2,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv02:l03",
+      "uid": "lesson:ch65:wireless:lv02:l03",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 5,
       "topic": "استانداردها و امنیت Wi‑Fi",
@@ -947,14 +955,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 2
+        "topic_order": 2,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv02:l04",
+      "uid": "lesson:ch65:wireless:lv02:l04",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 6,
       "topic": "استانداردها و امنیت Wi‑Fi",
@@ -1060,14 +1069,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 2
+        "topic_order": 2,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv02:l05",
+      "uid": "lesson:ch65:wireless:lv02:l05",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 7,
       "topic": "استانداردها و امنیت Wi‑Fi",
@@ -1173,14 +1183,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 2
+        "topic_order": 2,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv03:l01",
+      "uid": "lesson:ch65:wireless:lv03:l01",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 3,
       "topic": "طراحی و امن‌سازی WLAN سازمانی",
@@ -1286,14 +1297,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 3
+        "topic_order": 3,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv03:l02",
+      "uid": "lesson:ch65:wireless:lv03:l02",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 4,
       "topic": "طراحی و امن‌سازی WLAN سازمانی",
@@ -1399,14 +1411,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 3
+        "topic_order": 3,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv03:l03",
+      "uid": "lesson:ch65:wireless:lv03:l03",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 5,
       "topic": "طراحی و امن‌سازی WLAN سازمانی",
@@ -1512,14 +1525,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 3
+        "topic_order": 3,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv03:l04",
+      "uid": "lesson:ch65:wireless:lv03:l04",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 6,
       "topic": "طراحی و امن‌سازی WLAN سازمانی",
@@ -1625,14 +1639,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 3
+        "topic_order": 3,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv03:l05",
+      "uid": "lesson:ch65:wireless:lv03:l05",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 7,
       "topic": "طراحی و امن‌سازی WLAN سازمانی",
@@ -1738,14 +1753,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 3
+        "topic_order": 3,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv04:l01",
+      "uid": "lesson:ch65:wireless:lv04:l01",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 3,
       "topic": "ارزیابی امنیت بی‌سیم در آزمایشگاه",
@@ -1851,14 +1867,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 4
+        "topic_order": 4,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv04:l02",
+      "uid": "lesson:ch65:wireless:lv04:l02",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 4,
       "topic": "ارزیابی امنیت بی‌سیم در آزمایشگاه",
@@ -1964,14 +1981,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 4
+        "topic_order": 4,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv04:l03",
+      "uid": "lesson:ch65:wireless:lv04:l03",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 5,
       "topic": "ارزیابی امنیت بی‌سیم در آزمایشگاه",
@@ -2077,14 +2095,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 4
+        "topic_order": 4,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv04:l04",
+      "uid": "lesson:ch65:wireless:lv04:l04",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 6,
       "topic": "ارزیابی امنیت بی‌سیم در آزمایشگاه",
@@ -2190,14 +2209,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 4
+        "topic_order": 4,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv04:l05",
+      "uid": "lesson:ch65:wireless:lv04:l05",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 7,
       "topic": "ارزیابی امنیت بی‌سیم در آزمایشگاه",
@@ -2303,14 +2323,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 4
+        "topic_order": 4,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv05:l01",
+      "uid": "lesson:ch65:wireless:lv05:l01",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 3,
       "topic": "پایش، تشخیص و پاسخ به رخداد بی‌سیم",
@@ -2416,14 +2437,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 5
+        "topic_order": 5,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv05:l02",
+      "uid": "lesson:ch65:wireless:lv05:l02",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 4,
       "topic": "پایش، تشخیص و پاسخ به رخداد بی‌سیم",
@@ -2529,14 +2551,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 5
+        "topic_order": 5,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv05:l03",
+      "uid": "lesson:ch65:wireless:lv05:l03",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 5,
       "topic": "پایش، تشخیص و پاسخ به رخداد بی‌سیم",
@@ -2642,14 +2665,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 5
+        "topic_order": 5,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv05:l04",
+      "uid": "lesson:ch65:wireless:lv05:l04",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 6,
       "topic": "پایش، تشخیص و پاسخ به رخداد بی‌سیم",
@@ -2755,14 +2779,15 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 5
+        "topic_order": 5,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     },
     {
-      "uid": "lesson:ch64:wireless:lv05:l05",
+      "uid": "lesson:ch65:wireless:lv05:l05",
       "entity": "lesson",
-      "chapter_order": 64,
+      "chapter_order": 65,
       "subchapter_order": 8,
       "lesson_order": 7,
       "topic": "پایش، تشخیص و پاسخ به رخداد بی‌سیم",
@@ -2868,9 +2893,11 @@
         },
         "content_status": "review_required",
         "safety_scope": "authorized defensive lab only",
-        "topic_order": 5
+        "topic_order": 5,
+        "chapter_order": 65
       },
       "source_status": "generated_review_required"
     }
-  ]
+  ],
+  "chapter_order": 65
 }
