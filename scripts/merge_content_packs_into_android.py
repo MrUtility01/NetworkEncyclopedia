@@ -327,6 +327,8 @@ def main():
     packs = find_pack_files()
     print("packs", len(packs))
     required_professional_counts = {
+        "ch34_m365_intune_email_professional.json": 60,
+        "ch35_powershell_cmd_professional.json": 75,
         "ch36_linux_admin_professional.json": 45,
         "ch37_linux_network_professional.json": 45,
         "ch38_linux_web_services_professional.json": 40,
