@@ -124,7 +124,8 @@ def commands_to_lessons(data: dict, source_tag: str = \"pack\") -> list:
             meta["flashcards"] = flash
             notes += "\n\n<!-- EJ_FLASHCARDS\n" + json.dumps(flash, ensure_ascii=False) + "\n-->\n"
 
-        source_slug = re.sub(r"[^a-zA-Z0-9_-]+", "-", source_tag).strip("-").lower()[:48] or "pack"\n        lesson_uid = f"lesson:ch{ch:02d}:cmd:{source_slug}:{i:04d}"
+        source_slug = re.sub(r"[^a-zA-Z0-9_-]+", "-", source_tag).strip("-").lower()[:48] or "pack"
+        lesson_uid = f"lesson:ch{ch:02d}:cmd:{source_slug}:{i:04d}"
         out.append({
             "uid": lesson_uid,
             "chapter_order": ch,
@@ -187,7 +188,8 @@ def blueprint_to_lessons(d, focus_keywords, default_ch):
 
 def normalize_pack(path: Path, data: dict):
     if data.get("commands"):
-        source_tag = str(path.relative_to(ROOT)).replace("\\\\", "/")\n        return commands_to_lessons(data, source_tag=source_tag)
+        source_tag = str(path.relative_to(ROOT)).replace("\\\\", "/")
+        return commands_to_lessons(data, source_tag=source_tag)
     if data.get("lessons"):
         return data.get("lessons") or []
     name = path.name.upper()
