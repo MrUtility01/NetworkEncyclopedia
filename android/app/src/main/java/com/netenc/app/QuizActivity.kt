@@ -132,7 +132,7 @@ class QuizActivity : AppCompatActivity() {
                 val answerKey = assessment.optJSONArray("answer_key")
                 for (qi in 0 until questions.length()) {
                     val q = questions.getJSONObject(qi)
-                    val prompt = q.optString("prompt", q.optString("text", ""))
+                    val prompt = q.optString("prompt", q.optString("text", q.optString("question", "")))
                     if (prompt.isBlank()) continue
                     val optsArr = q.optJSONArray("options") ?: continue
                     val options = mutableListOf<String>()
@@ -151,13 +151,27 @@ class QuizActivity : AppCompatActivity() {
                         val id = q.optString("id", qi.toString())
                         for (ai in 0 until answerKey.length()) {
                             val a = answerKey.getJSONObject(ai)
-                            if (a.optString("id", "") == id || a.optInt("question_index", -1) == qi) {
-                                correct = a.optInt("correct_index", a.optInt("answer", 0))
+                            val answerQuestionId = a.optString("question_id", a.optString("id", ""))
+                            if (answerQuestionId == id || a.optInt("question_index", -1) == qi) {
+                                val correctOptionId = a.optString("correct_option_id", "")
+                                if (correctOptionId.isNotBlank()) {
+                                    for (oi in 0 until optsArr.length()) {
+                                        val option = optsArr.get(oi)
+                                        if (option is JSONObject && option.optString("id", "") == correctOptionId) {
+                                            correct = oi
+                                            break
+                                        }
+                                    }
+                                }
+                                if (correct < 0) {
+                                    correct = a.optInt("correct_index", a.optInt("answer", -1))
+                                }
                                 break
                             }
                         }
                     }
-                    if (correct < 0) correct = 0
+                    // Never silently guess option zero for a malformed/missing answer key.
+                    if (correct !in 0 until options.size) continue
                     while (options.size < 4) options.add("—")
                     out.add(BankQ(prompt, options.take(4), correct.coerceIn(0, 3), les.uid))
                 }
