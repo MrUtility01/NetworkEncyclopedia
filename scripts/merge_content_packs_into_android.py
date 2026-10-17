@@ -49,7 +49,7 @@ def find_pack_files():
     return sorted(uniq)
 
 
-def commands_to_lessons(data: dict, source_tag: str = \"pack\") -> list:
+def commands_to_lessons(data: dict, source_tag: str = "pack") -> list:
     ch = int(data.get("chapter_order") or 68)
     out = []
     sub_map = {
