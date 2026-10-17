@@ -255,6 +255,8 @@ def health():
             "study_error": _MODULE_STATUS.get("study_error") or None,
         },
         "stats": st,
+        "content_seeded": bool(db().is_seeded()),
+        "packs_applied": db().get_meta("packs_applied") or "",
     })
 
 
