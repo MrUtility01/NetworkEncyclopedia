@@ -13,6 +13,7 @@
 - هر درس دارای UID، شماره فصل/زیرفصل/درس، خلاصه، متن Markdown، فرمان‌ها، مثال، لابراتوار، عیب‌یابی ساختاریافته و معیار پذیرش است.
 - سؤال‌ها در `meta.assessment.questions` و جواب‌ها فقط در `meta.assessment.answer_key` قرار دارند. پاسخ صحیح داخل گزینه‌های عمومی سؤال منتشر نشده است.
 - اسکریپت merge اصلاح شده تا ارزیابی، فلش‌کارت و هدف‌های یادگیری درس‌های match‌شده را در markerهای `notes` حفظ کند.
+- `tools/apply_any_pack.py` نیز اصلاح شده تا `meta.assessment` و دیگر metadata ورودی را با حفظ کلیدهای قبلی در ستون `lessons.meta_json` دیتابیس Windows merge کند؛ `source_status` هم ذخیره می‌شود.
 
 ## بررسی ساختار JSON
 ```bash
