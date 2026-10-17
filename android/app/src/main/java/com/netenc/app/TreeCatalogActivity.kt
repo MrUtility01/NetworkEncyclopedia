@@ -88,7 +88,7 @@ class TreeCatalogActivity : AppCompatActivity() {
             header.text = "فهرست خالی است (seed=$seeded). دکمه بارگذاری مجدد را بزن یا APK را دوباره نصب کن."
             Toast.makeText(this, "فهرست خالی — بازسازی لازم است", Toast.LENGTH_LONG).show()
             tree = emptyList()
-            list.setAdapter(null)
+            list.setAdapter(null as android.widget.ExpandableListAdapter?)
             return
         }
         val byChapter = lessons.groupBy { it.chapterOrder to it.chapterTitle }
