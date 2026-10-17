@@ -138,9 +138,24 @@ def main():
             m += 1
             if not args.apply:
                 continue
+            # Preserve existing lesson metadata, while updating assessment/flashcards
+            # supplied by the incoming pack. The existing stable lesson UID is untouched.
+            meta_row = conn.execute(
+                "SELECT meta_json FROM lessons WHERE id=?", (lid,)
+            ).fetchone()
+            try:
+                merged_meta = json.loads((meta_row[0] if meta_row else None) or "{}")
+                if not isinstance(merged_meta, dict):
+                    merged_meta = {}
+            except (TypeError, json.JSONDecodeError):
+                merged_meta = {}
+            incoming_meta = les.get("meta") or {}
+            if isinstance(incoming_meta, dict):
+                merged_meta.update(incoming_meta)
+            source_status = les.get("source_status") or "review_required"
             conn.execute(
                 """UPDATE lessons SET summary=?, full_content=?, commands=?, examples=?, notes=?,
-                   learning_objectives=?, last_updated=? WHERE id=?""",
+                   learning_objectives=?, meta_json=?, source_status=?, last_updated=? WHERE id=?""",
                 (
                     les.get("summary") or "",
                     les.get("full_content") or "",
@@ -148,6 +163,8 @@ def main():
                     as_text(les.get("examples")),
                     as_text(les.get("notes")),
                     "\n".join(les.get("learning_objectives") or []),
+                    json.dumps(merged_meta, ensure_ascii=False),
+                    source_status,
                     now,
                     lid,
                 ),
