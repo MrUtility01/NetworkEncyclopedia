@@ -15,3 +15,15 @@
 ## قانون
 
 JSON جدید را **فقط اینجا** بگذار. در `commands_encyclopedia/prompts/` نگذار.
+
+
+## بسته‌های حرفه‌ای لینوکس
+
+| فایل | فصل | درس | آزمون |
+|------|------|-----:|------:|
+| `linux_services_security/ch36_linux_admin_professional.json` | ۳۶ — مدیریت لینوکس | ۴۵ | ۹۰ |
+| `linux_services_security/ch37_linux_network_professional.json` | ۳۷ — شبکه لینوکس | ۴۵ | ۹۰ |
+| `linux_services_security/ch38_vmware_hyperv_professional.json` | ۴۰ — مجازی‌سازی | ۷۰ | ۱۴۰ |
+| `linux_services_security/ch39_linux_security_professional.json` | ۳۹ — امنیت لینوکس | ۴۵ | ۹۰ |
+
+هر درس در پنج سطح L0 تا L4 دارای محتوای اجرایی، تمرین lab، عیب‌یابی مبتنی بر شواهد، معیار پذیرش و `meta.assessment.answer_key` جداگانه است. وضعیت اعتبارسنجی فرمان‌های وابسته به توزیع و نسخه: `review_required`.
