@@ -21,7 +21,7 @@ JSON جدید را **فقط اینجا** بگذار. در `commands_encyclopedia
 
 | فایل | فصل | درس | آزمون |
 |------|------|-----:|------:|
-| `windows_admin_professional/ch34_m365_intune_email_professional.json` | ۳۴ — M365، Intune، Conditional Access و ایمیل | ۴۵ | ۹۰ |
+| `windows_admin_professional/ch34_m365_intune_email_professional.json` | ۳۴ — M365، Intune، Conditional Access و ایمیل | ۶۰ | ۱۲۰ |
 | `windows_admin_professional/ch35_powershell_cmd_professional.json` | ۳۵ — CMD، PowerShell و اتوماسیون | ۷۵ | ۱۵۰ |
 | `linux_services_security/ch36_linux_admin_professional.json` | ۳۶ — مدیریت لینوکس | ۴۵ | ۹۰ |
 | `linux_services_security/ch37_linux_network_professional.json` | ۳۷ — شبکه لینوکس | ۴۵ | ۹۰ |
