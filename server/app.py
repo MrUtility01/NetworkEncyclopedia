@@ -123,21 +123,41 @@ def get_lan_ips():
     return ips
 
 
-PACK_CONTENT_VERSION = "v35-ch38-ch39"
+PACK_CONTENT_VERSION = "v36-ch36-ch37-ch38-ch39"
 
 def _apply_content_packs_if_needed(database: WebDB):
-    """Apply versioned content packs only after the full lesson seed completes."""
-    if database.get_meta("packs_applied") == PACK_CONTENT_VERSION or not database.is_seeded():
-        return
+    """Apply and verify required lesson packs only after the full lesson seed completes."""
+    if database.get_meta("packs_applied") == PACK_CONTENT_VERSION:
+        return {"ok": True, "skipped": True, "version": PACK_CONTENT_VERSION}
+    if not database.is_seeded():
+        return {"ok": False, "pending": True, "reason": "seed_not_complete"}
+
+    required = {
+        "ch36_linux_admin_professional.json": 45,
+        "ch37_linux_network_professional.json": 45,
+        "ch38_vmware_hyperv_professional.json": 70,
+        "ch39_linux_security_professional.json": 45,
+    }
     try:
         from core.pack_loader import apply_packs_to_db
-        print("applying versioned content packs (chapter 38/39 are authoritative)...")
+        print("applying versioned content packs (chapters 36-39 are authoritative)...")
         res = apply_packs_to_db(Path(database.path), overwrite=False)
         print("pack apply:", res.get("updated"), "updated /", res.get("matched"), "matched",
               "skipped_shorter", res.get("skipped_shorter"))
+        details = {item.get("pack"): item for item in (res.get("details") or [])}
+        bad = []
+        for name, expected in required.items():
+            item = details.get(name)
+            if not item or item.get("matched") != expected or item.get("updated") != expected or item.get("missing") != 0:
+                bad.append({"pack": name, "expected": expected, "actual": item})
+        if not res.get("ok") or bad:
+            print("required content pack verification failed; version marker not updated:", bad)
+            return {"ok": False, "error": "required_content_pack_verification_failed", "details": bad, "result": res}
         database.set_meta("packs_applied", PACK_CONTENT_VERSION)
+        return {"ok": True, "version": PACK_CONTENT_VERSION, "result": res}
     except Exception as exc:
         print("pack apply skipped:", exc)
+        return {"ok": False, "error": str(exc)}
 
 def db() -> WebDB:
     global _db
@@ -317,10 +337,9 @@ def apply_packs():
     if denied:
         return denied
     try:
-        from core.pack_loader import apply_packs_to_db
-        result = apply_packs_to_db(Path(db().path), overwrite=False)
-        db().set_meta("packs_applied", "v34")
-        return jsonify(result)
+        result = _apply_content_packs_if_needed(db())
+        status = 200 if result.get("ok") else 503
+        return jsonify(result), status
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
@@ -331,20 +350,19 @@ def reseed():
     if denied:
         return denied
     result = db().seed_full(force=True, skeleton_only=True)
+    # Do not apply rich packs to the skeleton while the background seed is still running.
     def _bg():
         try:
-            db().seed_full(force=True, skeleton_only=False)
+            database = db()
+            seed_result = database.seed_full(force=True, skeleton_only=False)
+            print("reseed enrich", seed_result)
+            pack_result = _apply_content_packs_if_needed(database)
+            print("reseed pack apply", pack_result.get("ok"), pack_result.get("version") or pack_result.get("error"))
         except Exception as ex:
             print("reseed enrich", ex)
     threading.Thread(target=_bg, daemon=True).start()
     result["enrich"] = "background"
-    try:
-        from core.pack_loader import apply_packs_to_db
-        packs = apply_packs_to_db(Path(db().path), overwrite=False)
-        result["packs"] = packs
-        db().set_meta("packs_applied", "v34")
-    except Exception as e:
-        result["packs_error"] = str(e)
+    result["packs"] = "apply_after_enrichment"
     return jsonify(result)
 
 
