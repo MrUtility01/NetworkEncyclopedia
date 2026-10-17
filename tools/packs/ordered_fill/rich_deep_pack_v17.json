@@ -75,7 +75,7 @@
       "chapter_order": 65,
       "summary": "ورود غیرمستقیم به تجهیزات از یک میزبان کنترل‌شده.",
       "full_content": "# Jump Host — عمیق\n\n## ایده\nادمین مستقیماً از لپ‌تاپ به همه روترها SSH نزند. اول به jump host (bastion) در VLAN مدیریت، بعد به هدف.\n\n## مزیت\n- نقطه لاگ متمرکز\n- سخت‌سازی یک‌جا\n- کاهش سطح حمله\n- همراهی با MFA روی bastion\n\n## الگو\n```\nLaptop --VPN/MFA--> Jump --SSH--> Network devices\n```\n\n## سخت‌سازی\n- فقط SSH\n- allowlist کاربران\n- session recording در صورت امکان\n- بدون internet browsing از روی jump\n\n## RCA\nدسترسی fail: ACL Mgmt، کلید SSH، زمان MFA، route به jump.\n",
-      "commands": "ssh jump.example.local\nssh admin@10.255.255.1\nshow users\nshow access-lists\nshow logging | include SSH\|LOGIN",
+      "commands": "ssh jump.example.local\nssh admin@10.255.255.1\nshow users\nshow access-lists\nshow logging | include SSH\\|LOGIN",
       "examples": "Lab:\n1) ACL طوری که فقط jump به VTY دستگاه‌ها برسد\n2) از لپ‌تاپ مستقیم fail\n3) از jump OK\n4) لاگ را روی jump و دستگاه مقایسه کن",
       "notes": "Jump را تبدیل به workstation عمومی نکن.\n",
       "learning_objectives": ["bastion", "ACL Mgmt", "لاگ متمرکز"]

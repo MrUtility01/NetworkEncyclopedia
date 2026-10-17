@@ -49,7 +49,7 @@ def find_pack_files():
     return sorted(uniq)
 
 
-def commands_to_lessons(data: dict) -> list:
+def commands_to_lessons(data: dict, source_tag: str = "pack") -> list:
     ch = int(data.get("chapter_order") or 68)
     out = []
     sub_map = {
@@ -124,7 +124,8 @@ def commands_to_lessons(data: dict) -> list:
             meta["flashcards"] = flash
             notes += "\n\n<!-- EJ_FLASHCARDS\n" + json.dumps(flash, ensure_ascii=False) + "\n-->\n"
 
-        lesson_uid = f"lesson:ch{ch:02d}:cmd:{i:04d}"
+        source_slug = re.sub(r"[^a-zA-Z0-9_-]+", "-", source_tag).strip("-").lower()[:48] or "pack"
+        lesson_uid = f"lesson:ch{ch:02d}:cmd:{source_slug}:{i:04d}"
         out.append({
             "uid": lesson_uid,
             "chapter_order": ch,
@@ -187,7 +188,8 @@ def blueprint_to_lessons(d, focus_keywords, default_ch):
 
 def normalize_pack(path: Path, data: dict):
     if data.get("commands"):
-        return commands_to_lessons(data)
+        source_tag = str(path.relative_to(ROOT)).replace("\\\\", "/")
+        return commands_to_lessons(data, source_tag=source_tag)
     if data.get("lessons"):
         return data.get("lessons") or []
     name = path.name.upper()
@@ -301,6 +303,135 @@ def build_ch65(lessons):
     }
 
 
+
+def _assessment_for_android(assessment):
+    """Normalize pack assessments for QuizActivity while preserving answer_key references."""
+    if not isinstance(assessment, dict):
+        return {}
+    questions = assessment.get("questions") or []
+    answer_key = assessment.get("answer_key") or []
+    answers = {str(a.get("id")): a for a in answer_key if isinstance(a, dict) and a.get("id") is not None}
+    normalized = []
+    for q in questions:
+        if not isinstance(q, dict):
+            continue
+        item = dict(q)
+        item["prompt"] = item.get("prompt") or item.get("question") or item.get("text") or ""
+        aid = str(item.get("id", ""))
+        answer = answers.get(aid, {})
+        if "correct_index" not in item:
+            if "correct_index" in answer:
+                item["correct_index"] = answer["correct_index"]
+            elif "correct_option" in answer:
+                item["correct_index"] = answer["correct_option"]
+            elif "answer" in answer:
+                item["correct_index"] = answer["answer"]
+        normalized.append(item)
+    return {"questions": normalized, "answer_key": answer_key}
+
+
+def _assessment_note(assessment):
+    normalized = _assessment_for_android(assessment)
+    if not normalized.get("questions"):
+        return ""
+    return "\n\n<!-- EJ_ASSESSMENT\n" + json.dumps(normalized, ensure_ascii=False) + "\n-->\n"
+
+
+def _lab_text(lab):
+    lines = [
+        "# " + str(lab.get("title") or "لابراتوار"),
+        "",
+        "## هدف",
+        str(lab.get("objective") or ""),
+        "",
+        "## مجوز و محدوده",
+        str(lab.get("authorization") or "فقط محیط آزمایشگاهی مجاز."),
+        "",
+        "## توپولوژی",
+    ]
+    lines.extend("- " + str(x) for x in (lab.get("topology") or []))
+    lines += ["", "## مراحل اجرا"]
+    lines.extend(f"{i}. {step}" for i, step in enumerate(lab.get("steps") or [], 1))
+    lines += ["", "## معیار موفقیت"]
+    lines.extend("- " + str(x) for x in (lab.get("success_criteria") or []))
+    lines += ["", "## تحویل‌دادنی‌ها"]
+    lines.extend("- " + str(x) for x in (lab.get("deliverables") or []))
+    lines += ["", "## بازگشت / پاک‌سازی", str(lab.get("rollback") or "پاک‌سازی محیط آزمایش و بازگردانی baseline.")]
+    return "\n".join(lines)
+
+
+def append_professional_pack_to_chapter(data, pack, order):
+    """Append pack lessons, dedicated lab lessons and a final assessment without deleting curriculum."""
+    chapters = data.get("chapters") or []
+    chapter = next((c for c in chapters if int(c.get("order") or 0) == order), None)
+    if chapter is None:
+        chapter = {
+            "order": order,
+            "title_fa": f"فصل {order}",
+            "title_en": f"Chapter {order}",
+            "subchapters": [],
+        }
+        chapters.append(chapter)
+        data["chapters"] = chapters
+
+    section_title = f"بسته حرفه‌ای فصل {order}"
+    chapter["subchapters"] = [
+        sub for sub in chapter.get("subchapters", [])
+        if sub.get("title_fa") != section_title
+    ]
+    out = []
+    for src in pack.get("lessons") or []:
+        if not isinstance(src, dict):
+            continue
+        notes = as_text(src.get("notes"))
+        notes += _assessment_note(src.get("assessment"))
+        out.append({
+            "uid": src.get("uid") or f"lesson:ch{order:02d}:pack:{len(out)+1:04d}",
+            "title_fa": src.get("title_fa") or "درس بدون عنوان",
+            "title_en": src.get("title_en") or "",
+            "level": (src.get("meta") or {}).get("level") or "L2",
+            "summary": src.get("summary") or "",
+            "full_content": src.get("full_content") or "",
+            "commands": as_text(src.get("commands")),
+            "examples": as_text(src.get("examples")),
+            "notes": notes,
+        })
+
+    for lab in pack.get("labs") or []:
+        if not isinstance(lab, dict):
+            continue
+        full = _lab_text(lab)
+        out.append({
+            "uid": f"lesson:ch{order:02d}:lab:{lab.get('id') or len(out)+1}",
+            "title_fa": "لابراتوار: " + str(lab.get("title") or "بدون عنوان"),
+            "title_en": str(lab.get("id") or ""),
+            "level": "L3",
+            "summary": str(lab.get("objective") or ""),
+            "full_content": full,
+            "commands": "",
+            "examples": full,
+            "notes": "نوع محتوا: لابراتوار عملی\nمجوز/محدوده: " + str(lab.get("authorization") or "محیط آزمایشگاهی مجاز") + "\nبازگشت: " + str(lab.get("rollback") or ""),
+        })
+
+    final_assessment = pack.get("assessment") or {}
+    if final_assessment.get("questions"):
+        final_notes = _assessment_note(final_assessment)
+        out.append({
+            "uid": f"lesson:ch{order:02d}:assessment:final",
+            "title_fa": f"آزمون جامع فصل {order}",
+            "title_en": f"Chapter {order} Final Assessment",
+            "level": "L3",
+            "summary": f"آزمون پایانی بسته حرفه‌ای فصل {order}",
+            "full_content": "این بخش بانک آزمون پایانی فصل است. سؤال‌های چندگزینه‌ای در ماژول آزمون خوانده می‌شوند؛ سؤال‌های سناریویی برای ارزیابی تشریحی هستند.",
+            "commands": "",
+            "examples": "",
+            "notes": final_notes,
+        })
+
+    chapter.setdefault("subchapters", []).append({"title_fa": section_title, "lessons": out})
+    return len(out)
+
+
 def main():
     if not GZ.is_file():
         print("ERROR missing", GZ)
@@ -320,6 +451,14 @@ def main():
         lessons = normalize_pack(p, d)
         print(" ", p.name, "lessons", len(lessons))
         if not lessons:
+            continue
+        if p.name == "ch57_network_security_professional.json":
+            count = append_professional_pack_to_chapter(data, d, 57)
+            print("   professional-pack chapter 57 lessons+labs+assessment", count)
+            continue
+        if p.name == "ch60_ethical_hacking_troubleshooting_professional.json":
+            count = append_professional_pack_to_chapter(data, d, 60)
+            print("   professional-pack chapter 60 lessons+labs+assessment", count)
             continue
         if "security_ethical" in name:
             sec.extend(lessons)
