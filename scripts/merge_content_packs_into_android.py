@@ -216,18 +216,18 @@ def apply_fields(les, src):
     meta = src.get("meta") or {}
     for key in ("assessment", "flashcards"):
         value = meta.get(key)
-        marker = f"<!-- EJ_{key.upper()}\\n"
+        marker = f"<!-- EJ_{key.upper()}\n"
         if value and marker not in notes:
-            if notes and not notes.endswith("\\n"):
-                notes += "\\n"
-            notes += marker + json.dumps(value, ensure_ascii=False) + "\\n-->\\n"
+            if notes and not notes.endswith("\n"):
+                notes += "\n"
+            notes += marker + json.dumps(value, ensure_ascii=False) + "\n-->\n"
     objectives = src.get("learning_objectives") or []
     if objectives:
-        marker = "<!-- EJ_LEARNING_OBJECTIVES\\n"
+        marker = "<!-- EJ_LEARNING_OBJECTIVES\n"
         if marker not in notes:
-            if notes and not notes.endswith("\\n"):
-                notes += "\\n"
-            notes += marker + json.dumps(objectives, ensure_ascii=False) + "\\n-->\\n"
+            if notes and not notes.endswith("\n"):
+                notes += "\n"
+            notes += marker + json.dumps(objectives, ensure_ascii=False) + "\n-->\n"
     if notes:
         les["notes"] = notes
 
