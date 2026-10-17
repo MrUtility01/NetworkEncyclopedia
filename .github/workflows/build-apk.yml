@@ -7,6 +7,8 @@ on:
     paths:
       - "server/core/**"
       - "scripts/export_android_index.py"
+      - "scripts/merge_content_packs_into_android.py"
+      - "tools/packs/**"
       - "android/**"
       - ".github/workflows/build-apk.yml"
 
@@ -51,7 +53,7 @@ jobs:
         run: |
           set -e
           python3 scripts/export_android_index.py
-          python3 scripts/merge_content_packs_into_android.py || true
+          python3 scripts/merge_content_packs_into_android.py
           ls -la android/app/src/main/assets/curriculum_index.json.gz
 
       - name: local.properties

@@ -108,6 +108,22 @@ def get_lan_ips():
     return ips
 
 
+PACK_CONTENT_VERSION = "v35-ch38-ch39"
+
+def _apply_content_packs_if_needed(database: WebDB):
+    """Apply versioned content packs only after the full lesson seed completes."""
+    if database.get_meta("packs_applied") == PACK_CONTENT_VERSION or not database.is_seeded():
+        return
+    try:
+        from core.pack_loader import apply_packs_to_db
+        print("applying versioned content packs (chapter 38/39 are authoritative)...")
+        res = apply_packs_to_db(Path(database.path), overwrite=False)
+        print("pack apply:", res.get("updated"), "updated /", res.get("matched"), "matched",
+              "skipped_shorter", res.get("skipped_shorter"))
+        database.set_meta("packs_applied", PACK_CONTENT_VERSION)
+    except Exception as exc:
+        print("pack apply skipped:", exc)
+
 def db() -> WebDB:
     global _db
     if _db is None:
@@ -120,6 +136,7 @@ def db() -> WebDB:
                 try:
                     print("background rich enrich started...")
                     print(_db.seed_full(force=True, skeleton_only=False))
+                    _apply_content_packs_if_needed(_db)
                 except Exception as ex:
                     print("background enrich error:", ex)
             threading.Thread(target=_bg, daemon=True).start()
@@ -415,12 +432,10 @@ def main():
     print("init db / rich seed if needed...")
     d = db()
     try:
-        if d.get_meta("packs_applied") != "v34":
-            from core.pack_loader import apply_packs_to_db
-            print("applying packs (smart: never shrink rich content)...")
-            res = apply_packs_to_db(Path(d.path), overwrite=False)
-            print("pack apply:", res.get("updated"), "updated /", res.get("matched"), "matched", "skipped_shorter", res.get("skipped_shorter"))
-            d.set_meta("packs_applied", "v34")
+        if d.is_seeded():
+            _apply_content_packs_if_needed(d)
+        else:
+            print("rich seed is running; versioned content packs will apply after enrichment")
     except Exception as e:
         print("pack apply skipped:", e)
     if register_study_routes:

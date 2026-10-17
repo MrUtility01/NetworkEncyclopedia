@@ -205,6 +205,24 @@ def apply_fields(les, src):
         if src.get(k):
             les[k] = as_text(src.get(k)) if k != "full_content" else (src.get(k) or "")
 
+    # Preserve assessments and learning objectives when matched to a canonical lesson.
+    notes = as_text(les.get("notes") or "")
+    meta = src.get("meta") or {}
+    markers = (
+        ("assessment", "EJ_ASSESSMENT"),
+        ("flashcards", "EJ_FLASHCARDS"),
+    )
+    for key, marker in markers:
+        payload = meta.get(key)
+        if payload and marker not in notes:
+            notes += chr(10) * 2 + "<!-- " + marker + chr(10)
+            notes += json.dumps(payload, ensure_ascii=False) + chr(10) + "-->" + chr(10)
+    objectives = src.get("learning_objectives")
+    if objectives and "EJ_LEARNING_OBJECTIVES" not in notes:
+        notes += chr(10) * 2 + "<!-- EJ_LEARNING_OBJECTIVES" + chr(10)
+        notes += json.dumps(objectives, ensure_ascii=False) + chr(10) + "-->" + chr(10)
+    les["notes"] = notes.strip()
+
 
 def merge_by_title(data, lessons):
     by = {}

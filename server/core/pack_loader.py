@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(sys._MEIPASS) if getattr(sys, "frozen", False) else Path(__file__).resolve().parents[2]
 
 _STOP = {
     "با", "برای", "از", "و", "در", "به", "که", "این", "آن", "یک",
@@ -63,6 +64,8 @@ def _lesson_fields(raw: Dict[str, Any]) -> Optional[Dict[str, str]]:
         "examples": _as_text(raw.get("examples") or raw.get("lab") or ""),
         "notes": _as_text(raw.get("notes") or raw.get("troubleshooting") or ""),
         "learning_objectives": _as_text(raw.get("learning_objectives") or ""),
+        "meta_json": json.dumps(raw.get("meta") or {}, ensure_ascii=False),
+        "source_status": str(raw.get("source_status") or ""),
     }
 
 
@@ -162,6 +165,10 @@ def match_lesson_id(conn: sqlite3.Connection, title: str) -> Optional[int]:
     title = (title or "").strip()
     if not title:
         return None
+    # Prefer the exact canonical title so L0-L4 versions never collapse onto one row.
+    exact = conn.execute("SELECT id FROM lessons WHERE title_fa=? ORDER BY id LIMIT 1", (title,)).fetchone()
+    if exact:
+        return int(exact["id"] if isinstance(exact, sqlite3.Row) else exact[0])
     bare = _norm_title(title)
     if len(bare) < 4:
         return None
@@ -209,6 +216,11 @@ def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
 
     for pack in packs:
         lessons = load_lessons_from_file(pack)
+        # These two curated chapter packs are authoritative for their exact canonical lesson titles.
+        force_professional = pack.name in {
+            "ch38_linux_web_services_professional.json",
+            "ch39_linux_security_professional.json",
+        }
         m = x = u = 0
         for les in lessons:
             lid = match_lesson_id(conn, les["title_fa"])
@@ -223,21 +235,35 @@ def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
             m += 1
             # هرگز محتوای غنی‌تر را با کوتاه‌تر عوض نکن
             cur = conn.execute(
-                "SELECT length(COALESCE(full_content,'')) n FROM lessons WHERE id=?",
+                "SELECT length(COALESCE(full_content,'')) n, COALESCE(meta_json,'{}') meta_json, source_status FROM lessons WHERE id=?",
                 (lid,),
             ).fetchone()
             cur_n = int(cur["n"] or 0) if cur else 0
             new_n = len(les.get("full_content") or "")
-            if cur_n > 0 and new_n + 200 < cur_n:
+            if not force_professional and cur_n > 0 and new_n + 200 < cur_n:
                 skipped_shorter += 1
                 continue
-            if not overwrite and cur_n >= new_n:
+            if not overwrite and cur_n >= new_n and not force_professional:
                 continue
+            try:
+                old_meta = json.loads(cur["meta_json"] or "{}") if cur else {}
+            except Exception:
+                old_meta = {}
+            try:
+                incoming_meta = json.loads(les.get("meta_json") or "{}")
+            except Exception:
+                incoming_meta = {}
+            if not isinstance(old_meta, dict):
+                old_meta = {}
+            if isinstance(incoming_meta, dict):
+                old_meta.update(incoming_meta)
+            merged_meta_json = json.dumps(old_meta, ensure_ascii=False)
+            status = les.get("source_status") or (cur["source_status"] if cur else "") or "review_required"
             conn.execute(
                 """UPDATE lessons SET
                     summary=?, full_content=?, commands=?, examples=?, notes=?,
                     learning_objectives=CASE WHEN ?!='' THEN ? ELSE learning_objectives END,
-                    last_updated=?
+                    meta_json=?, source_status=?, last_updated=?
                  WHERE id=?""",
                 (
                     les["summary"],
@@ -247,6 +273,8 @@ def apply_packs_to_db(db_path: Path, overwrite: bool = True) -> Dict[str, Any]:
                     les["notes"],
                     les["learning_objectives"],
                     les["learning_objectives"],
+                    merged_meta_json,
+                    status,
                     now,
                     lid,
                 ),

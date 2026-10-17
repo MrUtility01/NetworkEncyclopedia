@@ -1,0 +1,79 @@
+name: Build Windows x64 portable app
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "server/**"
+      - "shared/**"
+      - "windows/**"
+      - "tools/packs/linux_services_security/**"
+      - ".github/workflows/build-windows.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: server/requirements.txt
+
+      - name: Install dependencies and compile check
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r server/requirements.txt pyinstaller
+          python -m compileall -q server shared scripts
+
+      - name: Build portable executable
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          pyinstaller --noconfirm --clean --onedir --name NetworkEncyclopedia `
+            --paths server --paths . `
+            --hidden-import core.db `
+            --hidden-import core.full_curriculum `
+            --hidden-import core.phase_a `
+            --hidden-import core.extra_chapters `
+            --hidden-import core.rich_content `
+            --hidden-import core.study `
+            --hidden-import core.pack_loader `
+            --hidden-import workspace_routes `
+            --hidden-import study_routes `
+            --hidden-import shared.sync_engine `
+            --add-data "server/templates;server/templates" `
+            --add-data "server/static;server/static" `
+            --add-data "tools/packs/linux_services_security;tools/packs/linux_services_security" `
+            server/app.py
+
+          if (-not (Test-Path "dist/NetworkEncyclopedia/NetworkEncyclopedia.exe")) {
+            throw "Portable executable was not created."
+          }
+          Copy-Item "windows/START_EXE.bat" "dist/NetworkEncyclopedia/START_EXE.bat"
+          Copy-Item "windows/INSTALL_EXE_FA.md" "dist/NetworkEncyclopedia/INSTALL_EXE_FA.md"
+          @"
+          Build commit: $env:GITHUB_SHA
+          Build date: $((Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))
+          Target: Windows x64 / Python 3.11 / PyInstaller onedir
+          Content packs: source_status=review_required
+          "@ | Set-Content -Encoding utf8 "dist/NetworkEncyclopedia/BUILD-INFO.txt"
+          Compress-Archive -Path "dist/NetworkEncyclopedia" -DestinationPath "NetworkEncyclopedia-Windows-x64.zip" -Force
+
+      - name: Upload Windows ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: NetworkEncyclopedia-Windows-x64
+          path: NetworkEncyclopedia-Windows-x64.zip
+          if-no-files-found: error
+          retention-days: 30
