@@ -2,6 +2,7 @@ name: Build APK v1
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     branches: [main]
     paths:
@@ -48,6 +49,11 @@ jobs:
       - name: Icons (safe)
         run: |
           python3 scripts/install_android_icon.py || echo "icons skip"
+
+      - name: Validate source content packs
+        run: |
+          set -e
+          python3 tools/audit_content_packs.py --root . --strict --json docs/content_audit_packs_ci.json
 
       - name: Curriculum export (full book content)
         run: |

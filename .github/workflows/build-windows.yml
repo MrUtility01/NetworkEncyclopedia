@@ -2,14 +2,16 @@ name: Build Windows x64 portable app
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     branches: [main]
     paths:
       - "server/**"
       - "shared/**"
       - "windows/**"
-      - "tools/packs/linux_services_security/**"
-      - "tools/packs/windows_admin_professional/**"
+      - "tools/packs/**"
+      - "tools/audit_content_packs.py"
+      - "docs/CONTENT_AUDIT_31_68_FA.md"
       - ".github/workflows/build-windows.yml"
 
 permissions:
@@ -35,7 +37,8 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r server/requirements.txt pyinstaller
-          python -m compileall -q server shared scripts
+          python -m compileall -q server shared scripts tools/audit_content_packs.py
+          python tools/audit_content_packs.py --root . --json docs/content_audit_packs_ci.json
 
       - name: Build portable executable
         shell: pwsh
@@ -55,8 +58,7 @@ jobs:
             --hidden-import shared.sync_engine `
             --add-data "server/templates;server/templates" `
             --add-data "server/static;server/static" `
-            --add-data "tools/packs/linux_services_security;tools/packs/linux_services_security" `
-            --add-data "tools/packs/windows_admin_professional;tools/packs/windows_admin_professional" `
+            --add-data "tools/packs;tools/packs" `
             server/app.py
 
           if (-not (Test-Path "dist/NetworkEncyclopedia/NetworkEncyclopedia.exe")) {
@@ -94,7 +96,7 @@ jobs:
               }
               try {
                 $response = Invoke-RestMethod -Uri "http://127.0.0.1:5083/api/health" -TimeoutSec 2
-                if ($response.ok -and $response.content_seeded -and $response.packs_applied -eq "v34-ch34-ch35-ch36-ch37-ch38-ch39") {
+                if ($response.ok -and $response.content_seeded -and $response.packs_applied -eq "v36-ch31-63-scoped-professional-packs") {
                   $healthy = $true
                   break
                 }

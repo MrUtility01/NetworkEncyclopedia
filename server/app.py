@@ -123,7 +123,7 @@ def get_lan_ips():
     return ips
 
 
-PACK_CONTENT_VERSION = "v34-ch34-ch35-ch36-ch37-ch38-ch39"
+PACK_CONTENT_VERSION = "v36-ch31-63-scoped-professional-packs"
 
 def _apply_content_packs_if_needed(database: WebDB, force: bool = False):
     """Apply and verify required lesson packs only after the full lesson seed completes."""
@@ -133,16 +133,28 @@ def _apply_content_packs_if_needed(database: WebDB, force: bool = False):
         return {"ok": False, "pending": True, "reason": "seed_not_complete"}
 
     required = {
+        "ch31_33_windows_file_endpoint_identity_professional.json": 140,
         "ch34_m365_intune_email_professional.json": 60,
         "ch35_powershell_cmd_professional.json": 75,
         "ch36_linux_admin_professional.json": 45,
         "ch37_linux_network_professional.json": 45,
         "ch38_linux_web_services_professional.json": 40,
         "ch39_linux_security_professional.json": 45,
+        "ch40_42_virtualization_containers_kubernetes_professional.json": 190,
+        "ch43_45_cloud_storage_professional.json": 170,
+        "ch46_49_resilience_monitoring_professional.json": 200,
+        "ch50_53_siem_automation_database_professional.json": 225,
+        "ch54_56_voip_iot_governance_professional.json": 225,
+        "ch57_59_network_security_soc_professional.json": 170,
+        "ch60_troubleshooting_lab_professional_part1.json": 120,
+        "ch60_troubleshooting_lab_professional_part2.json": 120,
+        "ch61_enterprise_architecture_professional.json": 145,
+        "ch62_it_operations_noc_professional.json": 100,
+        "ch63_runbook_cmdb_professional.json": 110,
     }
     try:
         from core.pack_loader import apply_packs_to_db
-        print("applying versioned content packs (chapters 34-39 include authoritative professional packs)...")
+        print("applying versioned professional content packs for chapters 31-63 with chapter-scoped matching...")
         res = apply_packs_to_db(Path(database.path), overwrite=False)
         print("pack apply:", res.get("updated"), "updated /", res.get("matched"), "matched",
               "skipped_shorter", res.get("skipped_shorter"))
@@ -173,10 +185,19 @@ def db() -> WebDB:
                 try:
                     print("background rich enrich started...")
                     print(_db.seed_full(force=True, skeleton_only=False))
-                    _apply_content_packs_if_needed(_db)
+                    print("content pack apply:", _apply_content_packs_if_needed(_db))
                 except Exception as ex:
                     print("background enrich error:", ex)
             threading.Thread(target=_bg, daemon=True).start()
+        elif (_db.get_meta("packs_applied") or "") != PACK_CONTENT_VERSION:
+            # Existing databases must receive newly versioned packs after an app update.
+            def _bg_packs():
+                try:
+                    print("background professional content pack refresh started...")
+                    print("content pack refresh:", _apply_content_packs_if_needed(_db))
+                except Exception as ex:
+                    print("content pack refresh error:", ex)
+            threading.Thread(target=_bg_packs, daemon=True).start()
         _db.ensure_sync_columns()
     return _db
 
