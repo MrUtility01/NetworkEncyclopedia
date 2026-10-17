@@ -6,11 +6,26 @@ import hashlib
 import json
 import os
 import socket
+import sys
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request
+
+
+def _configure_console_encoding():
+    """Prevent Windows cp1252 consoles from crashing on Persian lesson text."""
+    for stream in (sys.stdout, sys.stderr):
+        if stream is None or not hasattr(stream, "reconfigure"):
+            continue
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (OSError, ValueError):
+            pass
+
+
+_configure_console_encoding()
 
 from core.db import WebDB
 

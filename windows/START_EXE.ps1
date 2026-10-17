@@ -20,6 +20,8 @@ if (-not $env:NETENC_TOKEN) {
     }
 }
 
+$env:PYTHONUTF8 = "1"
+$env:PYTHONIOENCODING = "utf-8"
 if (-not $env:NETENC_HOST) { $env:NETENC_HOST = "0.0.0.0" }
 if (-not $env:NETENC_PORT) { $env:NETENC_PORT = "5050" }
 if (-not $env:NETENC_DEVICE) { $env:NETENC_DEVICE = $env:COMPUTERNAME }
