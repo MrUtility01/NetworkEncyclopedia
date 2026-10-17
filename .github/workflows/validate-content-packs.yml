@@ -5,6 +5,9 @@ on:
     paths:
       - "tools/packs/**/*.json"
       - "tools/validate_content_packs.py"
+      - "scripts/export_android_index.py"
+      - "scripts/merge_content_packs_into_android.py"
+      - "scripts/validate_android_pack_merge.py"
   push:
     branches:
       - main
@@ -30,3 +33,11 @@ jobs:
           python tools/validate_content_packs.py \
             tools/packs/ch57_network_security_professional.json \
             tools/packs/ch60_ethical_hacking_troubleshooting_professional.json
+      - name: Install server dependencies
+        run: python -m pip install -r server/requirements.txt
+      - name: Export full Android curriculum
+        run: python scripts/export_android_index.py
+      - name: Merge professional content packs
+        run: python scripts/merge_content_packs_into_android.py
+      - name: Verify merged Android curriculum
+        run: python scripts/validate_android_pack_merge.py
